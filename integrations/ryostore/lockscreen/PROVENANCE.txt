@@ -1,0 +1,17 @@
+Tahoe-inspired QML composition: Eduardo Augusto, 2026, AGPL-3.0.
+content/LiquidGlass.qml and content/shaders/liquid_glass.frag{,.qsb}:
+adapted from Ryoku's python barstyle, reusables/display/LiquidGlass.qml and
+assets/shaders/effects/liquid_glass.frag. Distributed under that barstyle's
+GNU AGPL version 3; see LICENSE. The wrapper replaces shell-internal theme
+and asset-path dependencies with standalone values and a relative shader URL.
+Source: https://github.com/ryoku-dev/ryoku
+content/i18n: MIT-licensed adapter by Ivan from Ryostore nothing-interface;
+MIT notice retained in content/i18n/LICENSE.
+Wallpaper subscription follows Ryogami's local socket protocol.
+No Apple artwork, wallpaper, avatar, logo or proprietary font is bundled.
+assets/preview.png is an actual render of this theme's blue fallback.
+content/GlassClock.qml and content/shaders/glass_clock.frag{,.qsb}:
+original glyph-mask refraction shader by Eduardo Augusto, 2026, AGPL-3.0.
+Motion parameters match Ryostore dynamic-island's Theme.qml and Island.qml:
+position spring/damping table, height multiplier, fade timing and OutBack scale.
+The installed Dynamic Island motion setting is read-only; no shell imports.
