@@ -1,0 +1,14 @@
+{
+  "name": "tahow",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "description": "An independent modular Quickshell shell with liquid-glass surfaces and optional Ryoku integration.",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "check": "bun tools/check.ts",
+    "test": "bun test",
+    "export": "bun tools/export-ryostore.ts",
+    "build:shaders": "bun tools/build-shaders.ts",
+    "i18n:sync": "bun tools/sync-i18n.ts"
+  }
+}
