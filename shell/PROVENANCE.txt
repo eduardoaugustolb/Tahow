@@ -1,0 +1,9 @@
+Dynamic Island: https://github.com/Alan-Betty/quickshell-DynamicIsland
+Revision: 4a4febb03c73d725c28fee6cbe7d735e6a52aaea
+Upstream MIT license retained in THIRD_PARTY_LICENSES/DynamicIsland-MIT. Combined distribution: AGPL-3.0.
+Tahoe palette: local feat/tahoe-command-palette worktree (uncommitted snapshot, preserved).
+Tahoe lock visual: lockscreen/tahoe, 410902c897ae5433cd7f70c3b489049351338afe
+Liquid glass: Ryoku installed shader and Tahoe uniform adapter; see THIRD_PARTY_LICENSES.
+Changes: compositor-neutral host port, centralized preferences, optional host seam, PAM/Wayland session-lock adapter.
+
+icons/* and lib/symbols.js: original geometric Tahoe glyphs, Eduardo Augusto and contributors, 2026; AGPL-3.0. No Apple or Icons8 icon assets are included.
