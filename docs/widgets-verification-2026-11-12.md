@@ -74,3 +74,22 @@ option, opt-in Liquid Glass and stable natural geometry without writing user
 preferences. The actual update was verified with SHA-256 readbacks: plugins.json
 and widgets.json were byte-identical before and after installing all eight
 updated products. No material selection, placement or scale was overwritten.
+
+## Suite grouping and customization
+
+Each manifest now declares set:"Tahow Widgets", the installed Stage Editor's
+supported suite-group field. The installed group was visually verified with
+8/8 members. StageWidgetPage only embeds the built-in inspector for non-plugin
+items, so Tahow adds its own hover gear and a fixed-size preferences window.
+That window renders the actual installed manifest schema, including text fields
+and variant choices, and sends only user-edited keys to ryoku-plugins-place.
+It never writes configuration JSON directly or resets a plugin's settings.
+The window stays instantiated when hidden so pending writes can finish.
+
+The compact-clock option is opt-in (default false). At the user's request it
+was enabled for the current clock only. Width now follows digit/date text plus
+6 logical pixels on each side; existing height and position remain unchanged.
+The before/after state comparison confirmed clockCompact was the only edited
+setting. The full product update left plugins.json/widgets.json byte-identical
+before that explicit clock adjustment. Stage verification screenshot:
+/tmp/tahow-compact-clock.png. Unit suite:35 pass; QML syntax:129 files.

@@ -34,10 +34,15 @@ Item {
     function tr(key) { return Locale.translate(Messages.catalogs,language,key); }
     function alpha(c,a) { return Qt.rgba(c.r,c.g,c.b,a); }
     function time(value) { const n=Math.max(0,Math.floor(value || 0)); return Math.floor(n/60)+":"+String(n%60).padStart(2,"0"); }
-    implicitWidth: Number(settings.contentWidth)>0 ? Number(settings.contentWidth) : kind === "github" ? 640*s : Math.min(widthBudget > 0 ? widthBudget : 360, (kind === "github" ? 640 : metric ? 180 : kind === "clock" ? 180 : kind === "session" ? 340 : 360)*unit)
+    implicitWidth: kind === "clock" && settings.clockCompact === true ? Math.max(clockDate.implicitWidth,clockHour.implicitWidth,clockMinute.implicitWidth)+12*unit : Number(settings.contentWidth)>0 ? Number(settings.contentWidth) : kind === "github" ? 640*s : Math.min(widthBudget > 0 ? widthBudget : 360, (kind === "github" ? 640 : metric ? 180 : kind === "clock" ? 180 : kind === "session" ? 340 : 360)*unit)
     implicitHeight: Number(settings.contentHeight)>0 ? Number(settings.contentHeight) : (kind === "github" ? 210 : metric ? 150 : kind === "clock" ? 220 : kind === "session" ? 200 : 160)*unit
     property date now: new Date()
     Timer { interval: root.settings.showSeconds ? 1000 : 15000; repeat: true; running: root.active && root.visible && root.kind === "clock"; onTriggered: root.now = new Date() }
+    property bool settingsOpen:false
+    property bool settingsCreated:false
+    onSettingsOpenChanged:if(settingsOpen)settingsCreated=true
+    Loader { active:root.settingsCreated; sourceComponent:WidgetPreferences {visible:root.settingsOpen;translate:root.tr;kind:root.kind;pluginApi:root.pluginApi;ink:root.ink;paper:root.dark?"#252529":"#f5f5f7";accent:root.accent;onDismissed:root.settingsOpen=false} }
+    HoverHandler{id:widgetHover}
     property string pendingAction: ""
     Timer { id: confirmation; interval: 4500; onTriggered: root.pendingAction = "" }
     function requestAction(action) {
@@ -68,6 +73,7 @@ Item {
         }
         contentItem: Item { Symbol { anchors.centerIn:parent; name: action.symbol; width: 22*root.unit; height: width; opacity: action.enabled ? 1 : 0.35 } }
     }
+    Action { z:20;anchors.right:parent.right;anchors.bottom:parent.bottom;anchors.margins:4; width:26;height:26;symbol:"settings";label:"Settings";visible:widgetHover.hovered || root.settingsOpen;onClicked:root.settingsOpen=true }
     RectangularShadow { visible: !root.bareClock; anchors.fill: plate; radius: plate.radius; blur: 22*root.unit; offset.y: 6*root.unit; color: "#30000000" }
     Rectangle {
         id: plate; anchors.fill: parent; radius: 24*root.unit; clip: true
@@ -91,11 +97,11 @@ Item {
             Text { anchors.bottom:parent.bottom; width:parent.width; text: root.service && root.service.available ? root.service.detailText : root.tr("Unavailable"); color:root.muted; font.family:"Inter"; font.pixelSize:10*root.unit; elide:Text.ElideRight }
         }
         Item {
-            visible: root.kind === "clock"; anchors.fill:parent; anchors.margins:18*root.unit
-            Text { width:parent.width; text:Qt.locale(root.language).toString(root.now,"ddd, d MMM"); color:root.muted; font.family:"Inter"; font.pixelSize:12*root.unit; horizontalAlignment:Text.AlignHCenter }
+            visible: root.kind === "clock"; anchors.fill:parent; anchors.margins:18*root.unit; anchors.leftMargin:root.settings.clockCompact ? 6*root.unit : 18*root.unit; anchors.rightMargin:root.settings.clockCompact ? 6*root.unit : 18*root.unit
+            Text { id:clockDate; width:parent.width; text:Qt.locale(root.language).toString(root.now,"ddd, d MMM"); color:root.muted; font.family:"Inter"; font.pixelSize:12*root.unit; horizontalAlignment:Text.AlignHCenter }
             Column { anchors.centerIn:parent; spacing:-12*root.unit
-                Text { text:Qt.formatTime(root.now,root.settings.use24h === false ? "hh AP" : "HH").replace(/\s[AP]M/,""); color:root.ink; font.family:"Inter"; font.pixelSize:66*root.unit; font.weight:Font.Light; anchors.horizontalCenter:parent.horizontalCenter }
-                Text { text:Qt.formatTime(root.now,"mm"); color:root.accent; font.family:"Inter"; font.pixelSize:66*root.unit; font.weight:Font.DemiBold; anchors.horizontalCenter:parent.horizontalCenter }
+                Text { id:clockHour; text:Qt.formatTime(root.now,root.settings.use24h === false ? "hh AP" : "HH").replace(/\s[AP]M/,""); color:root.ink; font.family:"Inter"; font.pixelSize:66*root.unit; font.weight:Font.Light; anchors.horizontalCenter:parent.horizontalCenter }
+                Text { id:clockMinute; text:Qt.formatTime(root.now,"mm"); color:root.accent; font.family:"Inter"; font.pixelSize:66*root.unit; font.weight:Font.DemiBold; anchors.horizontalCenter:parent.horizontalCenter }
             }
             Text { anchors.bottom:parent.bottom; width:parent.width; text: root.settings.showSeconds ? Qt.formatTime(root.now,"ss") : root.settings.use24h === false ? Qt.formatTime(root.now,"AP") : root.tr("Local time"); color:root.muted; font.family:"Inter"; font.pixelSize:11*root.unit; horizontalAlignment:Text.AlignHCenter }
         }

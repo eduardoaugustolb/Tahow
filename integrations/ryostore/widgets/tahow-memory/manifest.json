@@ -1,6 +1,7 @@
 {
   "schema": 1,
   "id": "tahow-memory",
+  "set": "Tahow Widgets",
   "category": "plugins",
   "version": "0.1.0",
   "destination": "ryoku/plugins/tahow-memory",
@@ -39,7 +40,9 @@
     }
   },
   "dependencies": {
-    "commands": []
+    "commands": [
+      "ryoku-plugins-place"
+    ]
   },
   "metadata": {
     "settings": [
@@ -286,8 +289,16 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 13474,
-      "sha256": "464f3921e25de090e78e8be436472adf2c528900ea3c69a1ebde8348a5be3a6e",
+      "size": 14490,
+      "sha256": "b21f797a0c95e148ac1d2729f062f2d959baceb80923d2767a01d96691b0df37",
+      "install": true
+    },
+    {
+      "source": "content/WidgetPreferences.qml",
+      "destination": "content/WidgetPreferences.qml",
+      "mode": "0644",
+      "size": 4151,
+      "sha256": "a84fa50102ffca22b36381b491db12604050945a74e020e094e98d839db33e51",
       "install": true
     },
     {
@@ -334,8 +345,8 @@
       "source": "lib/messages.js",
       "destination": "lib/messages.js",
       "mode": "0644",
-      "size": 2100,
-      "sha256": "7af59ce14257a3ba3dd183555f3e4456d68bba29bb7c4a5db7b8ac814dff402a",
+      "size": 3705,
+      "sha256": "8db791019285d353545b0c33048d0fa84092ac50f879e86c84de9c9c32ee063f",
       "install": true
     },
     {

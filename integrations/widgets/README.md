@@ -59,3 +59,11 @@ New settings are read with defaults; rendering does not write preferences or
 change geometry. Existing instances remain simulated unless explicitly changed.
 Product updates preserve host-owned positions, scale and settings. The GitHub
 calendar distributes its horizontal spacing evenly while retaining square days.
+
+Widgets are grouped under **Tahow Widgets** by their manifest `set` field.
+To customize: finish Stage editing, hover a tile and click its gear. The Tahow
+window exposes all declared options, including variants and text settings.
+Saving patches only changed keys through Ryoku's own placement command.
+The clock's **Compact width** option fits its digits/date with minimal side
+padding without changing height or imposing a square aspect ratio. It defaults
+to off for existing users; enable it explicitly where wanted.

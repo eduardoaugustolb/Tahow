@@ -48,3 +48,12 @@ test('GitHub shows no future days and keeps latest zero-contribution days',()=>{
  expect(result.cells.some((day:any)=>day.date==='2026-11-13')).toBe(false);
  expect(github.username('../invalid')).toBe('');
 });
+
+test('all Tahow widgets advertise their suite and persistent customization schema',async()=>{
+ for(const product of widgetProducts){
+  const manifest=await Bun.file('integrations/ryostore/widgets/tahow-'+product.kind+'/manifest.json').json();
+  expect(manifest.set).toBe('Tahow Widgets');
+  expect(manifest.dependencies.commands).toContain('ryoku-plugins-place');
+  expect(await Bun.file('integrations/ryostore/widgets/tahow-'+product.kind+'/content/WidgetPreferences.qml').exists()).toBe(true);
+ }
+});

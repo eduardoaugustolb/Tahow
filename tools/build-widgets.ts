@@ -42,6 +42,7 @@ export function widgetSettings(kind: string) {
     });
     if (kind === 'temperature') shared.push(choice('unit', 'Units', 'celsius', ['celsius', 'fahrenheit'], 'Data'), {key: 'bunPath', type: 'text', label: 'Bun executable', group: 'Data', default: 'bun'});
     if (kind === 'clock') shared.push(
+        {key:'clockCompact',type:'toggle',label:'Compact width',group:'Clock',default:false},
         choice('clockStyle', 'Style', 'card', ['card', 'bare'], 'Clock'),
         { key: 'use24h', type: 'toggle', label: '24-hour clock', group: 'Clock', default: true },
         { key: 'showSeconds', type: 'toggle', label: 'Show seconds', group: 'Clock', default: false },
@@ -86,7 +87,8 @@ export function buildWidgets(options: BuildOptions = {}) {
         // Original, self-contained Tahow helpers. No private desktop imports
         // or optical shader without a captured texture are packaged here.
         for (const name of ['material.js', 'symbols.js', 'locale.js']) put(`lib/${name}`, readFileSync(`${repository}/shell/lib/${name}`));
-        const keys = ['CPU','Temperature','Disk','Memory','Unavailable','Local time','User','Session','Lock','Suspend','Restart','Shut Down','Click again to confirm','Session controls','Previous','Pause','Play','Next','Playback position','Not Playing','Start music in any MPRIS player','Set your GitHub username in widget settings','Loading contributions…','Unable to load contributions','contributions','Refresh'];
+        const keys = ['CPU','Temperature','Disk','Memory','Unavailable','Local time','User','Session','Lock','Suspend','Restart','Shut Down','Click again to confirm','Session controls','Previous','Pause','Play','Next','Playback position','Not Playing','Start music in any MPRIS player','Set your GitHub username in widget settings','Loading contributions…','Unable to load contributions','contributions','Refresh','Settings'];
+        keys.push(...widgetSettings(product.kind).flatMap((setting:any)=>[setting.label,setting.group,...(setting.options||[]).map((option:any)=>option.label)]));
         const catalogs: Record<string, Record<string,string>> = {};
         for (const code of ['en-US','pt-BR']) {
             const all = JSON.parse(readFileSync(repository+'/locales/'+code+'.json','utf8'));
@@ -102,14 +104,14 @@ export function buildWidgets(options: BuildOptions = {}) {
         put('README.md',readme.split('\n').map(line=>line.trimEnd()).join('\n'));
         const settings = widgetSettings(product.kind);
         const manifest = {
-            schema: 1, id, category: 'plugins', version: '0.1.0', destination: `ryoku/plugins/${id}`,
+            schema: 1, id, set: 'Tahow Widgets', category: 'plugins', version: '0.1.0', destination: `ryoku/plugins/${id}`,
             name: `Tahow ${product.name}`, author: 'Eduardo Augusto <eduardoaugustolimabueno423@gmail.com>',
             description: product.description, license: 'AGPL-3.0-only', official: false,
             tags: ['tahow', 'desktop-widget', 'glass', product.kind],
             hosts: ['desktopWidget'], entryPoints: { main: 'service/Main.qml', content: 'content/Widget.qml' },
             capabilities: { densities: ['compact', 'full'], colors: true, network: product.kind === 'github' ? ['github-contributions-api.jogruber.de'] : [], privileged: [] },
             defaults: { host: 'desktopWidget', label: `Tahow ${product.name}`, desktopWidget: { bg: 'none' } },
-            dependencies: { commands: [...product.commands] }, metadata: { settings },
+            dependencies: { commands: [...product.commands, 'ryoku-plugins-place'] }, metadata: { settings },
             files: [...output.keys()].sort().map(path => ({
                 source: path, destination: path, mode: path.startsWith('bin/') ? '0755' : '0644',
                 size: output.get(path)!.length, sha256: digest(output.get(path)!), install: !/^assets\/preview-widget\./.test(path),
