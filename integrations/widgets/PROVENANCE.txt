@@ -1,0 +1,4 @@
+Original Tahow desktop widget implementation: Eduardo Augusto and contributors, 2026; AGPL-3.0-only.
+Functional/layout references inspected read-only: Ryoku Python shell widgets/faces/usage/{CpuFace,TempFace,DiskFace,RamFace}.qml, widgets/faces/user/UserFace.qml, widgets/faces/clock/ClockFaceDigital.qml, widgets/faces/music/MusicFace.qml (installed Ryoku 1.0.7.r5727.gf7197d7; AGPL-3.0).
+No Python shell private modules or source files are imported or required at runtime. Geometric symbols and material policy are original Tahow assets; see root NOTICE.md.
+No Apple or Icons8 artwork or proprietary fonts are bundled.

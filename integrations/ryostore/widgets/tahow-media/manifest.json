@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "id": "tahow-media",
+  "category": "plugins",
+  "version": "0.1.0",
+  "destination": "ryoku/plugins/tahow-media",
+  "name": "Tahow Media",
+  "author": "Eduardo Augusto <eduardoaugustolimabueno423@gmail.com>",
+  "description": "Playback and controls for available MPRIS players.",
+  "license": "AGPL-3.0-only",
+  "official": false,
+  "tags": [
+    "tahow",
+    "desktop-widget",
+    "glass",
+    "media"
+  ],
+  "hosts": [
+    "desktopWidget"
+  ],
+  "entryPoints": {
+    "main": "service/Main.qml",
+    "content": "content/Widget.qml"
+  },
+  "capabilities": {
+    "densities": [
+      "compact",
+      "full"
+    ],
+    "colors": true,
+    "network": [],
+    "privileged": []
+  },
+  "defaults": {
+    "host": "desktopWidget",
+    "label": "Tahow Media",
+    "desktopWidget": {
+      "bg": "none"
+    }
+  },
+  "dependencies": {
+    "commands": []
+  },
+  "metadata": {
+    "settings": [
+      {
+        "key": "contentWidth",
+        "type": "int",
+        "label": "Width",
+        "group": "Size",
+        "default": 0,
+        "min": 0,
+        "max": 1600
+      },
+      {
+        "key": "contentHeight",
+        "type": "int",
+        "label": "Height",
+        "group": "Size",
+        "default": 0,
+        "min": 0,
+        "max": 1000
+      },
+      {
+        "key": "language",
+        "type": "choice",
+        "label": "Language",
+        "group": "Glass",
+        "default": "auto",
+        "options": [
+          {
+            "value": "auto",
+            "label": "auto"
+          },
+          {
+            "value": "en-US",
+            "label": "en-US"
+          },
+          {
+            "value": "pt-BR",
+            "label": "pt-BR"
+          }
+        ]
+      },
+      {
+        "key": "appearance",
+        "type": "choice",
+        "label": "Appearance",
+        "group": "Glass",
+        "default": "auto",
+        "options": [
+          {
+            "value": "auto",
+            "label": "auto"
+          },
+          {
+            "value": "dark",
+            "label": "dark"
+          },
+          {
+            "value": "light",
+            "label": "light"
+          }
+        ]
+      },
+      {
+        "key": "glassOpacity",
+        "type": "slider",
+        "label": "Glass opacity",
+        "group": "Glass",
+        "default": 0.55,
+        "min": 0.15,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "key": "glassRim",
+        "type": "toggle",
+        "label": "Specular rim",
+        "group": "Glass",
+        "default": true
+      },
+      {
+        "key": "glassAccentTint",
+        "type": "toggle",
+        "label": "Tint glass with accent",
+        "group": "Glass",
+        "default": true
+      }
+    ]
+  },
+  "files": [
+    {
+      "source": "LICENSE",
+      "destination": "LICENSE",
+      "mode": "0644",
+      "size": 34260,
+      "sha256": "00352ab19865e23bb0ab7e0f45332206aba6a66d75b3f3cc962fdd6508d63ea4",
+      "install": true
+    },
+    {
+      "source": "NOTICE.md",
+      "destination": "NOTICE.md",
+      "mode": "0644",
+      "size": 1647,
+      "sha256": "a9516c4150ca1e26cd399be2549668767e5520fe70bd9da6746e8ecd14c18a96",
+      "install": true
+    },
+    {
+      "source": "PROVENANCE.txt",
+      "destination": "PROVENANCE.txt",
+      "mode": "0644",
+      "size": 473,
+      "sha256": "f39e5f55c402b8a2af1696b3bbb1b23853c9e442531684983f577d736f4d3a47",
+      "install": true
+    },
+    {
+      "source": "README.md",
+      "destination": "README.md",
+      "mode": "0644",
+      "size": 1111,
+      "sha256": "0a18963cb57ead974ea984939099507928c05a5ed5db1938c49b69a037382b28",
+      "install": true
+    },
+    {
+      "source": "assets/preview-widget.png",
+      "destination": "assets/preview-widget.png",
+      "mode": "0644",
+      "size": 39384,
+      "sha256": "d727f94b4c67e50e1ad0d3fd57826462d7912ba16b4c433aea17ef981b39b04e",
+      "install": false
+    },
+    {
+      "source": "content/GithubWidget.qml",
+      "destination": "content/GithubWidget.qml",
+      "mode": "0644",
+      "size": 4987,
+      "sha256": "efc0cfde5242ae7c82ec347e49af6bdc34a2138e9ba67f6e93dc4f8c683858ab",
+      "install": true
+    },
+    {
+      "source": "content/Widget.qml",
+      "destination": "content/Widget.qml",
+      "mode": "0644",
+      "size": 89,
+      "sha256": "951b7ebe659e951230e666991c4d58fac87fc0576b9307cbbcedfdea9755f289",
+      "install": true
+    },
+    {
+      "source": "content/WidgetFace.qml",
+      "destination": "content/WidgetFace.qml",
+      "mode": "0644",
+      "size": 12822,
+      "sha256": "b270a9921b1a3365fc5bcda20a48376bf49bed44d86708e17ea0a2641365636e",
+      "install": true
+    },
+    {
+      "source": "lib/github.js",
+      "destination": "lib/github.js",
+      "mode": "0644",
+      "size": 1920,
+      "sha256": "d64bd6976a3073e4e10a69fe20dd8c5426afb02cbe24e3759f040025aa9284a5",
+      "install": true
+    },
+    {
+      "source": "lib/locale.js",
+      "destination": "lib/locale.js",
+      "mode": "0644",
+      "size": 1152,
+      "sha256": "b2445b159f25cbf5a4e85e013dd0c5c485b6dc2c1895dcf509c362a6abe82702",
+      "install": true
+    },
+    {
+      "source": "lib/material.js",
+      "destination": "lib/material.js",
+      "mode": "0644",
+      "size": 1335,
+      "sha256": "a6aaef68bf5e74e54aff45d7a32144fcb95f5aa2e3ee3b1feb5d5f906e82d3ef",
+      "install": true
+    },
+    {
+      "source": "lib/messages.js",
+      "destination": "lib/messages.js",
+      "mode": "0644",
+      "size": 2100,
+      "sha256": "7af59ce14257a3ba3dd183555f3e4456d68bba29bb7c4a5db7b8ac814dff402a",
+      "install": true
+    },
+    {
+      "source": "lib/metrics.js",
+      "destination": "lib/metrics.js",
+      "mode": "0644",
+      "size": 4888,
+      "sha256": "38b6bc3b08f8d650b4e64f407fb2f4bde673d71b82c0c059671a5cef6d025ba9",
+      "install": true
+    },
+    {
+      "source": "lib/symbols.js",
+      "destination": "lib/symbols.js",
+      "mode": "0644",
+      "size": 4301,
+      "sha256": "8d03b5bda18d83f967fa3baeba247e3a0166f61cc34723e6854f343ca6fed8e5",
+      "install": true
+    },
+    {
+      "source": "service/Main.qml",
+      "destination": "service/Main.qml",
+      "mode": "0644",
+      "size": 92,
+      "sha256": "d5ad1abe3fa35177e48fa59949cb9b35eed2c9d330de0bbf18d68fda8c4e0202",
+      "install": true
+    },
+    {
+      "source": "service/WidgetService.qml",
+      "destination": "service/WidgetService.qml",
+      "mode": "0644",
+      "size": 6424,
+      "sha256": "8c768d43f8e75e72ad5942e02d6f60939f381b8ba5830a3cc8f76ba0c27bd76e",
+      "install": true
+    }
+  ]
+}

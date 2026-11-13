@@ -82,7 +82,7 @@ Item {
     }
     Process {
         id: temperatureProcess
-        command: ["bun", root.temperatureScript]
+        command: [root.settings.bunPath || "bun", root.temperatureScript]
         stdout: StdioCollector {
             onStreamFinished: {
                 if (!root.active || root.kind !== "temperature") return;

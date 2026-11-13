@@ -31,7 +31,7 @@ function memory(text) {
     if (!(total > 0) || !Number.isFinite(available)) return unavailable();
     const used = Math.max(0, Math.min(total, total - available));
     const value = fraction(used / total);
-    return {available: true, value: value, valueText: Math.round(value * 100) + "%", detailText: gib(used) + " / " + gib(total)};
+    return {available: true, value: value, valueText: gib(used), detailText: Math.round(value * 100) + "% · " + gib(total)};
 }
 function disk(text) {
     // POSIX df -Pk: filesystem, 1024-blocks, used, available, capacity, mount.

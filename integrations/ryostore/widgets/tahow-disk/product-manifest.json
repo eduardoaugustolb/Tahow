@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "id": "tahow-disk",
+  "category": "plugins",
+  "version": "0.1.0",
+  "destination": "ryoku/plugins/tahow-disk",
+  "license": "AGPL-3.0-only",
+  "files": [
+    {
+      "source": "LICENSE",
+      "destination": "LICENSE",
+      "mode": "0644",
+      "size": 34260,
+      "sha256": "00352ab19865e23bb0ab7e0f45332206aba6a66d75b3f3cc962fdd6508d63ea4",
+      "install": true
+    },
+    {
+      "source": "NOTICE.md",
+      "destination": "NOTICE.md",
+      "mode": "0644",
+      "size": 1647,
+      "sha256": "a9516c4150ca1e26cd399be2549668767e5520fe70bd9da6746e8ecd14c18a96",
+      "install": true
+    },
+    {
+      "source": "PROVENANCE.txt",
+      "destination": "PROVENANCE.txt",
+      "mode": "0644",
+      "size": 473,
+      "sha256": "f39e5f55c402b8a2af1696b3bbb1b23853c9e442531684983f577d736f4d3a47",
+      "install": true
+    },
+    {
+      "source": "README.md",
+      "destination": "README.md",
+      "mode": "0644",
+      "size": 1045,
+      "sha256": "55723ed276e6c488d1f219c95cabde61b132af079a24760f3b5aaab7b13317be",
+      "install": true
+    },
+    {
+      "source": "assets/preview-widget.png",
+      "destination": "assets/preview-widget.png",
+      "mode": "0644",
+      "size": 11888,
+      "sha256": "242163955c0f01771637c76f153e49ae047c2361b7ab5817a6be0ec33016999d",
+      "install": false
+    },
+    {
+      "source": "content/GithubWidget.qml",
+      "destination": "content/GithubWidget.qml",
+      "mode": "0644",
+      "size": 4987,
+      "sha256": "efc0cfde5242ae7c82ec347e49af6bdc34a2138e9ba67f6e93dc4f8c683858ab",
+      "install": true
+    },
+    {
+      "source": "content/Widget.qml",
+      "destination": "content/Widget.qml",
+      "mode": "0644",
+      "size": 88,
+      "sha256": "49979e67fe9553866fe14ec6d71f4276ebf39d13b4088289b162f8c0dc4430d7",
+      "install": true
+    },
+    {
+      "source": "content/WidgetFace.qml",
+      "destination": "content/WidgetFace.qml",
+      "mode": "0644",
+      "size": 12822,
+      "sha256": "b270a9921b1a3365fc5bcda20a48376bf49bed44d86708e17ea0a2641365636e",
+      "install": true
+    },
+    {
+      "source": "lib/github.js",
+      "destination": "lib/github.js",
+      "mode": "0644",
+      "size": 1920,
+      "sha256": "d64bd6976a3073e4e10a69fe20dd8c5426afb02cbe24e3759f040025aa9284a5",
+      "install": true
+    },
+    {
+      "source": "lib/locale.js",
+      "destination": "lib/locale.js",
+      "mode": "0644",
+      "size": 1152,
+      "sha256": "b2445b159f25cbf5a4e85e013dd0c5c485b6dc2c1895dcf509c362a6abe82702",
+      "install": true
+    },
+    {
+      "source": "lib/material.js",
+      "destination": "lib/material.js",
+      "mode": "0644",
+      "size": 1335,
+      "sha256": "a6aaef68bf5e74e54aff45d7a32144fcb95f5aa2e3ee3b1feb5d5f906e82d3ef",
+      "install": true
+    },
+    {
+      "source": "lib/messages.js",
+      "destination": "lib/messages.js",
+      "mode": "0644",
+      "size": 2100,
+      "sha256": "7af59ce14257a3ba3dd183555f3e4456d68bba29bb7c4a5db7b8ac814dff402a",
+      "install": true
+    },
+    {
+      "source": "lib/metrics.js",
+      "destination": "lib/metrics.js",
+      "mode": "0644",
+      "size": 4888,
+      "sha256": "38b6bc3b08f8d650b4e64f407fb2f4bde673d71b82c0c059671a5cef6d025ba9",
+      "install": true
+    },
+    {
+      "source": "lib/symbols.js",
+      "destination": "lib/symbols.js",
+      "mode": "0644",
+      "size": 4301,
+      "sha256": "8d03b5bda18d83f967fa3baeba247e3a0166f61cc34723e6854f343ca6fed8e5",
+      "install": true
+    },
+    {
+      "source": "service/Main.qml",
+      "destination": "service/Main.qml",
+      "mode": "0644",
+      "size": 91,
+      "sha256": "f59fd099c4311b8d5bbafe37cccbdac46bc019ac3340169339e9f8c08291ffab",
+      "install": true
+    },
+    {
+      "source": "service/WidgetService.qml",
+      "destination": "service/WidgetService.qml",
+      "mode": "0644",
+      "size": 6424,
+      "sha256": "8c768d43f8e75e72ad5942e02d6f60939f381b8ba5830a3cc8f76ba0c27bd76e",
+      "install": true
+    },
+    {
+      "source": "manifest.json",
+      "destination": "manifest.json",
+      "mode": "0644",
+      "size": 6708,
+      "sha256": "050eb43f26a84ca913d1fc036101d61e0dee1e61c3391744a3c61d45f62cded2",
+      "install": true
+    }
+  ]
+}

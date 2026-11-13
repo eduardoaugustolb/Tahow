@@ -42,6 +42,11 @@ Glass shares one neutral light/dark base and accent mixing policy across the isl
 
 ## Development
 
+Seven independent desktop widgets are available as Ryoku plugins: CPU,
+temperature, disk, memory, session controls, clock and media. They use Tahow's
+simulated-glass cards and do not require either subshell to run. See the
+[widget sources and installation guide](integrations/widgets/README.md).
+
 Use **Bun** for scripts and dependencies:
 
 ```sh

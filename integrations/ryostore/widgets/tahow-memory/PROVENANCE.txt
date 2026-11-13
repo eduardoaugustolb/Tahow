@@ -1,0 +1,5 @@
+Generated from Tahow integrations/widgets by bun tools/build-widgets.ts.
+Functional references: Ryoku Python shell usage/user/clock/music faces (AGPL-3.0). No private imports or runtime dependency.
+Original Tahow widget composition, material helper and geometric symbols: Eduardo Augusto and contributors, 2026.
+Combined distribution: AGPL-3.0-only; retain LICENSE and NOTICE.md.
+No Apple or Icons8 assets are included. No capture or optical refraction shader is packaged.

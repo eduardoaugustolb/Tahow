@@ -1,0 +1,85 @@
+{
+  "monitor": "eDP-1",
+  "layout": [
+    {
+      "kind": "cpu",
+      "prefix": "pythonCpu",
+      "width": 180,
+      "height": 130,
+      "x": 1536,
+      "y": 64,
+      "scale": 1,
+      "enabled": false
+    },
+    {
+      "kind": "temperature",
+      "prefix": "pythonTemp",
+      "width": 180,
+      "height": 130,
+      "x": 1728,
+      "y": 64,
+      "scale": 1,
+      "enabled": false
+    },
+    {
+      "kind": "disk",
+      "prefix": "pythonDisk",
+      "width": 180,
+      "height": 130,
+      "x": 1536,
+      "y": 208,
+      "scale": 1,
+      "enabled": false
+    },
+    {
+      "kind": "memory",
+      "prefix": "pythonRam",
+      "width": 180,
+      "height": 130,
+      "x": 1728,
+      "y": 208,
+      "scale": 1,
+      "enabled": false
+    },
+    {
+      "kind": "session",
+      "prefix": "pythonUser",
+      "width": 260,
+      "height": 140,
+      "x": 1568,
+      "y": 880,
+      "scale": 1.3,
+      "enabled": false
+    },
+    {
+      "kind": "clock",
+      "prefix": "pythonTime",
+      "width": 156,
+      "height": 120,
+      "x": 0,
+      "y": 944,
+      "scale": 1,
+      "enabled": false
+    },
+    {
+      "kind": "media",
+      "prefix": "pythonMusic",
+      "width": 340,
+      "height": 120,
+      "x": 144,
+      "y": 944,
+      "scale": 1,
+      "enabled": false
+    },
+    {
+      "kind": "github",
+      "prefix": "pythonGithub",
+      "width": 540,
+      "height": 180,
+      "x": 16,
+      "y": 64,
+      "scale": 1.16,
+      "enabled": false
+    }
+  ]
+}
