@@ -16,14 +16,14 @@ const url = (s, l = lang) => `${base}/${l}/${s ? s + '/' : ''}`;
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width" />
   <title>{title} · Tahow</title><meta name="description" content={description} />
   <meta name="theme-color" content="#242426" />
-  <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+  <link rel="icon" type="image/png" href={`${base}/brand/tahow-logo.png`} />
   <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
   <script is:inline>try { document.documentElement.dataset.theme = localStorage.getItem('tahow-docs-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); } catch {}</script>
   <noscript><style>.sidebar{display:flex!important}.mobile-menu{display:none!important}</style></noscript>
 </head>
 <body>
 <a class="skip" href="#content">{en ? 'Skip to content' : 'Pular para o conteúdo'}</a>
-    <header class="toolbar"><button class="mobile-menu" aria-expanded="false" aria-controls="navigation">Menu</button>    <a class="brand" href={url('')}><span class="brand-mark" aria-hidden="true"><i></i></span><span><strong>Tahow</strong><small>{en ? 'Shell documentation' : 'Documentação do shell'}</small></span></a><div class="toolbar-controls"><label><span class="sr-only">{en ? 'Language' : 'Idioma'} </span><select id="language"><option value={url(slug, 'pt-BR')} selected={!en}>Português</option><option value={url(slug, 'en-US')} selected={en}>English</option></select></label><button id="theme" aria-label={en ? 'Toggle light and dark appearance' : 'Alternar aparência clara e escura'}>◐</button><a href="https://github.com/eduardoaugustolb/Tahow" aria-label="GitHub">GitHub</a></div></header>
+    <header class="toolbar"><button class="mobile-menu" aria-expanded="false" aria-controls="navigation">Menu</button>    <a class="brand" href={url('')}><img class="brand-logo" src={`${base}/brand/tahow-logo.png`} alt="" width="46" height="46" /><span><strong>Tahow</strong><small>{en ? 'Shell documentation' : 'Documentação do shell'}</small></span></a><div class="toolbar-controls"><label><span class="sr-only">{en ? 'Language' : 'Idioma'} </span><select id="language"><option value={url(slug, 'pt-BR')} selected={!en}>Português</option><option value={url(slug, 'en-US')} selected={en}>English</option></select></label><button id="theme" aria-label={en ? 'Toggle light and dark appearance' : 'Alternar aparência clara e escura'}>◐</button><a href="https://github.com/eduardoaugustolb/Tahow" aria-label="GitHub">GitHub</a></div></header>
 <div class="docs-layout">
   <aside class="sidebar" id="navigation">
 

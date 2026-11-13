@@ -1,0 +1,9 @@
+{
+  "asset": "tahow-logo-concept-v1.png",
+  "created": "2026-11-13",
+  "method": "OpenAI built-in image_gen",
+  "status": "Logo concept; not yet applied to the website or shell",
+  "direction": "User requested a Tahow logo based on Apple's logo. Generated an abstract t-shaped island silhouette with a detached droplet, circular notch and silver-blue liquid glass.",
+  "inputs": "Text prompt only; no Apple artwork or proprietary font files imported.",
+  "background": "transparent"
+}

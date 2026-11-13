@@ -1,0 +1,9 @@
+{
+  "asset": "tahow-logo-concept-v3.png",
+  "created": "2026-11-13",
+  "method": "OpenAI built-in image_gen edit",
+  "source": "tahow-logo-concept-v2.png",
+  "change": "Shifted detached droplet slightly farther right",
+  "status": "Concept; not applied to website or shell",
+  "background": "transparent"
+}
