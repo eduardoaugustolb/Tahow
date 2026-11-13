@@ -9,10 +9,11 @@ import Quickshell.Widgets
 // The morphing island. Picks a mode, springs to its size, crossfades pages.
 Item {
     id: root
+    objectName: "tahow-island"
     required property string screenName
 
     readonly property real compactPadding: Math.max(12,Math.min(28,Config.island.compactPadding))
-    function layoutDump() { return { mode: mode, leftPadding: idleRow.x, rightPadding: width - idleRow.x - idleRow.width, width: width }; }
+    function layoutDump() { return { mode: mode, leftPadding: idleRow.x, rightPadding: width - idleRow.x - idleRow.width, width: width, liquidReady: surface.liquidReady, liquidMix: surface.liquidMix, material: surface.materialState() }; }
     Connections { target: Hub; function onDismissed() { root.peek = false; } }
     readonly property bool focusedHere: !Host.focusedOutput || Host.focusedOutput === screenName
     readonly property bool isExpanded: Hub.expanded && Hub.expandedScreen === screenName
@@ -85,8 +86,8 @@ Item {
         id: peekTimer
         interval: hover.hovered ? Config.island.hoverDelay : 160
         onTriggered: {
-            // Hover previews retain simulated glass: capturing here would hide
-            // the pill before every preview and produce a visible blink.
+            // The prepared glass texture survives preview and compact morphs.
+            // Never hide or recapture the island on a hover transition.
             root.peek = root.canPeek && hover.hovered && Config.island.hoverPeek;
         }
     }
@@ -129,7 +130,6 @@ Item {
 
     Glass {
         id: surface
-        refraction: !root.compact && !root.mode.endsWith("Peek")
         anchors.fill: parent
         radius: root.isExpanded ? 36 : root.isLauncher ? 28 : root.height >= 60 ? 32 : root.height / 2
         glowColor: root.glowColor
@@ -819,7 +819,7 @@ Item {
         Behavior on opacity { NumberAnimation { duration: 220 } }
         Behavior on width { NumberAnimation { duration: 200; easing.type: Config.island.easing } }
 
-        Glass { anchors.fill: parent; refraction: false; radius: 19; shadowBlur: 18; shadowY: 4 }
+        Glass { anchors.fill: parent; radius: 19; shadowBlur: 18; shadowY: 4 }
         Row {
             id: clockRow
             anchors.centerIn: parent
@@ -875,7 +875,6 @@ Item {
             radius: 19
             shadowBlur: 18
             shadowY: 4
-            refraction: false
             glowColor: root.secondary === "recording" ? Theme.red : root.secondary === "timer" ? Theme.orange : Theme.live
             glowStrength: Config.island.glow ? 0.25 : 0
         }

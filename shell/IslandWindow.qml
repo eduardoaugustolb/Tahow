@@ -37,11 +37,12 @@ PanelWindow {
             islandOpacity: island.opacity,
             surfaceOpacity: win.contentItem.opacity,
             acquiringBackdrop: acquiringBackdrop,
+            presentationReady: presentationReady,
             captureHasContent: backgroundCapture.hasContent,
             backdropReady: !!Host.backdrops[screenName]
         });
     }
-    Component.onCompleted: Host.registerWindow(win)
+    Component.onCompleted: { Host.registerWindow(win); warmup.restart(); }
     // Capture visibility is local to the requesting component. Never fade the
     // whole overlay: banners and Notification Center share this window too.
     readonly property bool interactive: island.isExpanded || island.isLauncher || centerShown || Notifs.replying || banners.hovered
@@ -81,49 +82,37 @@ PanelWindow {
 
 
     property bool acquiringBackdrop: false
-    property bool captureHidesIsland: false
+    property bool presentationReady: false
     property string pendingKind: ""
     property int pendingValue: 0
     function prepare(kind,value) {
         pendingKind = kind; pendingValue = value;
-        if (acquiringBackdrop) return;
-        if ((island.peek || island.isExpanded || centerShown) && Host.backdrops[screenName]) { completePresentation(); return; }
-        if (!Config.island.screenCapture) { completePresentation(); return; }
+        if (acquiringBackdrop || !presentationReady) return;
+        completePresentation();
+    }
+    // Acquire once, before any of our surfaces are presented. Every island
+    // state samples this same clean, frozen frame; morphs never hide the pill
+    // or capture the previous pill into its replacement.
+    function prepareBackdrop() {
+        if (presentationReady || acquiringBackdrop) return;
+        if (!Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed) { completePresentation(); return; }
+        if (!Host.desktopCaptureReady) return;
         acquiringBackdrop = true; Host.beginCapture();
-        captureHidesIsland = kind !== "center";
-        Host.backdrop(screenName, null);
         backgroundCapture.live = false;
         backgroundCapture.captureSource = null;
-        fadeIn.stop();
-        island.opacity = 1;
-        // Notification Center is already hidden until Host.prepared commits it.
-        // Its acquisition must leave the collapsed Island and banners intact.
-        if (captureHidesIsland) fadeOut.restart();
-        else acquire.restart();
+        acquire.restart();
     }
     function completePresentation() {
-        acquire.stop(); fadeOut.stop();
+        acquire.stop();
         if (acquiringBackdrop) { Host.endCapture(); acquiringBackdrop = false; }
         backgroundCapture.live = false;
-        if (captureHidesIsland) fadeIn.restart();
+        presentationReady = true;
         const kind = pendingKind, value = pendingValue; pendingKind = "";
         if (kind) Host.prepared(win.screenName,kind,value);
     }
-    NumberAnimation {
-        id: fadeOut
-        target: island; property: "opacity"; to: 0
-        duration: Theme.reduced ? 1 : 32
-        easing.type: Easing.InQuad
-        onFinished: if (win.acquiringBackdrop) acquire.restart()
-    }
-    // Submit two fully transparent frames before asking the compositor for pixels.
+    Timer { id: warmup; interval: 0; onTriggered: win.prepareBackdrop() }
+    // Submit transparent frames before the initial capture, not between pills.
     Timer { id: acquire; interval: 32; onTriggered: { if (!win.acquiringBackdrop) return; backgroundCapture.captureSource = win.screen; } }
-    NumberAnimation {
-        id: fadeIn
-        target: island; property: "opacity"; to: 1
-        duration: Theme.reduced ? 1 : 80
-        easing.type: Easing.OutQuad
-    }
     ScreencopyView {
         id: backgroundCapture; anchors.fill: parent; paintCursor: false; live: false
         onHasContentChanged: if (hasContent && win.acquiringBackdrop) {
@@ -139,8 +128,9 @@ PanelWindow {
     }
     Timer { interval: 700; running: win.acquiringBackdrop; onTriggered: win.completePresentation() }
     Connections { target: Host
+        function onDesktopCaptureReadyChanged() { if (Host.desktopCaptureReady) warmup.restart(); }
         function onPrepareRequested(screen,kind,value) { if (screen === win.screenName) win.prepare(kind,value); }
-        function onPreparationCancelled() { win.pendingKind = ""; if (win.acquiringBackdrop) win.completePresentation(); }
+        function onPreparationCancelled() { win.pendingKind = ""; }
     }
     Component.onDestruction: { Host.unregisterWindow(win); Host.backdrop(win.screenName, null); if (acquiringBackdrop) Host.endCapture(); }
 
@@ -161,7 +151,7 @@ PanelWindow {
     NotificationCenter {
         id: center
         z: 2
-        shown: win.centerShown
+        shown: win.presentationReady && win.centerShown
         screenName: win.screenName
         maxHeight: win.height - y - 16
         x: Math.round((win.width - width) / 2)
@@ -172,7 +162,7 @@ PanelWindow {
     BannerStack {
         id: banners
         z: 5
-        active: Config.island.notifStyle !== "island" && win.focusedHere && !win.centerShown
+        active: win.presentationReady && Config.island.notifStyle !== "island" && win.focusedHere && !win.centerShown
         readonly property bool corner: Config.island.notifStyle === "corner"
         width: corner ? 370 : 400
         x: corner ? win.width - width - 14 : Math.round((win.width - width) / 2)
@@ -184,6 +174,7 @@ PanelWindow {
     Island {
         id: island
         z: 10
+        visible: win.presentationReady
         screenName: win.screenName
         x: Math.round((win.width - width) / 2)
         y: Config.island.topMargin

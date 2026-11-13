@@ -15,9 +15,24 @@ Item {
     property real glowStrength: 0
     readonly property real r: Math.max(0, Math.min(radius, height / 2, width / 2))
     readonly property var texture: Host.backdrops[Screen.name] || null
+    property bool sampledFrame: false
+    onTextureChanged: sampledFrame = false
+    onRefractionChanged: sampledFrame = false
+    // QSB shaders can retain Uncompiled with a cached RHI pipeline. Wait for
+    // an actual submitted frame instead of using Compiled as a readiness gate.
+    readonly property bool liquidReady: glass.visible && sampledFrame && glass.status !== ShaderEffect.Error
+    function materialState() { return {screen: Screen.name, textureReady: texture !== null, shaderVisible: glass.visible, shaderStatus: glass.status, shaderLog: glass.log, themeGlass: Theme.glass}; }
+    property real liquidMix: liquidReady ? 1 : 0
+    Behavior on liquidMix { NumberAnimation { duration: Theme.reduced ? 1 : 150; easing.type: Easing.InOutQuad } }
+    Connections {
+        target: root.Window.window
+        enabled: glass.visible && !root.sampledFrame
+        function onFrameSwapped() { root.sampledFrame = true; }
+    }
     RectangularShadow { anchors.fill: parent; visible: root.shadow; radius: root.r; blur: root.shadowBlur; offset.y: root.shadowY; color: Theme.shadow }
     Rectangle {
         anchors.fill: parent; radius: root.r
+        opacity: 1 - root.liquidMix
         gradient: Gradient {
             GradientStop { position: 0; color: root.refraction ? Theme.alpha(root.tint,Math.max(0.12,Config.island.glassOpacity)) : Theme.alpha(Theme.mix(root.tint,Qt.rgba(1,1,1,1),Theme.dark ? 0.22 : 0.44),0.64) }
             GradientStop { position: 0.48; color: root.refraction ? Theme.alpha(root.tint,Math.max(0.12,Config.island.glassOpacity)) : Theme.alpha(Theme.mix(root.tint,Theme.accent,0.08),0.48) }
@@ -30,6 +45,9 @@ Item {
     NativeGlass {
         id: glass
         anchors.fill: parent; visible: root.refraction && Theme.glass && root.texture !== null
+        // Keep one nearly transparent draw while the shader is prepared. The
+        // fallback stays underneath until the replacement is ready to blend in.
+        opacity: Math.max(0.01, root.liquidMix)
         src: root.texture
         sourceRect: {
             let ancestor = root;
@@ -47,7 +65,7 @@ Item {
         anchors.fill: parent; anchors.margins: 1
         radius: Math.max(0, root.r - 1)
         visible: glass.visible
-        color: Qt.rgba(root.tint.r, root.tint.g, root.tint.b, 1); opacity: Theme.glassA
+        color: Qt.rgba(root.tint.r, root.tint.g, root.tint.b, 1); opacity: Theme.glassA * root.liquidMix
     }
     Rectangle { anchors.fill: parent; radius: root.r; color: "transparent"; border.width: root.rim ? 1 : 0; border.color: Theme.alpha(Theme.accent, Theme.dark ? 0.2 : 0.35) }
 }

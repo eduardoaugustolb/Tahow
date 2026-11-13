@@ -19,6 +19,8 @@ Singleton {
     function registerWindow(window) { windows = windows.concat([window]); }
     function unregisterWindow(window) { windows = windows.filter(w => w !== window); }
     property var adapter: null
+    readonly property bool desktopCaptureReady: !adapter || !("desktopCaptureReady" in adapter) || adapter.desktopCaptureReady
+    readonly property bool desktopCaptureAllowed: !adapter || !("desktopCaptureAllowed" in adapter) || adapter.desktopCaptureAllowed
     readonly property string focusedOutput: adapter ? adapter.focusedOutput : (Quickshell.screens.length ? Quickshell.screens[0].name : "")
     readonly property int workspace: adapter ? adapter.workspace : 1
     readonly property var occupied: adapter ? adapter.occupied : []

@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import shell.services as Shell
 import Ryoku.Ui.Singletons as Ryoku
 import Ryoku.Ui.Singletons
@@ -7,6 +8,27 @@ import ".."
 QtObject {
     id: root
     readonly property string language: Ryoku.I18n.lang
+    // A startup snapshot must wait until Ryoku's opaque reload cover leaves.
+    // Probe only during startup; no polling or desktop capture while in use.
+    property bool desktopCaptureReady: false
+    property bool desktopCaptureAllowed: true
+    property bool reloadCoverPresent: true
+    property Process coverProbe: Process {
+        id: coverProbe
+        command: ["qs", "list", "--all"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: root.reloadCoverPresent = text.indexOf("/quickshell/reload-cover/shell.qml") >= 0
+        }
+        onExited: (code, status) => {
+            if (code !== 0) { root.desktopCaptureAllowed = false; root.desktopCaptureReady = true; }
+            else root.desktopCaptureReady = !root.reloadCoverPresent;
+        }
+    }
+    property Timer coverRetry: Timer {
+        interval: 200; repeat: true; running: !root.desktopCaptureReady
+        onTriggered: if (!coverProbe.running) coverProbe.running = true
+    }
     property var grab: null
     readonly property bool focusGrabAvailable: grab !== null && grab.available
     readonly property bool grabActive: Host.windows.some(w => w.explicitOpen)
