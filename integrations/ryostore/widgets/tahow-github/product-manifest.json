@@ -34,8 +34,8 @@
       "source": "README.md",
       "destination": "README.md",
       "mode": "0644",
-      "size": 1023,
-      "sha256": "81d273f1d1fe413e9e82af10233833999c913e9e02ba078cbf02d15f5b5ef980",
+      "size": 1077,
+      "sha256": "3ac2b7d439b76b861b3b2ded9111f10c19de876eb8f04505fdf189945d8ef30a",
       "install": true
     },
     {
@@ -139,7 +139,7 @@
       "destination": "manifest.json",
       "mode": "0644",
       "size": 7094,
-      "sha256": "b35c129bf9bc06ee80914d4dbee6e8e6daa98e36bb9ae6d5dd0679e3658617bf",
+      "sha256": "0ce9e11912b1c37b7ac9b2753011419044c0cdf9b5c7e65661908df0913d6760",
       "install": true
     }
   ]
