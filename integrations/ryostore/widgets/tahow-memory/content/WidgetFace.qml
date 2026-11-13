@@ -92,9 +92,9 @@ Item {
         GithubWidget { anchors.fill:parent; anchors.margins:14; visible:root.kind === "github"; active:root.active && visible; settings:root.settings; ink:root.ink; muted:root.muted; accent:root.accent; translate:root.tr }
         Item {
             visible: root.metric; anchors.fill: parent; anchors.margins: 16*root.unit
-            Symbol { x: 0; y: 0; width: 20*root.unit; height: width; name: root.kind === "cpu" ? "settings" : root.kind === "temperature" ? "light_mode" : root.kind === "disk" ? "monitor" : "apps"; ink: root.accent }
+            Symbol { x: 0; y: 0; width: 20*root.unit; height: width; name: root.kind === "temperature" ? "thermometer" : root.kind; ink: root.accent }
             Text { x: 28*root.unit; width: parent.width-x; y: 2*root.unit; text: root.tr(({cpu:"CPU",temperature:"Temperature",disk:"Disk",memory:"Memory"})[root.kind] || ""); color: root.muted; font.family:"Inter"; font.pixelSize:12*root.unit; elide: Text.ElideRight }
-            Text { anchors.left: parent.left; anchors.right: parent.right; y: 43*root.unit; height: 42*root.unit; text: root.service && root.service.available ? root.service.valueText : "—"; color: root.ink; font.family:"Inter"; font.pixelSize: 32*root.unit; font.weight: Font.DemiBold; fontSizeMode: Text.Fit; minimumPixelSize:18 }
+            Text { anchors.left: parent.left; anchors.right: parent.right; y: 31*root.unit; height: 42*root.unit; text: root.service && root.service.available ? root.service.valueText : "—"; color: root.ink; font.family:"Inter"; font.pixelSize: 32*root.unit; font.weight: Font.DemiBold; fontSizeMode: Text.Fit; minimumPixelSize:18 }
             Rectangle { y: parent.height-22*root.unit; width: parent.width; height: 5*root.unit; radius: height/2; color:root.alpha(root.ink,0.1)
                 Rectangle { height: parent.height; radius:height/2; width: parent.width*Math.max(0,Math.min(1,root.service ? root.service.value : 0)); color:root.accent; Behavior on width { NumberAnimation { duration:400; easing.type:Easing.OutCubic } } }
             }

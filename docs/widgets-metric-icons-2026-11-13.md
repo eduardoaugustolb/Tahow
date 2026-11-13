@@ -1,0 +1,9 @@
+# Metric widget icons and spacing
+
+Added original vector glyphs for CPU (processor), temperature (thermometer), disk (drive platter), and memory (RAM module), replacing unrelated settings/sun/monitor/apps symbols. Metric value position moved from 43 to 31 logical pixels below the content origin; header, bar and detail positions are preserved. Regenerated all eight widget packages with `bun tools/build-widgets.ts` and inspected content hashes and sizes.
+
+Validation on Linux with Bun 1.4.4 and Qt/Quickshell: `bun run check`, `bun test` (50 passing), `bun tools/build-widgets.ts --check`, and simulated widget interaction verification passed. Visually inspected a four-metric Quickshell render using `QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software` with fixture data. The temporary preview initially needed a file URL import correction; the successful render emitted warnings from incomplete media fixture properties and unsupported offscreen window masks. Desktop material/compositor behavior was not tested; no installed desktop files were modified and no niri validation is claimed.
+
+## Authorized installation
+
+At the user's request, exported the widget packages into the existing local catalogue checkout at `/home/eduardoaugustolb/Documents/www/third-party/ryostore`, inspected the generated diff, refreshed the catalogue, and updated `tahow-cpu`, `tahow-temperature`, `tahow-disk`, and `tahow-memory` through `ryostore install plugins <id>`. `ryoku plugin add` had refused the already-installed CPU plugin, so no removal was attempted. Installed WidgetFace.qml and symbols.js were byte-identical to the generated repository files for all four products. plugins.json and widgets.json remained byte-identical to their pre-install backups. Requested shell reload through `ryoku reload` on live Hyprland v0.57.2. The local catalogue's pre-existing changes were left uncommitted; only the Tahow repository is pushed.

@@ -2,6 +2,10 @@
 
 // Original Tahoe glyphs, Eduardo Augusto and contributors, 2026. AGPL-3.0.
 var paths = {
+  "cpu": "<rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"/><rect x=\"9\" y=\"9\" width=\"6\" height=\"6\" rx=\"1\"/><path d=\"M9 2v4m6-4v4M9 18v4m6-4v4M2 9h4m-4 6h4m12-6h4m-4 6h4\"/>",
+  "thermometer": "<path d=\"M9 14.5V5a3 3 0 0 1 6 0v9.5a5 5 0 1 1-6 0ZM12 8v9m6-11h3m-3 4h2\"/><circle cx=\"12\" cy=\"18\" r=\"1.5\"/>",
+  "disk": "<rect x=\"4\" y=\"2.5\" width=\"16\" height=\"19\" rx=\"2.5\"/><circle cx=\"12\" cy=\"11\" r=\"5\"/><circle cx=\"12\" cy=\"11\" r=\"1\"/><path d=\"m12 11 4-3M7 18h.01M17 18h.01\"/>",
+  "memory": "<path d=\"M3 6h18v11h-7v-2h-3v2H3ZM6 17v3m3-3v3m6-3v3m3-3v3\"/><rect x=\"6\" y=\"9\" width=\"4\" height=\"4\" rx=\".6\"/><rect x=\"14\" y=\"9\" width=\"4\" height=\"4\" rx=\".6\"/>",
   "settings": "<path d=\"M9.5 3.5h5l.7 2.4 2 .9 2.2-.6 2.5 4.3-1.6 1.9v2.2l1.6 1.9-2.5 4.3-2.2-.6-2 .9-.7 2.4h-5l-.7-2.4-2-.9-2.2.6-2.5-4.3 1.6-1.9v-2.2l-1.6-1.9 2.5-4.3 2.2.6 2-.9z\" transform=\"translate(0 -1) scale(1 .95)\"/><circle cx=\"12\" cy=\"12\" r=\"3.1\"/>",
   "home": "<path d=\"m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z\"/>",
   "island": "<rect x=\"2.5\" y=\"7\" width=\"19\" height=\"10\" rx=\"5\"/><circle cx=\"7.5\" cy=\"12\" r=\"1.3\"/><path d=\"M12 10h5m-5 4h3\"/>",

@@ -82,8 +82,8 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 14477,
-      "sha256": "7ec47e42ac4c3986eca730ab3605686d29978ab936ea1926486bbf4775c9f337",
+      "size": 14411,
+      "sha256": "10a296bde7b46704fd36b4803fbd2aa673533334ab211b413030219898f299d9",
       "install": true
     },
     {
@@ -154,8 +154,8 @@
       "source": "lib/symbols.js",
       "destination": "lib/symbols.js",
       "mode": "0644",
-      "size": 4301,
-      "sha256": "8d03b5bda18d83f967fa3baeba247e3a0166f61cc34723e6854f343ca6fed8e5",
+      "size": 5023,
+      "sha256": "99437d1e34bdd338b2edb0c9baf6e346269cb7cd070a4fe7e26e67c8b245ed71",
       "install": true
     },
     {
@@ -179,7 +179,7 @@
       "destination": "manifest.json",
       "mode": "0644",
       "size": 9545,
-      "sha256": "15827e091d25231cd657798c3763f0a3e60c06aec796677a8b872e06d5342f34",
+      "sha256": "fcf165a947b4f61bbb3cd89b45f7121d93274284f0dbd4d685215ab17553b42c",
       "install": true
     }
   ]
