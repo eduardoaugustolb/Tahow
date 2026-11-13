@@ -46,6 +46,77 @@
   "metadata": {
     "settings": [
       {
+        "key": "material",
+        "type": "choice",
+        "label": "Material",
+        "group": "Glass",
+        "default": "simulated",
+        "options": [
+          {
+            "value": "simulated",
+            "label": "simulated"
+          },
+          {
+            "value": "liquid",
+            "label": "liquid"
+          },
+          {
+            "value": "none",
+            "label": "none"
+          }
+        ]
+      },
+      {
+        "key": "bezel",
+        "type": "slider",
+        "label": "Lens edge",
+        "group": "Glass",
+        "default": 14,
+        "min": 0,
+        "max": 40,
+        "step": 1
+      },
+      {
+        "key": "thickness",
+        "type": "slider",
+        "label": "Refraction depth",
+        "group": "Glass",
+        "default": 24,
+        "min": 0,
+        "max": 60,
+        "step": 1
+      },
+      {
+        "key": "ior",
+        "type": "slider",
+        "label": "Refractive index",
+        "group": "Glass",
+        "default": 1.5,
+        "min": 1,
+        "max": 2.5,
+        "step": 0.01
+      },
+      {
+        "key": "dispersion",
+        "type": "slider",
+        "label": "RGB dispersion",
+        "group": "Glass",
+        "default": 0.08,
+        "min": 0,
+        "max": 0.2,
+        "step": 0.005
+      },
+      {
+        "key": "frost",
+        "type": "slider",
+        "label": "Frost",
+        "group": "Glass",
+        "default": 8,
+        "min": 0,
+        "max": 30,
+        "step": 0.5
+      },
+      {
         "key": "contentWidth",
         "type": "int",
         "label": "Width",
@@ -185,24 +256,24 @@
       "source": "PROVENANCE.txt",
       "destination": "PROVENANCE.txt",
       "mode": "0644",
-      "size": 473,
-      "sha256": "f39e5f55c402b8a2af1696b3bbb1b23853c9e442531684983f577d736f4d3a47",
+      "size": 551,
+      "sha256": "d746639a8012d1af5228f2a53a5ebb5dee0fe31d88428ddc1fa17ae110751a58",
       "install": true
     },
     {
       "source": "README.md",
       "destination": "README.md",
       "mode": "0644",
-      "size": 1103,
-      "sha256": "4e945417fd3276f413283afe2fa074a4df9b053ef64d6164c77b2c042547c7c4",
+      "size": 1310,
+      "sha256": "f8880ade3262e1a0299ef76d6ba3a0ca13f089074d165a5d00d3cab12b3874f7",
       "install": true
     },
     {
       "source": "assets/preview-widget.png",
       "destination": "assets/preview-widget.png",
       "mode": "0644",
-      "size": 11807,
-      "sha256": "71765c251246e7f060b0c897dfc718acc55e1e8c9c1975fb7c975b1dae186085",
+      "size": 40448,
+      "sha256": "b6a9b1345f5715af60461ac215dfb3853acfff5b2fd7c79c90a48f1f8af67d3d",
       "install": false
     },
     {
@@ -217,8 +288,24 @@
       "source": "content/GithubWidget.qml",
       "destination": "content/GithubWidget.qml",
       "mode": "0644",
-      "size": 4987,
-      "sha256": "efc0cfde5242ae7c82ec347e49af6bdc34a2138e9ba67f6e93dc4f8c683858ab",
+      "size": 5072,
+      "sha256": "f778584e3d8befa27d2ed2eaf2144a565ed9b08387992f17dae255c78d99ba5e",
+      "install": true
+    },
+    {
+      "source": "content/LiquidWidgetGlass.qml",
+      "destination": "content/LiquidWidgetGlass.qml",
+      "mode": "0644",
+      "size": 2939,
+      "sha256": "ef28f7e6ce78cd876e5b17cd5976c29c86fb9ae5b635bf170941982cf30b0f3e",
+      "install": true
+    },
+    {
+      "source": "content/NativeGlass.qml",
+      "destination": "content/NativeGlass.qml",
+      "mode": "0644",
+      "size": 2141,
+      "sha256": "1e83d39bb892e2f5856b5f2845d631fe856f9883cfe0dfac3ed62604ef612451",
       "install": true
     },
     {
@@ -233,8 +320,24 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 12822,
-      "sha256": "b270a9921b1a3365fc5bcda20a48376bf49bed44d86708e17ea0a2641365636e",
+      "size": 13474,
+      "sha256": "464f3921e25de090e78e8be436472adf2c528900ea3c69a1ebde8348a5be3a6e",
+      "install": true
+    },
+    {
+      "source": "content/shaders/liquid_glass.frag",
+      "destination": "content/shaders/liquid_glass.frag",
+      "mode": "0644",
+      "size": 9164,
+      "sha256": "640b2200b3e3891bec526d0534aa8707de87aec4534d7d8a578de22dd27c6e1f",
+      "install": true
+    },
+    {
+      "source": "content/shaders/liquid_glass.frag.qsb",
+      "destination": "content/shaders/liquid_glass.frag.qsb",
+      "mode": "0644",
+      "size": 22897,
+      "sha256": "00cbb0134f1a4c40142c6f075f8f4cf6bbcf59d5b760b808961e56e083239bef",
       "install": true
     },
     {

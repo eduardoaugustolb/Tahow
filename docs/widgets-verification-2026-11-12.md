@@ -58,3 +58,19 @@ A separate product-manifest.json includes the installed plugin manifest.json.
 This was verified after a Ryostore update: all eight report desktopWidget hosts
 and enabled state, and all are visible in Stage Editor. Final validation:
 102 QML files, 34 passing unit tests, no real session actions exercised.
+
+## Optional Liquid Glass variants
+
+All eight plugins expose optional material variants. Optical material uses the
+published Ryogami wallpaper, not whole-output capture. NativeGlass and its
+attributed shader sources/QSB are packaged self-contained. A Wayland preview
+was inspected at /tmp/tahow-liquid-variants-verified.png. A circular dependency
+between implicit height and render scale was found and removed; natural sizes
+are independent from their rendered height. The GitHub preview is kept separate
+from the seven-widget gallery so its wider layout cannot overlap other tiles.
+
+The QML interaction harness verifies legacy default material, the bare-clock
+option, opt-in Liquid Glass and stable natural geometry without writing user
+preferences. The actual update was verified with SHA-256 readbacks: plugins.json
+and widgets.json were byte-identical before and after installing all eight
+updated products. No material selection, placement or scale was overwritten.

@@ -21,8 +21,10 @@ Item {
     property bool accentFromHost: true
     readonly property var settings: pluginApi && pluginApi.pluginSettings || ({})
     readonly property var service: pluginApi ? pluginApi.mainInstance : null
+    readonly property bool liquidMaterial: settings.material === "liquid"
+    readonly property bool bareClock: settings.material === "none" || (!liquidMaterial && kind === "clock" && settings.clockStyle === "bare")
     readonly property bool metric: ["cpu","temperature","disk","memory"].indexOf(kind) >= 0
-    readonly property real unit: Math.max(0.4, Math.min(s, height / (kind === "github" ? 210 : metric ? 150 : kind === "clock" ? 220 : kind === "session" ? 200 : 160)))
+    readonly property real unit: Math.max(0.4, Math.min(s, Number(settings.contentHeight)>0 ? Number(settings.contentHeight) / (kind === "github" ? 210 : metric ? 150 : kind === "clock" ? 220 : kind === "session" ? 200 : 160) : s))
     readonly property bool dark: settings.appearance === "dark" || (settings.appearance !== "light" && (Host.Theme.tileBg.r + Host.Theme.tileBg.g + Host.Theme.tileBg.b < 1.5))
     readonly property color accent: accentFromHost ? accentColor : Host.Theme.brand
     readonly property color ink: dark ? "#f5f5f7" : "#1d1d20"
@@ -32,8 +34,8 @@ Item {
     function tr(key) { return Locale.translate(Messages.catalogs,language,key); }
     function alpha(c,a) { return Qt.rgba(c.r,c.g,c.b,a); }
     function time(value) { const n=Math.max(0,Math.floor(value || 0)); return Math.floor(n/60)+":"+String(n%60).padStart(2,"0"); }
-    implicitWidth: Number(settings.contentWidth)>0 ? Number(settings.contentWidth) : Math.min(widthBudget > 0 ? widthBudget : 360, (kind === "github" ? 640 : metric ? 180 : kind === "clock" ? 180 : kind === "session" ? 340 : 360)*unit)
-    implicitHeight: Number(settings.contentHeight)>0 ? Number(settings.contentHeight) : (metric ? 150 : kind === "clock" ? 220 : kind === "session" ? 200 : 160)*unit
+    implicitWidth: Number(settings.contentWidth)>0 ? Number(settings.contentWidth) : kind === "github" ? 640*s : Math.min(widthBudget > 0 ? widthBudget : 360, (kind === "github" ? 640 : metric ? 180 : kind === "clock" ? 180 : kind === "session" ? 340 : 360)*unit)
+    implicitHeight: Number(settings.contentHeight)>0 ? Number(settings.contentHeight) : (kind === "github" ? 210 : metric ? 150 : kind === "clock" ? 220 : kind === "session" ? 200 : 160)*unit
     property date now: new Date()
     Timer { interval: root.settings.showSeconds ? 1000 : 15000; repeat: true; running: root.active && root.visible && root.kind === "clock"; onTriggered: root.now = new Date() }
     property string pendingAction: ""
@@ -66,16 +68,17 @@ Item {
         }
         contentItem: Item { Symbol { anchors.centerIn:parent; name: action.symbol; width: 22*root.unit; height: width; opacity: action.enabled ? 1 : 0.35 } }
     }
-    RectangularShadow { anchors.fill: plate; radius: plate.radius; blur: 22*root.unit; offset.y: 6*root.unit; color: "#30000000" }
+    RectangularShadow { visible: !root.bareClock; anchors.fill: plate; radius: plate.radius; blur: 22*root.unit; offset.y: 6*root.unit; color: "#30000000" }
     Rectangle {
         id: plate; anchors.fill: parent; radius: 24*root.unit; clip: true
         gradient: Gradient {
-            GradientStop { position: 0; color: root.alpha(Qt.lighter(root.tint,root.dark ? 1.6 : 1.04),Math.min(0.96,Material.opacity(root.settings.glassOpacity)+0.18)) }
-            GradientStop { position: 1; color: root.alpha(root.tint,Material.opacity(root.settings.glassOpacity)) }
+            GradientStop { position: 0; color: root.bareClock ? "transparent" : root.alpha(Qt.lighter(root.tint,root.dark ? 1.6 : 1.04),Math.min(0.96,Material.opacity(root.settings.glassOpacity)+0.18)) }
+            GradientStop { position: 1; color: root.bareClock ? "transparent" : root.alpha(root.tint,Material.opacity(root.settings.glassOpacity)) }
         }
-        border.width: root.settings.glassRim === false ? 0 : 1
+        border.width: root.bareClock || root.settings.glassRim === false ? 0 : 1
         border.color: root.alpha(root.dark ? "white" : root.accent,root.dark ? 0.22 : 0.3)
-        Rectangle { anchors.fill: parent; anchors.margins: 2; radius: parent.radius-2; color: "transparent"; border.width: 0.5; border.color: root.alpha("white",root.dark ? 0.06 : 0.55) }
+        Rectangle { visible: !root.bareClock; anchors.fill: parent; anchors.margins: 2; radius: parent.radius-2; color: "transparent"; border.width: 0.5; border.color: root.alpha("white",root.dark ? 0.06 : 0.55) }
+        LiquidWidgetGlass { anchors.fill:parent; enabledMaterial:root.active && root.liquidMaterial; settings:root.settings; screen:root.screen; tint:root.tint; radius:plate.radius }
         GithubWidget { anchors.fill:parent; anchors.margins:14; visible:root.kind === "github"; active:root.active && visible; settings:root.settings; ink:root.ink; muted:root.muted; accent:root.accent; translate:root.tr }
         Item {
             visible: root.metric; anchors.fill: parent; anchors.margins: 16*root.unit

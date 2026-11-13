@@ -60,12 +60,13 @@ Item {
   GlassButton{symbol:"refresh";enabled:!root.loading;onClicked:root.fetch();Accessible.name:root.translate("Refresh")}
  }
  Item {
-  id:grid;x:0;y:38;width:parent.width;height:Math.max(35,parent.height-y-(root.status||root.selected ? 18 : 0))
+  id:grid;x:0;y:38;width:parent.width;height:Math.max(35,parent.height-y-(root.status ? 18 : 0))
   readonly property real gap:3
   readonly property real cell:Math.max(1,Math.min((width-(root.weeks-1)*gap)/root.weeks,(height-6*gap)/7))
   readonly property real cellHeight:cell
+  readonly property real columnGap:root.weeks > 1 ? Math.max(gap,(width-root.weeks*cell)/(root.weeks-1)) : 0
   Repeater{model:root.cells;Rectangle{id:day;required property var modelData;required property int index
-   x:Math.floor(index/7)*(grid.cell+grid.gap);y:(index%7)*(grid.cellHeight+grid.gap);width:grid.cell;height:grid.cellHeight;radius:Math.min(3,width/4)
+   x:Math.floor(index/7)*(grid.cell+grid.columnGap);y:(index%7)*(grid.cellHeight+grid.gap);width:grid.cell;height:grid.cellHeight;radius:Math.min(3,width/4)
    visible:!!modelData.date
    color:Qt.rgba(root.accent.r,root.accent.g,root.accent.b,0.08+modelData.level*0.21)
    border.width:hover.hovered?1:0;border.color:root.ink
@@ -73,5 +74,5 @@ Item {
    ToolTip.visible:hover.hovered;ToolTip.text:modelData.date+": "+modelData.count
   }}
  }
- Text{anchors.bottom:parent.bottom;width:parent.width;text:root.status||root.selected;color:root.muted;font.family:"Inter";font.pixelSize:10;elide:Text.ElideRight}
+ Text{anchors.bottom:parent.bottom;width:parent.width;text:root.status;color:root.muted;font.family:"Inter";font.pixelSize:10;elide:Text.ElideRight}
 }

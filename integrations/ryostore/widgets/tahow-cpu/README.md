@@ -2,7 +2,7 @@
 
 Live processor utilization.
 
-Independent Ryoku desktopWidget plugin. No Tahow subshell is required. Simulated glass uses translucent gradients and rims, with no screen capture or optical refraction.
+Independent Ryoku desktopWidget plugin. No Tahow subshell is required. Material variants: simulated glass, Liquid Glass refracting the published wallpaper, and no background. Liquid Glass does not capture the desktop or track windows; it falls back to simulated glass when no wallpaper is available. Existing settings remain unchanged, and simulated glass remains the default.
 
 Reads pluginApi.pluginSettings with defaults. Settings and desktop placement are written by Ryoku's host; this plugin does not edit shared Tahow or host preferences. Right-click the tile to configure its material and available data options.
 

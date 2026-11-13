@@ -45,3 +45,17 @@ a fake service and never suspend, restart, shut down or unlock a real session.
 GitHub settings include username, minimum weeks (12) and maximum weeks (53). The window always ends at the latest eligible date, including empty days; future days are hidden. Cells retain a square aspect ratio. Public contributions are requested from github-contributions-api.jogruber.de, the provider used by the Python reference. No token is requested.
 
 Catalogue export: `bun tools/export-widgets.ts --to /path/to/ryostore`. Plugin metadata is manifest.json; the separate product-manifest.json distributes that file along with the plugin sources.
+
+## Material variants and compatibility
+
+Right-click any widget and choose Material: `simulated`, `liquid`, or `none`.
+Liquid Glass uses the attributed Ryoku optical shader over the wallpaper
+published by Ryogami, with adjustable bevel, depth, index, RGB dispersion and
+frost. It does not capture the screen or track application windows. With no
+wallpaper texture available it retains the simulated material fallback.
+The clock also offers a `bare` style that removes its card, rim and shadow.
+
+New settings are read with defaults; rendering does not write preferences or
+change geometry. Existing instances remain simulated unless explicitly changed.
+Product updates preserve host-owned positions, scale and settings. The GitHub
+calendar distributes its horizontal spacing evenly while retaining square days.

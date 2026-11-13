@@ -13,6 +13,11 @@ ShellRoot {
         face.requestAction("reboot");if(root.calls.join()!=="reboot")throw new Error("Restart confirmation failed");
         face.requestAction("poweroff");if(root.calls.length!==1)throw new Error("Shutdown lacked confirmation");
         face.pendingAction="";face.requestAction("lock");if(root.calls.join()!=="reboot,lock")throw new Error("Explicit lock failed");
+        face.kind="clock";api.pluginSettings=({});
+        if(face.bareClock || face.liquidMaterial)throw new Error("Legacy material changed");
+        if(face.implicitHeight!==220 || face.unit!==1)throw new Error("Natural size depends on rendered height");
+        api.pluginSettings=({clockStyle:"bare"});if(!face.bareClock)throw new Error("Bare clock variant failed");
+        api.pluginSettings=({clockStyle:"bare",material:"liquid"});if(!face.liquidMaterial || face.bareClock)throw new Error("Opt-in liquid variant failed");
         console.log("WIDGET_INTERACTIONS_OK");Qt.quit();
     }}
 }

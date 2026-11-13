@@ -6,7 +6,7 @@ import "service"
 ShellRoot {
     id: root
     property var faces: []
-    property var kinds: ["cpu","temperature","disk","memory","session","clock","media","github"]
+    property var kinds: ["cpu","temperature","disk","memory","session","clock","media"]
     PanelWindow {
         id: window
         color: "#122135"
@@ -23,7 +23,7 @@ ShellRoot {
                 y: index < 4 ? 30 : 230
                 width: face.implicitWidth;height:face.implicitHeight
                 WidgetService { id:data;kind:tile.modelData;pluginApi:api }
-                QtObject { id:api;property var mainInstance:data;property string pluginDir:Qt.resolvedUrl(".").toString().replace(/^file:\/\//,"");property var pluginSettings:({appearance:"dark",language:"pt-BR",refreshInterval:2,username:"eduardoaugustolb"}) }
+                QtObject { id:api;property var mainInstance:data;property string pluginDir:Qt.resolvedUrl(".").toString().replace(/^file:\/\//,"");property var pluginSettings:({material:"liquid",appearance:"dark",language:"pt-BR",refreshInterval:2,username:"eduardoaugustolb"}) }
                 WidgetFace { id:face;kind:tile.modelData;pluginApi:api;anchors.fill:parent;accentColor:"#9fc9ff"
                     Component.onCompleted: { const next=root.faces.slice();next[tile.index]=face;root.faces=next; }
                 }

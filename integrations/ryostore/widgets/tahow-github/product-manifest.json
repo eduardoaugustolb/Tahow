@@ -26,32 +26,48 @@
       "source": "PROVENANCE.txt",
       "destination": "PROVENANCE.txt",
       "mode": "0644",
-      "size": 473,
-      "sha256": "f39e5f55c402b8a2af1696b3bbb1b23853c9e442531684983f577d736f4d3a47",
+      "size": 551,
+      "sha256": "d746639a8012d1af5228f2a53a5ebb5dee0fe31d88428ddc1fa17ae110751a58",
       "install": true
     },
     {
       "source": "README.md",
       "destination": "README.md",
       "mode": "0644",
-      "size": 1077,
-      "sha256": "3ac2b7d439b76b861b3b2ded9111f10c19de876eb8f04505fdf189945d8ef30a",
+      "size": 1284,
+      "sha256": "110bd965f6baaf46f8d8efe8e6f18100fd0ed74dbb4902bcac65e781edf0849e",
       "install": true
     },
     {
       "source": "assets/preview-widget.png",
       "destination": "assets/preview-widget.png",
       "mode": "0644",
-      "size": 21382,
-      "sha256": "479176f4e1cd4159673271212ec048642b1cb2b1f0633e9b3b6a178face482d6",
+      "size": 39235,
+      "sha256": "1d92e2d33c5b1218c8408c05915a430de1f5f976f33b42c34ba28d9ae1da19cc",
       "install": false
     },
     {
       "source": "content/GithubWidget.qml",
       "destination": "content/GithubWidget.qml",
       "mode": "0644",
-      "size": 4987,
-      "sha256": "efc0cfde5242ae7c82ec347e49af6bdc34a2138e9ba67f6e93dc4f8c683858ab",
+      "size": 5072,
+      "sha256": "f778584e3d8befa27d2ed2eaf2144a565ed9b08387992f17dae255c78d99ba5e",
+      "install": true
+    },
+    {
+      "source": "content/LiquidWidgetGlass.qml",
+      "destination": "content/LiquidWidgetGlass.qml",
+      "mode": "0644",
+      "size": 2939,
+      "sha256": "ef28f7e6ce78cd876e5b17cd5976c29c86fb9ae5b635bf170941982cf30b0f3e",
+      "install": true
+    },
+    {
+      "source": "content/NativeGlass.qml",
+      "destination": "content/NativeGlass.qml",
+      "mode": "0644",
+      "size": 2141,
+      "sha256": "1e83d39bb892e2f5856b5f2845d631fe856f9883cfe0dfac3ed62604ef612451",
       "install": true
     },
     {
@@ -66,8 +82,24 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 12822,
-      "sha256": "b270a9921b1a3365fc5bcda20a48376bf49bed44d86708e17ea0a2641365636e",
+      "size": 13474,
+      "sha256": "464f3921e25de090e78e8be436472adf2c528900ea3c69a1ebde8348a5be3a6e",
+      "install": true
+    },
+    {
+      "source": "content/shaders/liquid_glass.frag",
+      "destination": "content/shaders/liquid_glass.frag",
+      "mode": "0644",
+      "size": 9164,
+      "sha256": "640b2200b3e3891bec526d0534aa8707de87aec4534d7d8a578de22dd27c6e1f",
+      "install": true
+    },
+    {
+      "source": "content/shaders/liquid_glass.frag.qsb",
+      "destination": "content/shaders/liquid_glass.frag.qsb",
+      "mode": "0644",
+      "size": 22897,
+      "sha256": "00cbb0134f1a4c40142c6f075f8f4cf6bbcf59d5b760b808961e56e083239bef",
       "install": true
     },
     {
@@ -138,8 +170,8 @@
       "source": "manifest.json",
       "destination": "manifest.json",
       "mode": "0644",
-      "size": 7094,
-      "sha256": "0ce9e11912b1c37b7ac9b2753011419044c0cdf9b5c7e65661908df0913d6760",
+      "size": 9650,
+      "sha256": "58b8b1ba66db3d5e55ab48d5635545d632f4e3c54a03ee7316bf3f8f0f775b7e",
       "install": true
     }
   ]
