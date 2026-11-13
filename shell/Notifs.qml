@@ -98,7 +98,7 @@ Singleton {
         const critical = n.urgency === NotificationUrgency.Critical;
         const silenced = dnd && !(critical && Config.island.dndAllowCritical);
         if (silenced) { if (n.transient) n.expire(); return; }
-        pushPopup(n, critical);
+        pushPopup(n);
         if (Config.island.notifSound) {
             const h = n.hints || {};
             if (!h["suppress-sound"]) {
@@ -114,10 +114,12 @@ Singleton {
     property real holdStart: 0
     readonly property bool hold: hovering || replying || bannerExpanded
 
-    function pushPopup(n, sticky) {
+    function pushPopup(n) {
         popups = [n].concat(popups.filter(p => p && p !== n)).slice(0, 5);
         const e = Object.assign({}, expiry);
-        e[n.id] = sticky ? Number.MAX_SAFE_INTEGER : Date.now() + Math.max(2, Config.island.bannerTimeout) * 1000;
+        // Urgency controls Focus bypass, not banner lifetime. Keep persistent
+        // notifications in the center after their banner has timed out.
+        e[n.id] = Date.now() + Math.max(2, Config.island.bannerTimeout) * 1000;
         expiry = e;
     }
     function removePopup(n) {
