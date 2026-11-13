@@ -1,4 +1,21 @@
+<div align="center">
+
+<img src="docs/brand/tahow-logo-concept-v3.png" alt="Tahow liquid-glass logo" width="180" height="180" />
+
 # Tahow
+
+**Your desktop, through glass.**
+
+A modular shell for Quickshell and Wayland.
+
+[Documentation](https://tahow.eduardoaugusto.work/en-US/) · [Português](https://tahow.eduardoaugusto.work/pt-BR/) · [Getting started](https://tahow.eduardoaugusto.work/en-US/getting-started/) · [Showcase](#showcase)
+
+[![Documentation](https://github.com/eduardoaugustolb/Tahow/actions/workflows/docs.yml/badge.svg)](https://github.com/eduardoaugustolb/Tahow/actions/workflows/docs.yml)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-0a84ff.svg)](LICENSE)
+
+</div>
+
+---
 
 A modular Quickshell desktop shell with an island, command palette, settings, and glass lock visuals. Tahow runs from its own entry point and includes optional Ryoku companions for Ryostore.
 
