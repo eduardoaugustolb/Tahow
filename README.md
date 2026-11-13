@@ -51,6 +51,14 @@ Captured on Hyprland at 1920 × 1080 with the author's current wallpaper, deskto
 
 Capture details and wallpaper provenance: [showcase notes](docs/showcase/README.md).
 
+**Animated reload cover** — an original Tahow glass wallpaper with connected
+Sacramento lettering. Traveling flow deforms the background and letter contours,
+with moving refraction and highlights in a seamless four-second loop.
+
+[![Animated Tahow liquid-glass reload cover](docs/showcase/reload-cover.webp)](docs/showcase/reload-cover.mp4)
+
+[Full-resolution MP4](docs/showcase/reload-cover.mp4) · [Rendering and integration notes](docs/reload-cover.md)
+
 ## What it includes
 
 - An island with simulated glass while collapsed and snapshot refraction when expanded by click or hover.

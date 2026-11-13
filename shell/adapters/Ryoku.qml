@@ -47,6 +47,6 @@ QtObject {
         }
         function onSurfaceClosed(id, mon) { if (id === "tahoe-palette") Hub.closePalette(); if (String(id).split("#")[0] === "settings") Hub.settingsOpen = false; }
     }
-    Component.onCompleted: { Host.adapter = root; buildGrab(); }
+    Component.onCompleted: { Host.adapter = root; buildGrab(); ReloadCover.enabled; }
     Component.onDestruction: if (Host.adapter === root) Host.adapter = null
 }

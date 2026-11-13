@@ -35,6 +35,7 @@ TrayStrip 1.0 TrayStrip.qml
 LauncherPage 1.0 LauncherPage.qml
 singleton Host 1.0 Host.qml
 singleton DesktopTheme 1.0 DesktopTheme.qml
+singleton ReloadCover 1.0 ReloadCover.qml
 singleton Tokens 1.0 Tokens.qml
 singleton I18n 1.0 I18n.qml
 CommandPalette 1.0 CommandPalette.qml

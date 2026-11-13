@@ -135,6 +135,7 @@ Singleton {
     // Mirrors every JsonAdapter default above; keep the two lists in sync.
     readonly property var defaults: ({
         language: "auto",
+        reloadCoverFollowWallpaper: false,
         lockFooterScale: 1.12,
         lockRim: 0.22,
         lockTint: 0.035,
@@ -229,6 +230,7 @@ Singleton {
         JsonAdapter {
             id: legacyAdapter
             property string language: "auto"
+            property bool reloadCoverFollowWallpaper: false
             property real lockFooterScale: 1.12
             property real lockRim: 0.22
             property real lockTint: 0.035
@@ -334,6 +336,7 @@ Singleton {
         JsonAdapter {
             id: adapter
             property string language: "auto"
+            property bool reloadCoverFollowWallpaper: false
             property real lockFooterScale: 1.12
             property real lockRim: 0.22
             property real lockTint: 0.035

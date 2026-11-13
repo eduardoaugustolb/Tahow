@@ -9,3 +9,22 @@ The lockscreen uses the source LockView and GlassClock in an ordinary preview su
 Wallpaper provenance: the desktop owner's existing wallpaper, named wallhaven-x866ko.webp. It appears only as part of the requested desktop screenshots; the original image is not bundled. Artwork authorship and license have not been established here. The project's AGPL license covers its software and does not grant rights to the wallpaper or third-party application icons visible in captures.
 
 Temporary preview processes were closed and the original workspace was restored after capture. Installed desktop files and user preferences were not edited. niri was not tested.
+
+## Animated reload cover
+
+`reload-cover.webp` is a 960-pixel-wide, 12 fps animated preview; the linked
+`reload-cover.mp4` is the approved 1920 × 1080, 24 fps, four-second H.264 loop.
+Both are rendered from `shell/reload/Welcome.qml`, not desktop captures.
+The background and connected Sacramento glyph contours deform continuously,
+with periodic optical flow, refraction and highlights; the word does not bob.
+
+The fixed wallpaper was generated specifically for Tahow using the built-in
+image_gen tool, inspired by the island and command palette's rounded glass
+surfaces. Its prompt and provenance are in
+`shell/reload/assets/tahow-glass-orbit.provenance.json`. Sacramento is bundled
+under the SIL Open Font License; see `shell/reload/fonts/OFL.txt`.
+
+After approval, this movie was activated through the Ryoku Hub. That application
+is separate from the earlier screenshot session described above. The encoded
+loop seam was compared with neighboring frames; no real shell reload or niri
+runtime test was performed. See [reload-cover notes](../reload-cover.md).
