@@ -4,6 +4,53 @@ A modular Quickshell desktop shell with an island, command palette, settings, an
 
 This is early software. Runtime testing has been performed on **Hyprland**. The host boundary uses Wayland protocols where available; **niri has not been validated**.
 
+## Showcase
+
+Captured on Hyprland at 1920 × 1080 with the author's current wallpaper, desktop accent and Brazilian Portuguese interface. Click an image for the full-size capture. These are runtime screenshots; media and notifications show their current empty states. The lockscreen is a visual preview with simulated authentication.
+
+![Expanded island: clock, weather, calendar and system overview](docs/showcase/island-home.webp)
+
+| Collapsed island and desktop | Command palette |
+| --- | --- |
+| ![Collapsed island and desktop](docs/showcase/island-collapsed.webp) | ![Command palette](docs/showcase/command-palette.webp) |
+
+| Media | Quick controls |
+| --- | --- |
+| ![Media](docs/showcase/island-media.webp) | ![Quick controls](docs/showcase/island-controls.webp) |
+
+| Timer and stopwatch | Notification center |
+| --- | --- |
+| ![Timer and stopwatch](docs/showcase/island-timer.webp) | ![Notification center](docs/showcase/notifications.webp) |
+
+| Appearance, language and motion | Glass controls and material preview |
+| --- | --- |
+| ![Appearance, language and motion](docs/showcase/settings-general.webp) | ![Glass controls and material preview](docs/showcase/settings-glass.webp) |
+
+<details>
+<summary>All component settings</summary>
+
+| Island overrides | Command palette overrides |
+| --- | --- |
+| ![Island overrides](docs/showcase/settings-island.webp) | ![Command palette overrides](docs/showcase/settings-palette.webp) |
+
+| Lockscreen overrides | System preferences |
+| --- | --- |
+| ![Lockscreen overrides](docs/showcase/settings-lockscreen.webp) | ![System preferences](docs/showcase/settings-system.webp) |
+
+![Keyboard shortcuts](docs/showcase/settings-shortcuts.webp)
+
+</details>
+
+**Desktop widgets** — CPU, temperature, disk, memory, session controls, clock, media and GitHub contributions, shown together in a temporary preview layout with the Liquid Glass material.
+
+![All eight desktop widgets over the current wallpaper](docs/showcase/widgets.webp)
+
+**Lockscreen** — glass clock and password field over the same wallpaper.
+
+![Lockscreen visual preview with simulated authentication](docs/showcase/lockscreen.webp)
+
+Capture details and wallpaper provenance: [showcase notes](docs/showcase/README.md).
+
 ## What it includes
 
 - An island with simulated glass while collapsed and snapshot refraction when expanded by click or hover.
@@ -42,8 +89,8 @@ Glass shares one neutral light/dark base and accent mixing policy across the isl
 
 ## Development
 
-Seven independent desktop widgets are available as Ryoku plugins: CPU,
-temperature, disk, memory, session controls, clock and media. They use Tahow's
+Eight independent desktop widgets are available as Ryoku plugins: CPU,
+temperature, disk, memory, session controls, clock, media and GitHub contributions. They use Tahow's
 simulated-glass cards and do not require either subshell to run. See the
 [widget sources and installation guide](integrations/widgets/README.md).
 
