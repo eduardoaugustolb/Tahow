@@ -121,4 +121,4 @@ Tahow is distributed under [AGPL-3.0](LICENSE), with upstream license notices re
 
 ## Web documentation
 
-The bilingual MDX documentation uses the shell's visual language and is configured for [GitHub Pages](https://eduardoaugustolb.github.io/Tahow/). Run `bun install --frozen-lockfile` and `bun run docs:dev` for local development, or `bun run docs:build` for a static build. See [website/README.md](website/README.md) for publishing and visual provenance.
+The bilingual MDX documentation uses the shell's visual language and is configured for [GitHub Pages](https://tahow.eduardoaugusto.work/). Run `bun install --frozen-lockfile` and `bun run docs:dev` for local development, or `bun run docs:build` for a static build. See [website/README.md](website/README.md) for publishing and visual provenance.
