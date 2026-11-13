@@ -14,6 +14,8 @@ Glass bases are `#0f0f14` in dark mode and `#f7f7fc` in light mode. Accent sourc
 
 The collapsed island uses simulated glass without screen capture or a refraction shader.
 
+Hover previews also use simulated glass, avoiding capture-induced blinking. Workspace, OSD, device and notification pills do not request hover previews or captures.
+
 ## Expanded surfaces
 
 Surfaces acquire frozen desktop snapshots before opening animations, excluding the capturing surface. The snapshot does not track windows moving afterward. When capture is unavailable, the component uses its fallback rendering.

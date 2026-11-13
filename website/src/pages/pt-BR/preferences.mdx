@@ -10,6 +10,8 @@ slug: "preferences"
 
 O arquivo canônico é `~/.config/tahow-shell/settings.json`, respeitando XDG_CONFIG_HOME. Enquanto ele não existe, o caminho legado `~/.config/tahoe-shell/settings.json` é lido como fallback; a primeira gravação usa o caminho canônico.
 
+A inicialização lê o arquivo canônico antes de considerar a migração única do legado. As alterações são gravadas atomicamente antes de retornar, sem um salvamento pendente que possa se perder ao reiniciar a shell. Um arquivo existente ilegível ou inválido é preservado; erros de persistência são registrados nos logs.
+
 ## Geral e overrides
 
 Os campos da raiz são gerais. Ajustes específicos ficam em `overrides.island`, `overrides.palette` e `overrides.lockscreen`.

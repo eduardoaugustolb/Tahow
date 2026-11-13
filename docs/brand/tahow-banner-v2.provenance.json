@@ -1,0 +1,51 @@
+{
+  "asset": "tahow-banner-v2.png",
+  "created": "2026-11-13",
+  "method": "Native Qt Quick composition and shader animation of existing image_gen brand assets; no new image generation",
+  "background": {
+    "asset": "shell/reload/assets/tahow-glass-orbit.png",
+    "provenance": "shell/reload/assets/tahow-glass-orbit.provenance.json",
+    "method": "OpenAI built-in image_gen; original Tahow composition"
+  },
+  "logo": {
+    "asset": "docs/brand/tahow-logo-concept-v3.png",
+    "provenance": "docs/brand/tahow-logo-concept-v3.provenance.json"
+  },
+  "typography": {
+    "text": "Tahow",
+    "font": "Sacramento-Regular.ttf",
+    "file": "shell/reload/fonts/Sacramento-Regular.ttf",
+    "license": "SIL Open Font License 1.1",
+    "notice": "shell/reload/fonts/OFL.txt"
+  },
+  "animation": {
+    "renderer": "tools/brand/Render.qml",
+    "composition": "tools/brand/Banner.qml",
+    "reproduce": "bun tools/build-shaders.ts && bun tools/animate-banner.ts",
+    "durationSeconds": 4,
+    "renderFrames": 96,
+    "framesPerSecond": 24,
+    "gifFramesPerSecond": 20,
+    "backgroundShader": "shell/reload/shaders/flow.frag",
+    "textShader": "shell/reload/shaders/welcome.frag",
+    "logoShader": "shell/reload/shaders/logo-flow.frag",
+    "motion": "Periodic local deformation of background, Sacramento stroke silhouettes and approved logo; refracted text and traveling caustic highlights",
+    "formats": [
+      "png",
+      "gif",
+      "webp",
+      "mp4"
+    ]
+  },
+  "composition": {
+    "alignment": "Logo alpha bounds and Sacramento tight glyph bounds share the vertical center; their combined visible width plus gap is centered horizontally.",
+    "logoAlphaBounds": {
+      "x": 148,
+      "y": 251,
+      "width": 996,
+      "height": 876,
+      "sourceSize": 1254
+    },
+    "gapFractionOfBannerWidth": 0.055
+  }
+}

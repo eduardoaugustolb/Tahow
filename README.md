@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="docs/brand/tahow-logo-concept-v3.png" alt="Tahow liquid-glass logo" width="180" height="180" />
-
-# Tahow
+<img src="docs/brand/tahow-banner-v2.gif" alt="Tahow — Sacramento signature and logo flowing over liquid glass" width="960" />
 
 **Your desktop, through glass.**
 

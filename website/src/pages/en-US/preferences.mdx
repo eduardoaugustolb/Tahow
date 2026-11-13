@@ -10,6 +10,8 @@ slug: "preferences"
 
 The canonical file is `~/.config/tahow-shell/settings.json`, respecting XDG_CONFIG_HOME. Until it exists, `~/.config/tahoe-shell/settings.json` remains a readable fallback. The first write uses the canonical path.
 
+Startup reads the canonical file before considering one-time legacy migration. Edits are saved atomically before returning, so restarting the shell does not discard pending changes. An unreadable or malformed existing file is preserved; persistence errors are logged.
+
 ## General and overrides
 
 Root fields are General. Component adjustments live under `overrides.island`, `overrides.palette` and `overrides.lockscreen`.

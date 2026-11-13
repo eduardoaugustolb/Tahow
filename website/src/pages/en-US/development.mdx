@@ -40,6 +40,17 @@ bun run docs:build
 
 The GitHub Pages workflow builds the static site with Bun. The production domain is tahow.eduardoaugusto.work.
 
+## Animated brand banner
+
+The approved banner combines the existing generated glass-orbit background, approved logo and bundled Sacramento font. It uses the reload screen's flow and text-refraction shaders, plus local logo deformation. Visible artwork bounds align the logo and signature as one centered composition.
+
+```sh
+bun tools/build-shaders.ts
+bun tools/animate-banner.ts
+```
+
+The renderer uses an isolated offscreen Quickshell runtime and exports PNG, GIF, WebP and MP4 to `docs/brand/`. It also copies the static poster and MP4 into `website/public/brand/`. The README uses GIF; these pages use MP4 with playback controls and a static image for reduced motion. Asset provenance and font licensing remain in the repository.
+
 ## License and provenance
 
 AGPL-3.0 software with upstream notices retained. Glyphs are original; no proprietary Apple fonts are distributed. The Tahow signature uses Sacramento under the SIL Open Font License. See NOTICE.md and shell/PROVENANCE.txt in the repository.
