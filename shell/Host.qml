@@ -6,6 +6,8 @@ Singleton {
     signal prepared(string screen, string kind, int value)
     signal preparationCancelled()
     function prepare(screen,kind,value) { prepareRequested(screen,kind,value); }
+    // Activity bookkeeping for focus/hover guards, never a visibility policy.
+    // Each capturing window controls only its own presentation.
     property int captureCount: 0
     function beginCapture() { captureCount++; }
     function endCapture() { captureCount = Math.max(0,captureCount-1); }

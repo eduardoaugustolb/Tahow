@@ -33,5 +33,5 @@ Scope {
         function settingsTab(section: string): void { Hub.openSettings(); Qt.callLater(() => { const index = ["general","island","palette","lockscreen","system","shortcuts","glass"].indexOf(section); if (settingsLoader.item && index >= 0) settingsLoader.item.page = index; }); }
         function settings(): void { Hub.openSettings(); }
     }
-    Component.onCompleted: { Hub.armed; Notifs.ready; Theme.dark; }
+    Component.onCompleted: { Hub.armed; Notifs.ready; Theme.dark; LoginWallpaper.status; }
 }

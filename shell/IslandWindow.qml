@@ -34,17 +34,16 @@ PanelWindow {
     function layoutDump() {
         return Object.assign(island.layoutDump(), {
             screen: screenName,
+            islandOpacity: island.opacity,
+            surfaceOpacity: win.contentItem.opacity,
             acquiringBackdrop: acquiringBackdrop,
             captureHasContent: backgroundCapture.hasContent,
             backdropReady: !!Host.backdrops[screenName]
         });
     }
     Component.onCompleted: Host.registerWindow(win)
-    Binding {
-        target: win.contentItem; property: "opacity"; value: 0
-        when: Host.captureCount > 0 && !win.acquiringBackdrop
-        restoreMode: Binding.RestoreBindingOrValue
-    }
+    // Capture visibility is local to the requesting component. Never fade the
+    // whole overlay: banners and Notification Center share this window too.
     readonly property bool interactive: island.isExpanded || island.isLauncher || centerShown || Notifs.replying || banners.hovered
 
     WlrLayershell.layer: WlrLayer.Overlay
@@ -82,6 +81,7 @@ PanelWindow {
 
 
     property bool acquiringBackdrop: false
+    property bool captureHidesIsland: false
     property string pendingKind: ""
     property int pendingValue: 0
     function prepare(kind,value) {
@@ -90,23 +90,28 @@ PanelWindow {
         if ((island.peek || island.isExpanded || centerShown) && Host.backdrops[screenName]) { completePresentation(); return; }
         if (!Config.island.screenCapture) { completePresentation(); return; }
         acquiringBackdrop = true; Host.beginCapture();
+        captureHidesIsland = kind !== "center";
         Host.backdrop(screenName, null);
         backgroundCapture.live = false;
         backgroundCapture.captureSource = null;
         fadeIn.stop();
-        fadeOut.restart();
+        island.opacity = 1;
+        // Notification Center is already hidden until Host.prepared commits it.
+        // Its acquisition must leave the collapsed Island and banners intact.
+        if (captureHidesIsland) fadeOut.restart();
+        else acquire.restart();
     }
     function completePresentation() {
         acquire.stop(); fadeOut.stop();
         if (acquiringBackdrop) { Host.endCapture(); acquiringBackdrop = false; }
         backgroundCapture.live = false;
-        fadeIn.restart();
+        if (captureHidesIsland) fadeIn.restart();
         const kind = pendingKind, value = pendingValue; pendingKind = "";
         if (kind) Host.prepared(win.screenName,kind,value);
     }
     NumberAnimation {
         id: fadeOut
-        target: win.contentItem; property: "opacity"; to: 0
+        target: island; property: "opacity"; to: 0
         duration: Theme.reduced ? 1 : 32
         easing.type: Easing.InQuad
         onFinished: if (win.acquiringBackdrop) acquire.restart()
@@ -115,7 +120,7 @@ PanelWindow {
     Timer { id: acquire; interval: 32; onTriggered: { if (!win.acquiringBackdrop) return; backgroundCapture.captureSource = win.screen; } }
     NumberAnimation {
         id: fadeIn
-        target: win.contentItem; property: "opacity"; to: 1
+        target: island; property: "opacity"; to: 1
         duration: Theme.reduced ? 1 : 80
         easing.type: Easing.OutQuad
     }

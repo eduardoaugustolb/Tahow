@@ -21,7 +21,7 @@ FloatingWindow {
     readonly property var islandKeys: visualKeys.concat(["bezel","thickness","ior","dispersion","compactPadding","topMargin","outerGaps","screenCapture","reserveSpace","overlayBar","hoverPeek","hoverDelay","splitActivities","activityClock","use24h","showAmPm","showSeconds","showBattery","showPrivacy","workspaceFlash"])
     readonly property var paletteKeys: visualKeys.concat(["dispersion","palettePosition","columns","matWidth","screenCapture","hiddenApps","pinnedApps"])
     readonly property var lockKeys: ["appearance","accentSource","customAccent","font","motion","fastDuration","mediumDuration","easing","use24h","lockFooterScale","lockRim","lockTint","lockThickness","lockIor","lockDispersion","lockEnergy","lockBezel","pamService"]
-    readonly property var keys: page === 0 ? ["language"].concat(visualKeys) : page === 1 ? islandKeys : page === 2 ? paletteKeys : page === 3 ? lockKeys : page === 4 ? Object.keys(Config.defaults).filter(k => k !== "language" && k !== "settingsAppearance" && visualKeys.indexOf(k) < 0 && islandKeys.indexOf(k) < 0 && paletteKeys.indexOf(k) < 0 && lockKeys.indexOf(k) < 0) : []
+    readonly property var keys: page === 0 ? ["language"].concat(visualKeys) : page === 1 ? islandKeys : page === 2 ? paletteKeys : page === 3 ? lockKeys : page === 4 ? Object.keys(Config.defaults).filter(k => k !== "loginFollowWallpaper" && k !== "language" && k !== "settingsAppearance" && visualKeys.indexOf(k) < 0 && islandKeys.indexOf(k) < 0 && paletteKeys.indexOf(k) < 0 && lockKeys.indexOf(k) < 0) : []
     readonly property var choices: ({language:["auto","en-US","pt-BR"],style:["glass","black"],appearance:["auto","dark","light"],accentSource:["auto","wallpaper","ryoku","custom","matugen","wal","gtk"],motion:["gentle","balanced","bouncy","reduced"],settingsAppearance:["light","dark"],activityClock:["split","inline","hidden"],units:["metric","imperial"],notifStyle:["banner","island","corner"],previews:["always","never"],locationMode:["auto","manual","ip"]})
     property var bindings: []
     property string shortcutSearch: ""
@@ -32,6 +32,15 @@ FloatingWindow {
         Config.set(scope,key,value);
     }
     Shortcut { sequence: "Escape"; onActivated: Hub.settingsOpen = false }
+    FileDialog {
+        id: loginWallpaperPicker
+        title: I18n.tr("Upload login wallpaper")
+        nameFilters: [I18n.tr("Images") + " (*.png *.jpg *.jpeg *.webp *.bmp)"]
+        onAccepted: {
+            Config.set("general", "loginFollowWallpaper", false);
+            LoginWallpaper.publish(selectedFile.toString());
+        }
+    }
     ColorDialog { id: picker; selectedColor: Config.value(win.scope,"customAccent"); onAccepted: { win.save("customAccent",selectedColor.toString()); win.save("accentSource","custom"); } }
     Process {
         id: keybinds; command: ["ryoku-hub","keybinds"]
@@ -154,6 +163,23 @@ FloatingWindow {
         }
         ScrollView { x: 20; y: 66; width: parent.width - 40; height: parent.height - 80; clip: true; contentWidth: availableWidth
             Column { width: main.width - 40; spacing: 18
+                Column {
+                    visible: win.page === 3; width: parent.width; spacing: 10
+                    Text { text: I18n.tr("Login wallpaper"); color: win.ink; font.pixelSize: 14; font.weight: Font.DemiBold }
+                    Row {
+                        spacing: 12
+                        Button { text: I18n.tr("Upload login wallpaper"); enabled: !LoginWallpaper.busy; onClicked: loginWallpaperPicker.open() }
+                        CheckBox {
+                            text: I18n.tr("Follow Ryoku wallpaper")
+                            palette.windowText: win.ink
+                            palette.highlight: win.accent
+                            checked: Config.s.loginFollowWallpaper
+                            onClicked: Config.set("general", "loginFollowWallpaper", checked)
+                        }
+                    }
+                    Text { width: parent.width; wrapMode: Text.WordWrap; color: win.secondary; font.pixelSize: 12; text: I18n.tr("Login wallpaper requires the Tahow login integration. Images are copied outside your home for boot access.") }
+                    Text { width: parent.width; wrapMode: Text.WordWrap; color: win.secondary; font.pixelSize: 12; text: I18n.tr(LoginWallpaper.status) }
+                }
                 GlassSettings {
                     id: glassSettings
                     visible: win.page === 6; width: parent.width

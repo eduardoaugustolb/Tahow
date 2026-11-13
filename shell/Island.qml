@@ -11,9 +11,6 @@ Item {
     id: root
     required property string screenName
 
-    Connections { target: Host
-        function onPrepared(screen,kind,value) { if (screen === root.screenName && kind === "peek" && root.peekIntent && !root.isExpanded) { root.peek = true; verifyPeek.restart(); } }
-    }
     readonly property real compactPadding: Math.max(12,Math.min(28,Config.island.compactPadding))
     function layoutDump() { return { mode: mode, leftPadding: idleRow.x, rightPadding: width - idleRow.x - idleRow.width, width: width }; }
     Connections { target: Hub; function onDismissed() { root.peek = false; } }
@@ -21,7 +18,6 @@ Item {
     readonly property bool isExpanded: Hub.expanded && Hub.expandedScreen === screenName
     readonly property bool isLauncher: Hub.launcherOpen && Hub.launcherScreen === screenName
     property bool peek: false
-    property bool peekIntent: false
 
     readonly property string primary: Hub.activities.length > 0 ? Hub.activities[0] : ""
     readonly property string secondary: Config.island.splitActivities && Hub.activities.length > 1 ? Hub.activities[1] : ""
@@ -41,6 +37,8 @@ Item {
     readonly property bool compact: mode === "idle" || mode === "media" || mode === "timer" || mode === "stopwatch" || mode === "recording"
     // Keep the time visible while a live activity owns the island (iOS/macOS-style split)
     readonly property bool activityCompact: compact && mode !== "idle"
+    // Transient pills and notifications have no hover preview to prepare.
+    readonly property bool canPeek: compact || mode.endsWith("Peek")
     readonly property bool clockSplit: Config.island.activityClock === "split" && activityCompact
     readonly property bool inlineClock: Config.island.activityClock === "inline"
 
@@ -78,7 +76,6 @@ Item {
         id: hover
         onHoveredChanged: {
             if (Host.captureCount > 0) return;
-            root.peekIntent = hovered;
             peekTimer.restart();
             Hub.holdEvent(hovered);
             Notifs.hovering = hovered && root.mode === "notif";
@@ -87,10 +84,13 @@ Item {
     Timer {
         id: peekTimer
         interval: hover.hovered ? Config.island.hoverDelay : 160
-        onTriggered: { if (root.isExpanded || root.isLauncher) return; if (hover.hovered && Config.island.hoverPeek) { if (!root.peek) Host.prepare(root.screenName,"peek",0); } else root.peek = false; }
+        onTriggered: {
+            // Hover previews retain simulated glass: capturing here would hide
+            // the pill before every preview and produce a visible blink.
+            root.peek = root.canPeek && hover.hovered && Config.island.hoverPeek;
+        }
     }
 
-    Timer { id: verifyPeek; interval: 180; onTriggered: if (!hover.hovered && Host.captureCount === 0) root.peek = false }
 
     // ── Keyboard while expanded ──
     Item {
@@ -129,7 +129,7 @@ Item {
 
     Glass {
         id: surface
-        refraction: !root.compact
+        refraction: !root.compact && !root.mode.endsWith("Peek")
         anchors.fill: parent
         radius: root.isExpanded ? 36 : root.isLauncher ? 28 : root.height >= 60 ? 32 : root.height / 2
         glowColor: root.glowColor

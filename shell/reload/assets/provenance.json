@@ -1,0 +1,7 @@
+{
+  "asset": "tahow-glass-blue.png",
+  "created": "2026-11-13",
+  "method": "OpenAI built-in image_gen",
+  "reference": "User-supplied blue abstract wallpaper (visual reference only; not redistributed)",
+  "prompt": "Use case: stylized-concept\nAsset type: fixed 16:9 high-resolution wallpaper for the Tahow desktop shell.\nInput image 1 is a composition and material reference.\nPrimary request: generate a new abstract wallpaper as visually close as possible to this reference: sweeping cobalt-blue and cyan translucent liquid-glass folds, a pale warm ivory upper-left field, a broad saturated royal-blue wave crossing from lower-left toward upper-right, and one very slender polished diagonal glass edge running from approximately 11% across the bottom to 59% across the top. The right half is a soft luminous sky-blue glass surface with deep blue flowing shadows near the upper middle. Preserve the reference's large quiet shapes, soft gradients, relative color proportions and diagonal framing. Smooth clean premium 3D optical material, diffused lighting, no texture grain, no extra ornaments.\nConstraints: landscape 16:9, preferably 3840x2160; fill the entire canvas; no text, no welcome lettering, no logo, no watermark, no UI or border. This is a new Tahow wallpaper, not an Apple asset."
+}

@@ -84,7 +84,7 @@ Rectangle {
         Image {
             id: wallpaper
             anchors.fill: parent
-            source: root.live ? root.live.wallpaperUrl : ""
+            source: root.live ? root.live.wallpaperUrl : (typeof config !== "undefined" ? String(config.background || "") : "")
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             cache: false

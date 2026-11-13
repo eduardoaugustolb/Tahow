@@ -4,7 +4,7 @@ Independent modular Quickshell shell and Ryostore subshell. The fork preserves D
 
 ## Preferences
 
-One file: `~/.config/tahow-shell/settings.json` (respects XDG_CONFIG_HOME). The legacy `~/.config/tahoe-shell/settings.json` is still read as a fallback while the canonical file does not exist yet; its values are copied into the canonical file on the first write. Top-level fields are General. Individual changes live in `overrides.island`, `overrides.palette`, and `overrides.lockscreen`. Settings tabs edit these scopes; **Use General** clears that component's overrides. No component owns another preference file.
+One file: `~/.config/tahow-shell/settings.json` (respects XDG_CONFIG_HOME). The legacy `~/.config/tahoe-shell/settings.json` is still read as a fallback while the canonical file does not exist yet; its values are copied into the canonical file on the first write. Top-level fields are General. Individual changes live in `overrides.island`, `overrides.palette`, and `overrides.lockscreen`. Settings tabs edit these scopes; **Use General** clears that component's overrides. No component owns another preference file. Startup reads the canonical file before considering migration; a malformed or unreadable existing file is preserved. Preference edits are written atomically before returning, without a pending save timer. Write failures are logged and exposed through `Config.persistenceError`.
 
 Example:
 
@@ -36,7 +36,7 @@ Open it directly with `qs -c shell ipc call tahoe settingsTab glass`. Live slide
 
 ## Rendering and lifecycle
 
-The collapsed island uses simulated glass without a refraction shader or screenshot. Expanded island and notification glass use actual desktop snapshots when opening, excluding their own surfaces and acquiring the snapshot before animation. They never substitute a wallpaper for window content. Captures freeze after acquisition, avoiding recursive feedback and continuous desktop recording. Between captures or on unsupported providers, the surface uses native transparency. It does not track windows moving behind an already-open frozen surface.
+The collapsed island and hover previews use simulated glass without a refraction shader or screenshot. Workspace, OSD, device and notification pills do not request hover previews or captures. Expanded island and notification glass use actual desktop snapshots when opening, excluding only the capturing component itself and acquiring the snapshot before animation. Palette and settings captures likewise hide only themselves; other Tahow components remain visible, including banners sharing the Island's overlay window. The shared capture counter guards focus and hover handling and never controls another component's opacity. They never substitute a wallpaper for window content. Captures freeze after acquisition, avoiding recursive feedback and continuous desktop recording. Between captures or on unsupported providers, the surface uses native transparency. It does not track windows moving behind an already-open frozen surface.
 
 The palette appears immediately with a stable surface. Its frozen output texture uses fixed coordinates while the foreground bubble animates, avoiding crop-texture rebuilds. Bouncy uses the configured spring/damping. Captures are released when the palette closes. Screen capture requires provider support; disable screenCapture for an opaque palette fallback.
 

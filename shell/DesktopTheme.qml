@@ -5,6 +5,7 @@ import Quickshell.Io
 Singleton {
     id: root
     property string wallpaper: ""
+    signal wallpaperPublished(string path)
     property var palette: ({})
     property var named: ({})
     property bool follow: true
@@ -34,7 +35,7 @@ Singleton {
     }
     Loader {
         id: subscription
-        active: !!Quickshell.env("RYOKU_VERSION") || root.available
+        active: true
         sourceComponent: Socket {
             path: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/ryogami.sock"
             Component.onCompleted: connected = true
@@ -42,12 +43,15 @@ Singleton {
             onError: subscription.active = false
             parser: SplitParser { onRead: line => {
                 const frame = root.object(line);
-                const entry = frame && (frame.default || (frame.outputs && frame.outputs[Host.focusedOutput]));
-                if (entry && entry.path) root.wallpaper = entry.path;
+                const entry = frame && ((frame.outputs && frame.outputs[Host.focusedOutput]) || frame.default);
+                if (entry && entry.path) {
+                    root.wallpaper = entry.path;
+                    root.wallpaperPublished(entry.path);
+                }
                 root.refresh();
             } }
         }
     }
-    Timer { interval: 2000; repeat: true; running: root.available && !subscription.active; onTriggered: subscription.active = true }
+    Timer { interval: 2000; repeat: true; running: !subscription.active; onTriggered: subscription.active = true }
     IpcHandler { target: "tahoeTheme"; function refresh(): void { root.refresh(); } }
 }

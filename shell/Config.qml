@@ -73,50 +73,60 @@ Singleton {
     property bool legacyReady: false
     property bool canonicalProbed: false
     property bool legacyProbed: false
-    Timer { id: persistChanges; interval: 120; onTriggered: file.writeAdapter() }
-    // Both path probes have answered, so the shell knows whether this is a
-    // fresh install, a legacy install, or an already-migrated install.
+    property bool initialized: false
+    property bool canonicalMissing: false
+    property bool legacyMissing: false
+    property string persistenceError: ""
     readonly property bool probesDone: root.canonicalProbed && root.legacyProbed
-
-    // The canonical settings file always wins. The legacy file is only
-    // adopted when the canonical one has not been created yet, so a user who
-    // already migrated never sees stale values take precedence again.
     readonly property string settingsPath: Paths.settingsPath({
         HOME: Quickshell.env("HOME"),
         XDG_CONFIG_HOME: Quickshell.env("XDG_CONFIG_HOME"),
     }, root.canonicalReady, root.legacyReady)
 
-    FileView {
-        id: canonicalProbe
-        path: root.canonicalDir + "/settings.json"
-        blockLoading: true
-        printErrors: false
-        onLoaded: { root.canonicalReady = true; root.canonicalProbed = true; }
-        onLoadFailed: { root.canonicalReady = false; root.canonicalProbed = true; }
-    }
-
-    // Once the legacy file has been adopted, mirror its values into the
-    // canonical file so every later read and write uses one location.
-    function migrateLegacy() {
-        if (!root.legacyReady || root.canonicalReady || root.resetting) return;
-        root.resetting = true;
-        for (const key in adapter) {
-            try { adapter[key] = legacyAdapter[key]; } catch (e) {}
+    function readSettings(view) {
+        const text = view.text(); // blockLoading forces completion before choosing a source.
+        if (!view.loaded) return null;
+        try {
+            const values = JSON.parse(text);
+            if (!values || typeof values !== "object" || Array.isArray(values)) throw new Error("Expected a settings object");
+            return values;
+        } catch (error) {
+            persistenceError = "Cannot parse preferences: " + view.path;
+            console.error(persistenceError);
+            return null;
         }
-        root.resetting = false;
+    }
+    function persist() {
+        if (!initialized || resetting) return;
         file.writeAdapter();
     }
-
-    // Both probes have answered by now. When neither file exists this is a
-    // fresh install, so the defaults are written once. Writing is delayed
-    // until the probes resolve so a legacy file is never overwritten by the
-    // defaults before it gets migrated.
-    Timer {
-        id: firstRun
-        interval: 50
-        running: root.probesDone && !root.canonicalReady && !root.legacyReady && !root.resetting
-        onTriggered: file.writeAdapter()
+    function initialize() {
+        // Resolve the canonical file synchronously. A legacy read must never
+        // race a separate existence probe and overwrite newer preferences.
+        const current = readSettings(file);
+        canonicalProbed = true;
+        if (current !== null) {
+            canonicalReady = true;
+            legacyProbed = true;
+            initialized = true;
+            return;
+        }
+        // Unreadable/corrupt files are not fresh installs. Preserve them.
+        if (!canonicalMissing) return;
+        const legacy = readSettings(legacyFile);
+        legacyProbed = true;
+        legacyReady = legacy !== null;
+        if (!legacyReady && !legacyMissing) return;
+        if (legacyReady) {
+            for (const key in defaults) {
+                if (Object.prototype.hasOwnProperty.call(legacy, key)) adapter[key] = legacy[key];
+            }
+            if (legacy.overrides && typeof legacy.overrides === "object") adapter.overrides = legacy.overrides;
+        }
+        initialized = true;
+        persist();
     }
+    Component.onCompleted: initialize()
 
     // Upstream reset deleted the file and reloaded the whole Quickshell
     // instance; here that would reload the entire Ryoku shell. Instead every
@@ -129,12 +139,13 @@ Singleton {
             try { adapter[k] = d[k]; } catch (e) {}
         }
         resetting = false;
-        file.writeAdapter();
+        persist();
     }
 
-    // Mirrors every JsonAdapter default above; keep the two lists in sync.
+    // Mirrors the JsonAdapter defaults below; shared by reset and legacy migration.
     readonly property var defaults: ({
         language: "auto",
+        loginFollowWallpaper: true,
         reloadCoverFollowWallpaper: false,
         lockFooterScale: 1.12,
         lockRim: 0.22,
@@ -220,122 +231,56 @@ Singleton {
     FileView {
         id: legacyFile
         path: root.legacyDir + "/settings.json"
-        watchChanges: true
+        preload: false
         blockLoading: true
         printErrors: false
-        onFileChanged: reload()
-        onLoaded: { root.legacyReady = true; root.legacyProbed = true; root.migrateLegacy(); }
-        onLoadFailed: { root.legacyReady = false; root.legacyProbed = true; }
-
-        JsonAdapter {
-            id: legacyAdapter
-            property string language: "auto"
-            property bool reloadCoverFollowWallpaper: false
-            property real lockFooterScale: 1.12
-            property real lockRim: 0.22
-            property real lockTint: 0.035
-            property real lockThickness: 14
-            property real lockIor: 1.25
-            property real lockDispersion: 0.08
-            property real lockEnergy: 0.05
-            property real lockBezel: 6
-            property int compactPadding: 18
-            property string settingsAppearance: "light"
-            property var overrides: ({})
-            property bool takeover: true
-            property bool dnd: false
-            property bool islandEnabled: true
-            property bool paletteEnabled: true
-            property bool lockscreenEnabled: true
-            property int easing: 6
-            property int fastDuration: 180
-            property int mediumDuration: 300
-            property real palettePosition: 0.28
-            property int columns: 7
-            property int matWidth: 82
-            property var hiddenApps: []
-            property var pinnedApps: []
-            property bool screenCapture: false
-            property real bezel: 6
-            property real thickness: 8
-            property real ior: 1.2
-            property real dispersion: 0.08
-            property real frost: 12
-            property string pamService: "login"
-            property string style: "glass"
-            property string appearance: "auto"
-            property real glassOpacity: 0.55
-            property bool glassRim: true
-            property bool glassAccentTint: true
-            property bool glow: true
-            property string accentSource: "auto"
-            property string customAccent: "#0a84ff"
-            property string matugenPath: "~/.cache/matugen/colors.json"
-            property string wallpaperPath: ""
-            property bool albumTint: true
-            property string font: "auto"
-            property bool overlayBar: true
-            property bool reserveSpace: true
-            property int topMargin: 6
-            property int outerGaps: 16
-            property string motion: "balanced"
-            property bool use24h: false
-            property bool showAmPm: false
-            property bool showSeconds: false
-            property bool showBattery: true
-            property bool showPrivacy: true
-            property bool workspaceFlash: true
-            property bool splitActivities: true
-            property string activityClock: "split"
-            property bool hoverPeek: true
-            property int hoverDelay: 260
-            property bool visualizer: true
-            property bool trackChangePeek: true
-            property bool spinArt: true
-            property bool notifications: true
-            property string notifStyle: "banner"
-            property int bannerTimeout: 5
-            property string previews: "always"
-            property bool notifSound: false
-            property string soundFile: "/usr/share/sounds/freedesktop/stereo/message.oga"
-            property bool groupByApp: true
-            property bool dndAllowCritical: true
-            property bool weather: true
-            property string locationMode: "auto"
-            property real manualLat: 0
-            property real manualLon: 0
-            property string manualName: ""
-            property string units: "metric"
-            property bool ccAccent: true
-            property int nightLightTemp: 4000
-            property bool osdPopups: false
-            property int osdTimeout: 1600
-            property bool confirmPower: true
+        // Migration is a one-time startup decision, never a live legacy writer.
+        onLoadFailed: error => {
+            root.legacyMissing = error === FileViewError.FileNotFound;
+            if (!root.legacyMissing) {
+                root.persistenceError = "Cannot read legacy preferences: " + path + " (" + FileViewError.toString(error) + ")";
+                console.error(root.persistenceError);
+            }
         }
     }
 
     FileView {
         id: file
-        // The canonical directory owns every write. Reads fall back to the
-        // legacy ~/.config/tahoe-shell/settings.json until the canonical file
-        // exists; the values are then copied over by migrateLegacy().
         path: root.canonicalDir + "/settings.json"
+        preload: false
         watchChanges: true
         blockLoading: true
+        // Preferences are small. Complete each atomic write before returning
+        // so shutdown and self-watch notifications cannot discard pending edits.
+        blockWrites: true
+        atomicWrites: true
         printErrors: false
-        // Coalesce live slider edits. Reloading an earlier self-write while a
-        // newer edit is pending would replace the current adapter values.
-        onFileChanged: if (!persistChanges.running) reload()
-        onAdapterUpdated: if (!root.resetting) persistChanges.restart()
-        onLoadFailed: err => {
-            // First run, or the canonical file is not there yet. The legacy
-            // adapter feeds the values in when it exists; the firstRun timer
-            // writes the defaults only when no legacy file is found.
+        onFileChanged: {
+            if (root.resetting) return;
+            root.resetting = true;
+            reload();
+            root.initialized = root.readSettings(file) !== null;
+            root.resetting = false;
+        }
+        onAdapterUpdated: root.persist()
+        onLoaded: { root.canonicalReady = true; root.canonicalMissing = false; }
+        onLoadFailed: error => {
+            root.canonicalMissing = error === FileViewError.FileNotFound;
+            if (!root.canonicalMissing) {
+                root.persistenceError = "Cannot read preferences: " + path + " (" + FileViewError.toString(error) + ")";
+                console.error(root.persistenceError);
+            }
+        }
+        onSaved: { root.canonicalReady = true; root.persistenceError = ""; }
+        onSaveFailed: error => {
+            root.persistenceError = "Cannot save preferences: " + path + " (" + FileViewError.toString(error) + ")";
+            console.error(root.persistenceError);
         }
 
         JsonAdapter {
             id: adapter
             property string language: "auto"
+            property bool loginFollowWallpaper: true
             property bool reloadCoverFollowWallpaper: false
             property real lockFooterScale: 1.12
             property real lockRim: 0.22

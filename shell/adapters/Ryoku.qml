@@ -36,7 +36,7 @@ QtObject {
     readonly property var occupied: (Wm.workspaces || []).map(w => Number(w.id))
     function fullscreen(name) { return Wm.outputHasFullscreen(name); }
     function paletteState(open, mon) { if (!open) Shell.ShellState.closeSurface("tahoe-palette-state", mon); }
-    function launch(entry) { AppLaunch.run(entry, null); }
+    function launch(entry) { Shell.AppLaunch.run(entry, null); }
     function session(action) { Shell.SessionActions.run(action); }
     property Connections surfaces: Connections {
         target: Shell.ShellState

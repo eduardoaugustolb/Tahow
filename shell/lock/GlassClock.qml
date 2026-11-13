@@ -11,7 +11,7 @@ Item {
     Text {
         id: glyph
         anchors.centerIn: parent
-        text: I18n.tr(root.text)
+        text: root.text
         font.family: "Inter"; font.weight: Font.DemiBold
         font.pixelSize: 134 * root.s; font.letterSpacing: -7 * root.s
         color: "white"

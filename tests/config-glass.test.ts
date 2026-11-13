@@ -6,11 +6,11 @@ function handler(name: string, argumentsList: string, context: Record<string, un
     return new Function('context', `with (context) { return function(${argumentsList}) {${body}}; }`)(context);
 }
 
-test('optical defaults are persistent in canonical and legacy adapters and inherited from General', () => {
+test('optical defaults are persistent in the shared adapter and inherited from General', () => {
     const defaults = {bezel: 6, thickness: 8, ior: 1.2, dispersion: 0.08};
     for (const [key, value] of Object.entries(defaults)) {
         expect(source).toContain(`${key}: ${value},`);
-        expect(source.match(new RegExp(`property real ${key}: ${value}`, 'g'))).toHaveLength(2);
+        expect(source.match(new RegExp(`property real ${key}: ${value}`, 'g'))).toHaveLength(1);
     }
     const adapter = {bezel: 14, thickness: 20, ior: 1.6, dispersion: 0.12, overrides: {
         island: {thickness: 30}, palette: {dispersion: 0.04}, lockscreen: {lockDispersion: 0.1}

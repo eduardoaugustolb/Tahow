@@ -2,12 +2,16 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
+import "i18n"
 import "i18n/paths.js" as Paths
 import "i18n/material.js" as Material
 
 Item {
     id: root
     function option(key) { const own = (islandSettings.adapter.overrides || {}).lockscreen || {}; return own[key] !== undefined ? own[key] : islandSettings.adapter[key]; }
+    Binding { target: I18n; property: "selection"; value: root.option("language") || "auto" }
+    property string inheritedLanguage: "auto"
+    Binding { target: I18n; property: "inheritedLanguage"; value: root.inheritedLanguage }
     property var wallpaperPalette: ({})
     property var namedPalette: ({})
     property bool followWallpaper: true
@@ -29,7 +33,7 @@ Item {
     FileView {
         path: (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/ryoku/shell.json"
         watchChanges: true; printErrors: false; onFileChanged: reload()
-        onLoaded: { try { root.namedPalette = JSON.parse(text()).themePalette || {}; } catch (_) {} }
+        onLoaded: { try { const settings = JSON.parse(text()); root.namedPalette = settings.themePalette || {}; root.inheritedLanguage = settings.language || "auto"; } catch (_) {} }
     }
     readonly property string fontFamily: option("font") === "auto" ? "Inter" : option("font")
     // Read-only: follow the installed Dynamic Island motion preference.
@@ -68,7 +72,7 @@ Item {
         path: root.settingsPath
         watchChanges: true; blockLoading: true; printErrors: false
         onFileChanged: reload()
-        JsonAdapter { property string style: "glass"; property bool glassAccentTint: true; property string appearance: "auto"; property string accentSource: "auto"; property real lockFooterScale: 1.12; property real lockRim: 0.22; property real lockTint: 0.035; property real lockThickness: 14; property real lockIor: 1.25; property real lockDispersion: 0.08; property real lockEnergy: 0.05; property real lockBezel: 6; property var overrides: ({}); property string font: "auto"; property string motion: "balanced"; property bool use24h: false; property int easing: 6; property int fastDuration: 180; property int mediumDuration: 300; property string customAccent: "#0a84ff" }
+        JsonAdapter { property string language: "auto"; property string style: "glass"; property bool glassAccentTint: true; property string appearance: "auto"; property string accentSource: "auto"; property real lockFooterScale: 1.12; property real lockRim: 0.22; property real lockTint: 0.035; property real lockThickness: 14; property real lockIor: 1.25; property real lockDispersion: 0.08; property real lockEnergy: 0.05; property real lockBezel: 6; property var overrides: ({}); property string font: "auto"; property string motion: "balanced"; property bool use24h: false; property int easing: 6; property int fastDuration: 180; property int mediumDuration: 300; property string customAccent: "#0a84ff" }
     }
     property string wallpaperUrl: ""
     readonly property int batteryLevel: UPower.displayDevice && UPower.displayDevice.isLaptopBattery ? Math.round(UPower.displayDevice.percentage * 100) : -1
