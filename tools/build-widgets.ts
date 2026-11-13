@@ -109,7 +109,7 @@ export function buildWidgets(options: BuildOptions = {}) {
             description: product.description, license: 'AGPL-3.0-only', official: false,
             tags: ['tahow', 'desktop-widget', 'glass', product.kind],
             hosts: ['desktopWidget'], entryPoints: { main: 'service/Main.qml', content: 'content/Widget.qml' },
-            capabilities: { densities: ['compact', 'full'], colors: true, network: product.kind === 'github' ? ['github-contributions-api.jogruber.de'] : [], privileged: [] },
+            capabilities: { densities: ['compact', 'full'], colors: true, network: product.kind === 'github' ? ['github-contributions-api.jogruber.de'] : product.kind === 'media' ? ['*'] : [], privileged: [] },
             defaults: { host: 'desktopWidget', label: `Tahow ${product.name}`, desktopWidget: { bg: 'none' } },
             dependencies: { commands: [...product.commands, 'ryoku-plugins-place'] }, metadata: { settings },
             files: [...output.keys()].sort().map(path => ({

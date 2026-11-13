@@ -82,8 +82,8 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 14379,
-      "sha256": "7dc5d2e2f6173623b9574f517cbfd8668e02683273a8bdcbe0db6a0822d8d48e",
+      "size": 14477,
+      "sha256": "7ec47e42ac4c3986eca730ab3605686d29978ab936ea1926486bbf4775c9f337",
       "install": true
     },
     {
@@ -146,8 +146,8 @@
       "source": "lib/metrics.js",
       "destination": "lib/metrics.js",
       "mode": "0644",
-      "size": 4888,
-      "sha256": "38b6bc3b08f8d650b4e64f407fb2f4bde673d71b82c0c059671a5cef6d025ba9",
+      "size": 4968,
+      "sha256": "4d893580e68eb0c4cca41b9a6ecffac27b43064a53bbdaf41b88229ab4bd2845",
       "install": true
     },
     {
@@ -179,7 +179,7 @@
       "destination": "manifest.json",
       "mode": "0644",
       "size": 9566,
-      "sha256": "817549ef2c6a26aaa3476d6ee632cbbd0f7bf8ca4868204ff6fb46af4384c03e",
+      "sha256": "33c8d84f76bdfbdb866cb988c6deabb9525ba0417ab478d982d3ea2dcdf0d777",
       "install": true
     }
   ]

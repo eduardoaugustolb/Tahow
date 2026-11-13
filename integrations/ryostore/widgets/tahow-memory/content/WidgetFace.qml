@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Widgets
 import Ryoku.PluginKit.Singletons as Host
 import "../lib/material.js" as Material
 import "../lib/symbols.js" as Symbols
@@ -125,9 +126,9 @@ Item {
         }
         Item {
             visible:root.kind === "media"; anchors.fill:parent; anchors.margins:14*root.unit
-            Rectangle { id: art; width:88*root.unit;height:width;radius:16*root.unit;color:root.alpha(root.accent,0.15);clip:true
-                Image { anchors.fill:parent; source:root.service ? (root.service.artUrl || "") : "";fillMode:Image.PreserveAspectCrop;asynchronous:true }
-                Symbol { anchors.centerIn:parent;width:34*root.unit;height:width;name:"music_note";ink:root.accent;visible:!root.service || !root.service.artUrl }
+            ClippingRectangle { id: art; width:88*root.unit;height:width;radius:16*root.unit;color:root.alpha(root.accent,0.15)
+                Image { id:albumArt; anchors.fill:parent; source:root.service ? (root.service.artUrl || "") : "";fillMode:Image.PreserveAspectCrop;asynchronous:true;sourceSize:Qt.size(320,320);opacity:status === Image.Ready ? 1 : 0 }
+                Symbol { anchors.centerIn:parent;width:34*root.unit;height:width;name:"music_note";ink:root.accent;visible:albumArt.status !== Image.Ready }
             }
             Column { x:art.width+12*root.unit;width:parent.width-x;spacing:5*root.unit
                 Text { width:parent.width;text:root.service && root.service.title ? root.service.title : root.tr("Not Playing");color:root.ink;font.family:"Inter";font.pixelSize:14*root.unit;font.weight:Font.DemiBold;elide:Text.ElideRight }

@@ -66,10 +66,11 @@ function temperature(sensors, unit) {
 }
 function interval(value) { return Math.round(Math.max(1, Math.min(60, Number.isFinite(Number(value)) ? Number(value) : 5))) * 1000; }
 function artwork(url) {
-    // Metadata may advertise arbitrary HTTP endpoints. No network capability is
-    // needed: only local art is painted; remote covers use the UI fallback.
+    // MPRIS players such as Spotify publish HTTPS CDN covers. Accept these
+    // alongside local artwork; the media manifest declares remote image access.
     const value = String(url || "");
     if (value.startsWith("/") && !value.startsWith("//")) return "file://" + value;
+    if (/^https:\/\/[^/\s?#@:]+(?::443)?(?:[/?#]|$)/i.test(value)) return value;
     return /^file:\/\/\//.test(value) || /^qrc:\//.test(value) ? value : "";
 }
 function sessionCommand(action) {

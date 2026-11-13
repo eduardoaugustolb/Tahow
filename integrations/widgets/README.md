@@ -36,7 +36,7 @@ The preview saves individual real widget captures under `assets/` after data
 sampling. These PNGs are catalogue previews, not fixture values. Source data
 comes from Linux procfs, filesystem statistics, readable hwmon/thermal sensors,
 and MPRIS. No temperature sensor yields an explicit unavailable state. Media
-art is limited to local URLs, avoiding implicit network fetches.
+art accepts local URLs and HTTPS covers supplied by the selected MPRIS player, including Spotify CDN URLs. The media widget declares network access for player-selected artwork hosts; it sends no credentials. Unsupported URLs and failed downloads show the music glyph.
 
 Session actions run only after explicit interaction. Suspend, restart and
 shutdown require a second click within a short confirmation window. Tests use
