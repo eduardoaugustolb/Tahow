@@ -1,0 +1,11 @@
+{
+  "asset": "tahow-glass-orbit-v1.png",
+  "created": "2026-11-13",
+  "width": 1672,
+  "height": 941,
+  "method": "OpenAI built-in image_gen",
+  "reference": "../tahow-banner-v2.png",
+  "referenceProvenance": "../tahow-banner-v2.provenance.json",
+  "prompt": "Use case: stylized-concept. Asset type: original Tahow desktop wallpaper, widescreen 16:9, highest available resolution ideally 3840x2160. Reference image: the supplied Tahow README banner; use its blue liquid-glass ribbon material, silver-white caustics, and airy icy-blue to cobalt gradient as visual DNA. Create a new spacious abstract composition of elegant transparent glass ribbons forming a broad flowing orbit around a calm open center. Ribbons sweep along the upper and lower edges, with subtle dimensional refraction, luminous cyan rims and restrained pearly highlights. Soft pale blue at upper left, richer cobalt at lower right. Premium serene desktop background, clean optical material, smooth gradients and crisp refined edges. Keep the central region quiet with ample negative space for desktop icons/windows. No typography, no letters, no logo, no Apple symbols, no UI, no watermark. This is an original Tahow artwork, not a copy of an Apple wallpaper.",
+  "notes": "Original Tahow abstract wallpaper. No Apple or Icons8 assets. Generated without text or logo; desktop configuration is unchanged."
+}

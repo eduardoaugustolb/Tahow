@@ -1,0 +1,64 @@
+/* Tahow's compact desktop toolbar. Icons are original inline line drawings. */
+.toolbar {
+  background: color-mix(in srgb, var(--back) 79%, transparent);
+  backdrop-filter: saturate(160%) blur(24px);
+  -webkit-backdrop-filter: saturate(160%) blur(24px);
+  border-bottom-color: color-mix(in srgb, var(--line) 75%, transparent);
+  box-shadow: 0 1px 0 rgb(255 255 255 / .025);
+}
+.toolbar .brand { gap: 11px; border-radius: 10px; flex-shrink: 0; }
+.toolbar .brand-copy { display: grid; gap: 3px; }
+.toolbar .brand strong { font-size: 18px; letter-spacing: -.55px; font-weight: 650; }
+.toolbar .brand small { font-size: 11px; line-height: 1.35; letter-spacing: .01em; }
+.toolbar .brand-logo { width: 43px; height: 43px; }
+.toolbar .toolbar-controls { gap: 8px; }
+.toolbar .toolbar-button,
+.toolbar .language-control,
+.toolbar .github-control {
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
+  border-radius: 9px;
+  background: linear-gradient(rgb(255 255 255 / .045), transparent), var(--fill);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .045), 0 1px 2px rgb(0 0 0 / .08);
+  color: var(--ink);
+}
+.toolbar .toolbar-button { width: 34px; padding: 0; align-items: center; justify-content: center; flex-shrink: 0; }
+.toolbar #theme { display: inline-flex; }
+.toolbar .language-control { display: flex; align-items: center; position: relative; }
+.toolbar .language-icon { position: absolute; left: 10px; pointer-events: none; color: var(--secondary); }
+.toolbar #language { appearance: none; width: 100%; height: 100%; padding: 0 28px 0 33px; margin: 0; border: 0; border-radius: inherit; box-shadow: none; background: transparent; font-size: 12px; line-height: normal; }
+.toolbar .language-chevron { position: absolute; right: 9px; pointer-events: none; color: var(--secondary); }
+.toolbar .toolbar-divider { height: 18px; width: 1px; background: var(--line); margin: 0 3px; }
+.toolbar .github-control { display: inline-flex; align-items: center; gap: 7px; padding: 0 10px; font-size: 12px; font-weight: 500; text-decoration: none; }
+.toolbar .github-control svg { flex-shrink: 0; }
+.toolbar .toolbar-button:hover,
+.toolbar .language-control:hover,
+.toolbar .github-control:hover { background-color: color-mix(in srgb, var(--ink) 9%, transparent); border-color: color-mix(in srgb, var(--secondary) 48%, var(--line)); }
+.toolbar .toolbar-button:active,
+.toolbar .github-control:active { background-color: color-mix(in srgb, var(--ink) 14%, transparent); box-shadow: inset 0 1px 3px rgb(0 0 0 / .12); }
+.toolbar :is(button, a, select):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.toolbar .theme-sun { display: none; }
+:root[data-theme=light] .toolbar .theme-moon { display: none; }
+:root[data-theme=light] .toolbar .theme-sun { display: block; }
+@media (max-width: 760px) {
+  .toolbar { padding-inline: 16px; gap: 10px; }
+  .toolbar .mobile-menu { display: inline-flex; }
+  .toolbar .brand-logo { width: 34px; height: 34px; }
+  .toolbar .brand { gap: 7px; }
+  .toolbar .brand strong { font-size: 17px; }
+  .toolbar .brand small { display: none; }
+  .toolbar .toolbar-controls { gap: 6px; }
+  .toolbar .toolbar-divider { display: none; }
+  .toolbar .github-control { display: inline-flex; width: 34px; justify-content: center; padding: 0; }
+  .toolbar .github-control span { display: none; }
+}
+@media (max-width: 420px) {
+  .toolbar { padding-inline: 12px; gap: 8px; }
+  .toolbar .language-icon { display: none; }
+  .toolbar #language { padding-left: 9px; padding-right: 23px; font-size: 11px; }
+  .toolbar .brand-logo { width: 29px; height: 29px; }
+  .toolbar .brand { gap: 4px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toolbar :is(.toolbar-button, .language-control, .github-control) { transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease; }
+}

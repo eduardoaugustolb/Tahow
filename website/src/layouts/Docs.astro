@@ -1,5 +1,6 @@
 ---
 import '../styles/docs.css';
+import '../styles/toolbar.css';
 const { frontmatter = {} } = Astro.props;
 const {title, description, lang = 'pt-BR', slug = ''} = frontmatter;
 const en = lang === 'en-US';
@@ -23,7 +24,32 @@ const url = (s, l = lang) => `${base}/${l}/${s ? s + '/' : ''}`;
 </head>
 <body>
 <a class="skip" href="#content">{en ? 'Skip to content' : 'Pular para o conteúdo'}</a>
-    <header class="toolbar"><button class="mobile-menu" aria-expanded="false" aria-controls="navigation">Menu</button>    <a class="brand" href={url('')}><img class="brand-logo" src={`${base}/brand/tahow-logo.png`} alt="" width="46" height="46" /><span><strong>Tahow</strong><small>{en ? 'Shell documentation' : 'Documentação do shell'}</small></span></a><div class="toolbar-controls"><label><span class="sr-only">{en ? 'Language' : 'Idioma'} </span><select id="language"><option value={url(slug, 'pt-BR')} selected={!en}>Português</option><option value={url(slug, 'en-US')} selected={en}>English</option></select></label><button id="theme" aria-label={en ? 'Toggle light and dark appearance' : 'Alternar aparência clara e escura'}>◐</button><a href="https://github.com/eduardoaugustolb/Tahow" aria-label="GitHub">GitHub</a></div></header>
+<header class="toolbar">
+  <button class="mobile-menu toolbar-button" type="button" aria-expanded="false" aria-controls="navigation" aria-label={en ? 'Documentation' : 'Documentação'}>
+    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3.5 5.5h13m-13 4.5h13m-13 4.5h13" /></svg>
+  </button>
+  <a class="brand" href={url('')}>
+    <img class="brand-logo" src={`${base}/brand/tahow-logo.png`} alt="" width="46" height="46" />
+    <span class="brand-copy"><strong>Tahow</strong><small>{en ? 'Shell documentation' : 'Documentação do shell'}</small></span>
+  </a>
+  <div class="toolbar-controls">
+    <label class="language-control">
+      <span class="sr-only">{en ? 'Language' : 'Idioma'}</span>
+      <svg class="language-icon" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="10" cy="10" r="7" /><ellipse cx="10" cy="10" rx="3" ry="7" /><path d="M3 10h14" /></svg>
+      <select id="language"><option value={url(slug, 'pt-BR')} selected={!en}>Português</option><option value={url(slug, 'en-US')} selected={en}>English</option></select>
+      <svg class="language-chevron" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 6.5 3 3 3-3" /></svg>
+    </label>
+    <button id="theme" class="toolbar-button" type="button" aria-label={en ? 'Toggle light and dark appearance' : 'Alternar aparência clara e escura'} aria-pressed="false">
+      <svg class="theme-moon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.7 11.6A7 7 0 0 1 8.4 3.3a7 7 0 1 0 8.3 8.3Z" /></svg>
+      <svg class="theme-sun" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="3.2" /><path d="M10 1.7v1.6m0 13.4v1.6M1.7 10h1.6m13.4 0h1.6M4.1 4.1l1.2 1.2m9.4 9.4 1.2 1.2m0-11.8-1.2 1.2m-9.4 9.4-1.2 1.2" /></svg>
+    </button>
+    <span class="toolbar-divider" aria-hidden="true"></span>
+    <a class="github-control" href="https://github.com/eduardoaugustolb/Tahow" aria-label="GitHub">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 22v-3.1c0-.9-.3-1.6-.8-2 2.7-.3 5.5-1.3 5.5-6A4.7 4.7 0 0 0 18.5 7c.1-.4.5-1.9-.2-3.8 0 0-1-.3-3.8 1.4a13 13 0 0 0-7 0C4.7 2.9 3.7 3.2 3.7 3.2 3 5.1 3.4 6.6 3.5 7a4.7 4.7 0 0 0-1.2 3.9c0 4.7 2.8 5.7 5.5 6-.5.4-.8 1.1-.8 2V22" transform="translate(1 0) scale(.92)" /></svg>
+      <span>GitHub</span>
+    </a>
+  </div>
+</header>
 <div class="docs-layout">
   <aside class="sidebar" id="navigation">
 
@@ -46,7 +72,9 @@ search.addEventListener('input', () => {
  document.querySelector<HTMLElement>('#no-results')!.hidden = visible > 0;
 });
 document.querySelector('#language')!.addEventListener('change', e => { location.href = (e.target as HTMLSelectElement).value; });
-document.querySelector('#theme')!.addEventListener('click', () => { const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; document.documentElement.dataset.theme = theme; try { localStorage.setItem('tahow-docs-theme', theme); } catch {} });
+const themeButton = document.querySelector<HTMLButtonElement>('#theme')!;
+themeButton.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'dark'));
+themeButton.addEventListener('click', () => { const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; document.documentElement.dataset.theme = theme; themeButton.setAttribute('aria-pressed', String(theme === 'dark')); try { localStorage.setItem('tahow-docs-theme', theme); } catch {} });
 document.querySelector('.mobile-menu')!.addEventListener('click', e => { const open = document.querySelector('.docs-layout')!.classList.toggle('menu-open'); (e.currentTarget as HTMLButtonElement).setAttribute('aria-expanded', String(open)); });
 document.querySelectorAll<HTMLElement>('article h2').forEach((heading, i) => { heading.id ||= `section-${i}`; const link = document.createElement('a'); link.href = `#${heading.id}`; link.textContent = heading.textContent; document.querySelector('#headings')!.append(link); });
 </script>
