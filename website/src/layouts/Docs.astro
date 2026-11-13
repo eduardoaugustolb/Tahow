@@ -4,9 +4,9 @@ const { frontmatter = {} } = Astro.props;
 const {title, description, lang = 'pt-BR', slug = ''} = frontmatter;
 const en = lang === 'en-US';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const sections = en ? ['Overview','Getting started','Preferences','Glass & appearance','Components','Development'] : ['Visão geral','Primeiros passos','Preferências','Vidro e aparência','Componentes','Desenvolvimento'];
-const slugs = ['', 'getting-started', 'preferences', 'glass', 'components', 'development'];
-const glyphs = ["home","play_arrow","settings","palette","apps","keyboard"];
+const sections = en ? ['Overview','Getting started','Preferences','Glass & appearance','Components','Showcase','Development'] : ['Visão geral','Primeiros passos','Preferências','Vidro e aparência','Componentes','Showcase','Desenvolvimento'];
+const slugs = ['', 'getting-started', 'preferences', 'glass', 'components', 'showcase', 'development'];
+const glyphs = ["home","play_arrow","settings","palette","apps","play_arrow","keyboard"];
 const current = slugs.indexOf(slug);
 const url = (s, l = lang) => `${base}/${l}/${s ? s + '/' : ''}`;
 ---

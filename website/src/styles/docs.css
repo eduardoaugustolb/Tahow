@@ -118,3 +118,7 @@ th { background: var(--fill); }
   .brand-banner video { display: none; }
   .brand-banner .brand-banner-still { display: block; }
 }
+
+.showcase-shot { margin: 24px 0 36px; }
+.showcase-shot img { display: block; max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); }
+.showcase-shot figcaption { margin-top: 10px; font-size: 13px; line-height: 1.6; color: var(--secondary, #a5a5ab); }

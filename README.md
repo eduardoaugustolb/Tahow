@@ -23,13 +23,17 @@ This is early software. Runtime testing has been performed on **Hyprland**. The 
 
 ## Showcase
 
-Captured on Hyprland at 1920 × 1080 with the author's current wallpaper, desktop accent and Brazilian Portuguese interface. Click an image for the full-size capture. These are runtime screenshots; media and notifications show their current empty states. The lockscreen is a visual preview with simulated authentication.
+[Full gallery in the documentation](https://tahow.eduardoaugusto.work/en-US/showcase/) · [Galeria em português](https://tahow.eduardoaugusto.work/pt-BR/showcase/)
+
+Captured on Hyprland at 1920 × 1080 with the author's current wallpaper, desktop accent and Brazilian Portuguese interface. Click an image for the full-size capture. Media uses live Spotify/MPRIS data, including album artwork. The widget gallery and hover preview are isolated source renders with live data; notifications use demonstration fixtures. The lockscreen is a visual preview with simulated authentication.
 
 ![Expanded island: clock, weather, calendar and system overview](docs/showcase/island-home.webp)
 
 | Collapsed island and desktop | Command palette |
 | --- | --- |
 | ![Collapsed island and desktop](docs/showcase/island-collapsed.webp) | ![Command palette](docs/showcase/command-palette.webp) |
+
+![Compact media pills with album artwork](docs/showcase/media-pills.webp)
 
 | Media | Quick controls |
 | --- | --- |
