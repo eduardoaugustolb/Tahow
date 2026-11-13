@@ -29,7 +29,7 @@ try {
     await run([...input, '-c:v', 'libwebp_anim', '-quality', '85', '-loop', '0', `${destination}.webp`]);
     await run([...input, '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', `${destination}.mp4`]);
     await mkdir(`${root}/website/public/brand`, {recursive: true});
-    await cp(`${destination}.png`, `${root}/website/public/brand/tahow-banner.png`);
-    await cp(`${destination}.mp4`, `${root}/website/public/brand/tahow-banner.mp4`);
+    await cp(`${destination}.png`, `${root}/website/public/brand/tahow-banner-v2.png`);
+    await cp(`${destination}.mp4`, `${root}/website/public/brand/tahow-banner-v2.mp4`);
     console.log('Rendered Sacramento + liquid-glass banner: PNG, GIF, WebP and MP4.');
 } finally { await rm(work, {recursive: true, force: true}); }

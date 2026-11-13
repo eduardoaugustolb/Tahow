@@ -1,5 +1,7 @@
 <div align="center">
 
+# Tahow
+
 <img src="docs/brand/tahow-banner-v2.gif" alt="Tahow — Sacramento signature and logo flowing over liquid glass" width="960" />
 
 **Your desktop, through glass.**
