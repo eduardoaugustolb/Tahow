@@ -42,7 +42,11 @@ Item {
     property bool settingsCreated:false
     onSettingsOpenChanged:if(settingsOpen)settingsCreated=true
     Loader { active:root.settingsCreated; sourceComponent:WidgetPreferences {visible:root.settingsOpen;translate:root.tr;kind:root.kind;pluginApi:root.pluginApi;ink:root.ink;paper:root.dark?"#252529":"#f5f5f7";accent:root.accent;onDismissed:root.settingsOpen=false} }
-    HoverHandler{id:widgetHover}
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+        gesturePolicy: TapHandler.WithinBounds
+        onTapped: root.settingsOpen = true
+    }
     property string pendingAction: ""
     Timer { id: confirmation; interval: 4500; onTriggered: root.pendingAction = "" }
     function requestAction(action) {
@@ -73,7 +77,6 @@ Item {
         }
         contentItem: Item { Symbol { anchors.centerIn:parent; name: action.symbol; width: 22*root.unit; height: width; opacity: action.enabled ? 1 : 0.35 } }
     }
-    Action { z:20;anchors.right:parent.right;anchors.bottom:parent.bottom;anchors.margins:4; width:26;height:26;symbol:"settings";label:"Settings";visible:widgetHover.hovered || root.settingsOpen;onClicked:root.settingsOpen=true }
     RectangularShadow { visible: !root.bareClock; anchors.fill: plate; radius: plate.radius; blur: 22*root.unit; offset.y: 6*root.unit; color: "#30000000" }
     Rectangle {
         id: plate; anchors.fill: parent; radius: 24*root.unit; clip: true

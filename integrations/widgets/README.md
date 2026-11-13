@@ -61,8 +61,9 @@ Product updates preserve host-owned positions, scale and settings. The GitHub
 calendar distributes its horizontal spacing evenly while retaining square days.
 
 Widgets are grouped under **Tahow Widgets** by their manifest `set` field.
-To customize: finish Stage editing, hover a tile and click its gear. The Tahow
-window exposes all declared options, including variants and text settings.
+To customize: finish Stage editing and right-click a tile. The Tahow
+window exposes all declared options, including variants and text settings. It closes
+when it loses focus to another element, or with Escape.
 Saving patches only changed keys through Ryoku's own placement command.
 The clock's **Compact width** option fits its digits/date with minimal side
 padding without changing height or imposing a square aspect ratio. It defaults

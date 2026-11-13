@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Window
 import Quickshell
 import Quickshell.Io
 FloatingWindow {
@@ -13,13 +14,24 @@ FloatingWindow {
  property var schema:[]
  property var patch:({})
  property var pending:({})
+ property bool hadFocus:false
+ Connections {
+  target: win.contentItem.Window.window
+  function onActiveChanged(){
+   if(target.active)win.hadFocus=true;
+   else if(win.visible && win.hadFocus)win.dismissed();
+  }
+ }
  readonly property var settings:pluginApi && pluginApi.pluginSettings || ({})
  signal dismissed()
  title:"Tahow · "+kind
  implicitWidth:620;implicitHeight:700
  minimumSize:Qt.size(620,700);maximumSize:Qt.size(620,700)
  visible:true;color:paper
- onVisibleChanged:if(!visible)dismissed();else patch=({})
+ onVisibleChanged:{
+  if(!visible){hadFocus=false;dismissed();}
+  else {patch=({});hadFocus=false;Qt.callLater(function(){if(win.visible && win.contentItem.Window.window)win.contentItem.Window.window.requestActivate();});}
+ }
  function current(field){return patch[field.key] !== undefined?patch[field.key]:settings[field.key] !== undefined?settings[field.key]:field.default;}
  function save(field,value){
   const next=Object.assign({},patch);next[field.key]=value;patch=next;

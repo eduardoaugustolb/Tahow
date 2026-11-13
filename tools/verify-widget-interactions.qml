@@ -18,6 +18,13 @@ ShellRoot {
         if(face.implicitHeight!==220 || face.unit!==1)throw new Error("Natural size depends on rendered height");
         api.pluginSettings=({clockStyle:"bare"});if(!face.bareClock)throw new Error("Bare clock variant failed");
         api.pluginSettings=({clockStyle:"bare",material:"liquid"});if(!face.liquidMaterial || face.bareClock)throw new Error("Opt-in liquid variant failed");
+        face.settingsOpen=true;
+        if(!face.settingsCreated)throw new Error("Preferences were not created");
+        finish.start();
+    }}
+    Timer {id:finish;interval:100;onTriggered:{
+        face.settingsOpen=false;
+        if(!face.settingsCreated)throw new Error("Closing destroyed pending preference writes");
         console.log("WIDGET_INTERACTIONS_OK");Qt.quit();
     }}
 }

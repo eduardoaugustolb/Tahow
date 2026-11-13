@@ -82,16 +82,16 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 14490,
-      "sha256": "b21f797a0c95e148ac1d2729f062f2d959baceb80923d2767a01d96691b0df37",
+      "size": 14379,
+      "sha256": "7dc5d2e2f6173623b9574f517cbfd8668e02683273a8bdcbe0db6a0822d8d48e",
       "install": true
     },
     {
       "source": "content/WidgetPreferences.qml",
       "destination": "content/WidgetPreferences.qml",
       "mode": "0644",
-      "size": 4151,
-      "sha256": "a84fa50102ffca22b36381b491db12604050945a74e020e094e98d839db33e51",
+      "size": 4558,
+      "sha256": "c5306df256c8fe5ae59ab9da92ebeee4b274bd8eb37b5b8bc129f34812efbf07",
       "install": true
     },
     {
@@ -179,7 +179,7 @@
       "destination": "manifest.json",
       "mode": "0644",
       "size": 9583,
-      "sha256": "edf63ea94abfb736dc93bea66459099a18e0b8ffce30182b0d0dfda93650beab",
+      "sha256": "f3ce6750a08e6cde906e87ddf9103beeaf7b744bbafd3f9042cdf3a73233a81f",
       "install": true
     }
   ]
