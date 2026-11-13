@@ -1,0 +1,1 @@
+Original Tahow glyphs, AGPL-3.0-only. See shell/icons/README.md and NOTICE.md in the repository.

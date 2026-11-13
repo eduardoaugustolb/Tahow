@@ -1,0 +1,32 @@
+---
+layout: ../../layouts/Docs.astro
+title: "Components"
+description: "Independent pieces. A shared identity."
+lang: en-US
+slug: "components"
+---
+
+## Island
+
+Clock, weather, calendar, media, quick controls, timer and notifications. Open by click or hover according to preferences.
+
+```sh
+qs -c shell ipc call tahoeIsland toggle
+qs -c shell ipc call tahoeIsland center
+```
+
+## Command palette
+
+A launcher surface with shared general defaults and independent overrides.
+
+```sh
+qs -c shell ipc call tahoe launcher
+```
+
+## Widgets
+
+Eight independent plugins: CPU, temperature, disk, memory, session, clock, media and GitHub contributions. Their simulated-glass cards do not require either subshell.
+
+## Lockscreen
+
+The hosted companion preserves qylock PAM and fingerprint authentication. Standalone mode has its own session-lock/PAM integration. Automated tests use simulated authentication and do not prove real unlocking.

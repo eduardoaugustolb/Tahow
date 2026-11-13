@@ -1,0 +1,7 @@
+---
+import Docs from '../layouts/Docs.astro';
+---
+<Docs frontmatter={{ title: 'Bem-vindo ao Tahow', description: 'Seu desktop, através do vidro.', lang: 'pt-BR', slug: '' }}>
+  <p>Uma documentação com a mesma linguagem visual do seu shell. Escolha seu idioma para começar.</p>
+  <div class="link-grid"><a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/pt-BR/`}>Português do Brasil <span>Começar</span></a><a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/en-US/`}>English <span>Get started</span></a></div>
+</Docs>

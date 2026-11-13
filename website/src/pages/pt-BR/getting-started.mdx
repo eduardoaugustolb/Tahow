@@ -1,0 +1,42 @@
+---
+layout: ../../layouts/Docs.astro
+title: "Primeiros passos"
+description: "Da instalação à primeira ilha."
+lang: pt-BR
+slug: "getting-started"
+---
+
+## Dependências
+
+Instale Quickshell e suas dependências Qt/QML pelo gerenciador da sua distribuição. É necessário um desktop Wayland. Use Bun para as ferramentas de desenvolvimento do projeto.
+
+## Execute o shell
+
+Clone o repositório e execute a entrada independente:
+
+```sh
+git clone https://github.com/eduardoaugustolb/Tahow.git
+cd Tahow
+qs -p "$PWD/shell/shell.qml"
+```
+
+## Integração com Ryoku
+
+No Hub, escolha o companion Tahow na página de App Launcher e o visual de bloqueio instalado. Os companions são opcionais. Os identificadores de instalação continuam sendo `tahoe-shell` para compatibilidade.
+
+Para preparar um checkout do catálogo para revisão:
+
+```sh
+bun tools/export-ryostore.ts --to /caminho/ryostore
+```
+
+Esse comando exporta os companions; revise o diff do catálogo antes de publicar. Consulte também o guia de integração no repositório.
+
+## Abra as preferências
+
+```sh
+qs -c shell ipc call tahoe settings
+qs -c shell ipc call tahoe settingsTab glass
+```
+
+Esses exemplos IPC usam o identificador de configuração `shell`. Ao executar com outro identificador, adapte o destino ao processo em execução.

@@ -1,0 +1,52 @@
+---
+import '../styles/docs.css';
+const { frontmatter = {} } = Astro.props;
+const {title, description, lang = 'pt-BR', slug = ''} = frontmatter;
+const en = lang === 'en-US';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const sections = en ? ['Overview','Getting started','Preferences','Glass & appearance','Components','Development'] : ['Visão geral','Primeiros passos','Preferências','Vidro e aparência','Componentes','Desenvolvimento'];
+const slugs = ['', 'getting-started', 'preferences', 'glass', 'components', 'development'];
+const glyphs = ["home","play_arrow","settings","palette","apps","keyboard"];
+const current = slugs.indexOf(slug);
+const url = (s, l = lang) => `${base}/${l}/${s ? s + '/' : ''}`;
+---
+<!doctype html>
+<html lang={lang}>
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width" />
+  <title>{title} · Tahow</title><meta name="description" content={description} />
+  <meta name="theme-color" content="#242426" />
+  <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+  <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+  <script is:inline>try { document.documentElement.dataset.theme = localStorage.getItem('tahow-docs-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); } catch {}</script>
+</head>
+<body>
+<a class="skip" href="#content">{en ? 'Skip to content' : 'Pular para o conteúdo'}</a>
+<div class="window">
+  <aside class="sidebar" id="navigation">
+    <a class="brand" href={url('')}><span class="brand-mark" aria-hidden="true"><i></i></span><span><strong>Tahow</strong><small>{en ? 'Shell documentation' : 'Documentação do shell'}</small></span></a>
+    <label class="search-label" for="search">{en ? 'Find a page' : 'Encontrar uma página'}<input id="search" type="search" placeholder={en ? 'Search documentation…' : 'Buscar na documentação…'} autocomplete="off" /></label>
+    <div><p class="nav-label">{en ? 'Documentation' : 'Documentação'}</p><nav aria-label={en ? 'Documentation' : 'Documentação'}>{sections.map((label, i) => <a href={url(slugs[i])} aria-current={slug === slugs[i] ? 'page' : undefined}><span class="glyph" aria-hidden="true"><img src={`${base}/icons/${glyphs[i]}.svg`} alt="" width="18" height="18" /></span>{label}</a>)}</nav><p id="no-results" role="status" hidden>{en ? 'No pages found.' : 'Nenhuma página encontrada.'}</p></div>
+    <div class="sidebar-footer">Quickshell · Wayland<br /><a href="https://github.com/eduardoaugustolb/Tahow">GitHub</a> · AGPL-3.0<br />0.1.0-alpha.1</div>
+  </aside>
+  <div class="workspace">
+    <header class="toolbar"><button class="mobile-menu" aria-expanded="false" aria-controls="navigation">Menu</button><span class="breadcrumb">Tahow / {sections[current]}</span><div class="toolbar-controls"><label><span class="sr-only">{en ? 'Language' : 'Idioma'} </span><select id="language"><option value={url(slug, 'pt-BR')} selected={!en}>Português</option><option value={url(slug, 'en-US')} selected={en}>English</option></select></label><button id="theme" aria-label={en ? 'Toggle light and dark appearance' : 'Alternar aparência clara e escura'}>◐</button><a href="https://github.com/eduardoaugustolb/Tahow" aria-label="GitHub">GitHub</a></div></header>
+    <div class="content-grid"><article id="content" tabindex="-1"><h1>{title}</h1><p class="description">{description}</p><slot /><div class="pager">{current > 0 ? <a href={url(slugs[current - 1])}>‹ {sections[current - 1]}</a> : <span />}{current < sections.length - 1 && <a href={url(slugs[current + 1])}>{sections[current + 1]} ›</a>}</div></article><aside class="toc" aria-label={en ? 'On this page' : 'Nesta página'}><strong>{en ? 'On this page' : 'Nesta página'}</strong><div id="headings"></div></aside></div>
+    <footer class="page-footer">{en ? 'Independent software. Original glyphs. Open source.' : 'Software independente. Ícones originais. Código aberto.'} <a href={`https://github.com/eduardoaugustolb/Tahow/blob/main/website/src/pages/${lang}/${slug || 'index'}.mdx`}>{en ? 'Edit this page' : 'Editar esta página'}</a></footer>
+  </div>
+</div>
+<script>
+const search = document.querySelector<HTMLInputElement>('#search')!;
+search.addEventListener('input', () => {
+ const query = search.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+ let visible = 0;
+ document.querySelectorAll<HTMLAnchorElement>('nav a').forEach(a => { a.hidden = !a.textContent!.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(query); if (!a.hidden) visible++; });
+ document.querySelector<HTMLElement>('#no-results')!.hidden = visible > 0;
+});
+document.querySelector('#language')!.addEventListener('change', e => { location.href = (e.target as HTMLSelectElement).value; });
+document.querySelector('#theme')!.addEventListener('click', () => { const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; document.documentElement.dataset.theme = theme; try { localStorage.setItem('tahow-docs-theme', theme); } catch {} });
+document.querySelector('.mobile-menu')!.addEventListener('click', e => { const open = document.querySelector('.window')!.classList.toggle('menu-open'); (e.currentTarget as HTMLButtonElement).setAttribute('aria-expanded', String(open)); });
+document.querySelectorAll<HTMLElement>('article h2').forEach((heading, i) => { heading.id ||= `section-${i}`; const link = document.createElement('a'); link.href = `#${heading.id}`; link.textContent = heading.textContent; document.querySelector('#headings')!.append(link); });
+</script>
+</body>
+</html>

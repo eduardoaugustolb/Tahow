@@ -1,0 +1,38 @@
+---
+layout: ../../layouts/Docs.astro
+title: "Preferences"
+description: "General defaults. Individual adjustments."
+lang: en-US
+slug: "preferences"
+---
+
+## Configuration file
+
+The canonical file is `~/.config/tahow-shell/settings.json`, respecting XDG_CONFIG_HOME. Until it exists, `~/.config/tahoe-shell/settings.json` remains a readable fallback. The first write uses the canonical path.
+
+## General and overrides
+
+Root fields are General. Component adjustments live under `overrides.island`, `overrides.palette` and `overrides.lockscreen`.
+
+```json
+{
+  "appearance": "dark",
+  "accentSource": "wallpaper",
+  "motion": "balanced",
+  "overrides": {
+    "island": { "glassOpacity": 0.55 },
+    "palette": { "motion": "bouncy" },
+    "lockscreen": { "use24h": true }
+  }
+}
+```
+
+## Restore general defaults
+
+Use General clears component overrides. On the Glass page it only removes glass overrides, preserving unrelated preferences.
+
+## Language and motion
+
+Choose `en-US`, `pt-BR` or automatic selection. Hosted automatic selection uses the Ryoku default. Motion profiles are gentle, balanced, bouncy and reduced.
+
+The preferences window follows the general appearance and desktop accent.

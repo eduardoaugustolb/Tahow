@@ -1,0 +1,27 @@
+---
+layout: ../../layouts/Docs.astro
+title: "Glass & appearance"
+description: "The same material on every surface."
+lang: en-US
+slug: "glass"
+---
+
+## Shared material
+
+Glass bases are `#0f0f14` in dark mode and `#f7f7fc` in light mode. Accent sources include the desktop, wallpaper, Matugen, Pywal/Wallust, GTK and a custom color.
+
+## Collapsed island
+
+The collapsed island uses simulated glass without screen capture or a refraction shader.
+
+## Expanded surfaces
+
+Surfaces acquire frozen desktop snapshots before opening animations, excluding the capturing surface. The snapshot does not track windows moving afterward. When capture is unavailable, the component uses its fallback rendering.
+
+## Glass controls
+
+In Preferences → Glass, select General, Island, Command Palette or Lockscreen. Adjust opacity, accent tint, rim, frost, dispersion, depth and refraction index using the live material preview.
+
+The password field has a separate tint intensity and independent optical parameters. Default chromatic dispersion is 0.08.
+
+<div className="callout">This documentation adapts the shell identity using CSS. The browser does not run desktop capture or QML shaders.</div>

@@ -16,3 +16,7 @@ artifacts/
 .prowl/index-refresh.lock
 .prowl-setup.lock
 # /prowl-agent: derived state
+
+# Documentation website
+website/dist/
+website/.astro/

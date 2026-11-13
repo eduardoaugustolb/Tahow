@@ -9,6 +9,13 @@
     "test": "bun test",
     "export": "bun tools/export-ryostore.ts",
     "build:shaders": "bun tools/build-shaders.ts",
-    "i18n:sync": "bun tools/sync-i18n.ts"
-  }
+    "i18n:sync": "bun tools/sync-i18n.ts",
+    "docs:install": "bun install",
+    "docs:dev": "bun run --cwd website dev",
+    "docs:build": "bun run --cwd website build",
+    "docs:preview": "bun run --cwd website preview"
+  },
+  "workspaces": [
+    "website"
+  ]
 }

@@ -1,0 +1,45 @@
+---
+layout: ../../layouts/Docs.astro
+title: "Development"
+description: "Keep the boundaries clear."
+lang: en-US
+slug: "development"
+---
+
+## Architecture
+
+| Layer | Responsibility |
+| --- | --- |
+| Config | Sole preferences writer and scope resolution |
+| Theme | Colors, fonts, material and motion |
+| Runtime | Shared services and surfaces |
+| Host and adapters | Desktop-specific integration |
+
+The `shell/shell.qml` entry remains independently runnable. Ryoku imports belong in adapters.
+
+## Validation
+
+```sh
+bun run check
+bun test
+bun tools/build-shaders.ts
+bun tools/sync-i18n.ts
+```
+
+Include shader sources and generated .qsb artifacts together. Shell strings must exist in en-US and pt-BR.
+
+## This documentation
+
+Pages live in `website/src/pages/{locale}/*.mdx`. The layout is `website/src/layouts/Docs.astro`. CSS tokens reproduce Theme.qml and SettingsWindow.qml.
+
+```sh
+bun run docs:install
+bun run docs:dev
+bun run docs:build
+```
+
+The GitHub Pages workflow builds the static site with Bun. Its base path is /Tahow/.
+
+## License and provenance
+
+AGPL-3.0 software with upstream notices retained. Glyphs are original; no proprietary Apple fonts are distributed. The Tahow signature uses Sacramento under the SIL Open Font License. See NOTICE.md and shell/PROVENANCE.txt in the repository.

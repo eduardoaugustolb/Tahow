@@ -1,0 +1,32 @@
+---
+layout: ../../layouts/Docs.astro
+title: "Componentes"
+description: "Peças independentes, uma identidade."
+lang: pt-BR
+slug: "components"
+---
+
+## Ilha
+
+Relógio, clima, calendário, mídia, controles rápidos, temporizador e notificações. A ilha abre por clique ou hover, conforme as preferências.
+
+```sh
+qs -c shell ipc call tahoeIsland toggle
+qs -c shell ipc call tahoeIsland center
+```
+
+## Paleta de comandos
+
+Uma superfície de lançamento com os mesmos valores gerais e overrides independentes.
+
+```sh
+qs -c shell ipc call tahoe launcher
+```
+
+## Widgets
+
+Oito plugins independentes: CPU, temperatura, disco, memória, sessão, relógio, mídia e contribuições do GitHub. Usam cartões de vidro simulado e não exigem os subshells.
+
+## Bloqueio
+
+O companion hospedado preserva a autenticação do qylock, com PAM e impressão digital. O modo independente possui integração própria de session lock/PAM. Testes automatizados usam autenticação simulada; não comprovam desbloqueio real.

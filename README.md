@@ -118,3 +118,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md), and [SECURITY.m
 ## License and attribution
 
 Tahow is distributed under [AGPL-3.0](LICENSE), with upstream license notices retained. DynamicIsland contributed MIT-licensed source; Ryoku supplied glass components. See [NOTICE.md](NOTICE.md) and [source provenance](shell/PROVENANCE.txt). Original icons are not copied or traced from Apple or Icons8. No Apple artwork or proprietary fonts are bundled.
+
+## Web documentation
+
+The bilingual MDX documentation uses the shell's visual language and is configured for [GitHub Pages](https://eduardoaugustolb.github.io/Tahow/). Run `bun install --frozen-lockfile` and `bun run docs:dev` for local development, or `bun run docs:build` for a static build. See [website/README.md](website/README.md) for publishing and visual provenance.
