@@ -27,6 +27,8 @@ PanelWindow {
     exclusionMode: (Config.island.overlayBar || Config.island.reserveSpace) ? ExclusionMode.Ignore : ExclusionMode.Normal
     exclusiveZone: 0
     color: "transparent"
+    // Keep every overlay child out of the initial output snapshot.
+    contentItem.opacity: presentationReady ? 1 : 0
 
     readonly property bool centerShown: Notifs.centerOpen && Notifs.centerScreen === screenName
     readonly property bool explicitOpen: island.isExpanded || centerShown
@@ -95,7 +97,7 @@ PanelWindow {
     // pill states so the material never samples its own overlay.
     function prepareBackdrop() {
         if (presentationReady || acquiringBackdrop) return;
-        if (!Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed || !Host.desktopCaptureReady) { completePresentation(); return; }
+        if (!Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed) { completePresentation(); return; }
         if (!Host.desktopCaptureReady) return;
         acquiringBackdrop = true; Host.beginCapture();
         backgroundCapture.live = false;
