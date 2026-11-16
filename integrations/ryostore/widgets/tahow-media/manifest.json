@@ -282,8 +282,8 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 14411,
-      "sha256": "10a296bde7b46704fd36b4803fbd2aa673533334ab211b413030219898f299d9",
+      "size": 14451,
+      "sha256": "ab5239ddaa470fffe93dfed22ef2028cfefa2dfadc89ad3e349fc964549ebb03",
       "install": true
     },
     {

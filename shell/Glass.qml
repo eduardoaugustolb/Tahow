@@ -4,6 +4,7 @@ import QtQuick.Effects
 Item {
     id: root
     property bool refraction: true
+    property real refractionAmount: 1
     property real radius: 20
     property color tint: Theme.glassTint
     property bool rim: root.refraction && Config.island.glassRim && Theme.glass
@@ -57,15 +58,17 @@ Item {
             return Qt.rect((p.x - Screen.virtualX) / Math.max(1, Screen.width), (p.y - Screen.virtualY) / Math.max(1, Screen.height), root.width / Math.max(1, Screen.width), root.height / Math.max(1, Screen.height));
         }
         topLeftRadius: root.r; topRightRadius: root.r; bottomLeftRadius: root.r; bottomRightRadius: root.r
-        tintColor: root.tint; tintAmount: Theme.glassA
-        bezel: Config.island.bezel; thickness: Config.island.thickness; ior: Config.island.ior; dispersion: Config.island.dispersion
-        frost: Math.max(0, Config.island.frost / 5); rim: root.rim ? 0.25 : 0
+        tintColor: root.tint; tintAmount: Math.min(0.22, Theme.glassA * 0.34) + (1 - root.refractionAmount) * 0.08
+        bezel: Math.min(Config.island.bezel, root.height < 90 ? 4 : Config.island.bezel)
+        thickness: (root.height < 90 ? Math.max(Config.island.thickness, 11) : Config.island.thickness) * root.refractionAmount
+        ior: Config.island.ior; dispersion: root.height < 90 ? Math.min(Config.island.dispersion, 0.025) * root.refractionAmount : Config.island.dispersion
+        frost: Math.max(0, Config.island.frost / 5); rim: root.rim ? (root.height < 90 ? 0.12 : 0.25) : 0
     }
     Rectangle {
         anchors.fill: parent; anchors.margins: 1
         radius: Math.max(0, root.r - 1)
         visible: glass.visible
-        color: Qt.rgba(root.tint.r, root.tint.g, root.tint.b, 1); opacity: Theme.glassA * root.liquidMix
+        color: Qt.rgba(root.tint.r, root.tint.g, root.tint.b, 1); opacity: Math.min(0.14, Theme.glassA * 0.25) * root.liquidMix
     }
-    Rectangle { anchors.fill: parent; radius: root.r; color: "transparent"; border.width: root.rim ? 1 : 0; border.color: Theme.alpha(Theme.accent, Theme.dark ? 0.2 : 0.35) }
+    Rectangle { anchors.fill: parent; radius: root.r; color: "transparent"; border.width: root.rim ? 1 : 0; border.color: Theme.alpha(Theme.mix(Theme.accent,Qt.rgba(1,1,1,1),0.72), Theme.dark ? 0.16 : 0.28) }
 }

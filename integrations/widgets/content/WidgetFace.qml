@@ -73,10 +73,10 @@ Item {
         ToolTip.text: root.tr(label)
         background: Rectangle {
             radius: Math.min(14*root.unit,height/2)
-            color: action.down ? root.alpha(root.accent,0.4) : action.emphasized ? root.alpha(root.accent,0.24) : root.alpha(root.ink,action.hovered ? 0.16 : 0.07)
-            border.width: action.activeFocus ? 2 : 0; border.color: root.accent
+            color: action.down ? root.alpha(root.accent,0.7) : action.emphasized ? root.alpha(root.accent,0.48) : root.alpha(root.ink,action.hovered ? 0.24 : 0.16)
+            border.width: action.emphasized || action.activeFocus ? 1.5 : 0; border.color: root.alpha(root.accent,0.82)
         }
-        contentItem: Item { Symbol { anchors.centerIn:parent; name: action.symbol; width: 22*root.unit; height: width; opacity: action.enabled ? 1 : 0.35 } }
+        contentItem: Item { Symbol { anchors.centerIn:parent; name: action.symbol; width: 22*root.unit; height: width; opacity: action.enabled ? 1 : 0.55 } }
     }
     RectangularShadow { visible: !root.bareClock; anchors.fill: plate; radius: plate.radius; blur: 22*root.unit; offset.y: 6*root.unit; color: "#30000000" }
     Rectangle {
@@ -134,9 +134,9 @@ Item {
                 Text { width:parent.width;text:root.service && root.service.title ? root.service.title : root.tr("Not Playing");color:root.ink;font.family:"Inter";font.pixelSize:14*root.unit;font.weight:Font.DemiBold;elide:Text.ElideRight }
                 Text { width:parent.width;text:root.service && root.service.artist ? root.service.artist : root.tr("Start music in any MPRIS player");color:root.muted;font.family:"Inter";font.pixelSize:11*root.unit;elide:Text.ElideRight }
                 Row { spacing:6*root.unit
-                    Action { width:36*root.unit;height:34*root.unit;symbol:"skip_previous";label:"Previous";enabled:!!root.service && !!root.service.canPrevious;onClicked:root.service.previous() }
-                    Action { width:42*root.unit;height:34*root.unit;symbol:root.service && root.service.playing ? "pause" : "play_arrow";label:root.service && root.service.playing ? "Pause" : "Play";emphasized:true;enabled:!!root.service && !!root.service.canTogglePlaying;onClicked:root.service.togglePlaying() }
-                    Action { width:36*root.unit;height:34*root.unit;symbol:"skip_next";label:"Next";enabled:!!root.service && !!root.service.canNext;onClicked:root.service.next() }
+                    Action { width:42*root.unit;height:40*root.unit;symbol:"skip_previous";label:"Previous";enabled:!!root.service && !!root.service.canPrevious;onClicked:root.service.previous() }
+                    Action { width:48*root.unit;height:40*root.unit;symbol:root.service && root.service.playing ? "pause" : "play_arrow";label:root.service && root.service.playing ? "Pause" : "Play";emphasized:true;enabled:!!root.service && !!root.service.canTogglePlaying;onClicked:root.service.togglePlaying() }
+                    Action { width:42*root.unit;height:40*root.unit;symbol:"skip_next";label:"Next";enabled:!!root.service && !!root.service.canNext;onClicked:root.service.next() }
                 }
             }
             Slider { id:seek;anchors.left:parent.left;anchors.right:parent.right;y:96*root.unit;height:18*root.unit;from:0;to:1;value:root.service ? (root.service.value || 0) : 0;enabled:!!root.service && !!root.service.canSeek;onMoved:root.service.seek(value);Accessible.name:root.tr("Playback position")

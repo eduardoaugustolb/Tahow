@@ -38,7 +38,6 @@ PanelWindow {
             islandOpacity: island.opacity,
             surfaceOpacity: win.contentItem.opacity,
             acquiringBackdrop: acquiringBackdrop,
-            refreshingBackdrop: refreshingBackdrop,
             presentationReady: presentationReady,
             captureHasContent: backgroundCapture.hasContent,
             backdropReady: !!Host.backdrops[screenName]
@@ -84,7 +83,6 @@ PanelWindow {
 
 
     property bool acquiringBackdrop: false
-    property bool refreshingBackdrop: false
     property bool presentationReady: false
     property string pendingKind: ""
     property int pendingValue: 0
@@ -93,20 +91,11 @@ PanelWindow {
         if (acquiringBackdrop || !presentationReady) return;
         completePresentation();
     }
-    // Acquire a clean initial frame before presentation. Keep a live capture
-    // while idle, then freeze it as soon as the island or its previews appear.
+    // Capture one clean output frame before presentation. Keep it stable across
+    // pill states so the material never samples its own overlay.
     function prepareBackdrop() {
-        if (acquiringBackdrop || refreshingBackdrop) return;
-        if (presentationReady && snapshotStable) return;
-        if (presentationReady) {
-            if (!Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed || !Host.desktopCaptureReady) return;
-            refreshingBackdrop = true;
-            Host.beginCapture();
-            backgroundCapture.live = true;
-            refreshAcquire.restart();
-            return;
-        }
-        if (!Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed) { completePresentation(); return; }
+        if (presentationReady || acquiringBackdrop) return;
+        if (!Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed || !Host.desktopCaptureReady) { completePresentation(); return; }
         if (!Host.desktopCaptureReady) return;
         acquiringBackdrop = true; Host.beginCapture();
         backgroundCapture.live = false;
@@ -121,30 +110,14 @@ PanelWindow {
         const kind = pendingKind, value = pendingValue; pendingKind = "";
         if (kind) Host.prepared(win.screenName,kind,value);
     }
-    function completeRefresh() {
-        refreshAcquire.stop();
-        if (refreshingBackdrop) { Host.endCapture(); refreshingBackdrop = false; }
-        backgroundCapture.live = !snapshotStable;
-    }
-    function refreshBackdrop() {
-        if (!presentationReady || snapshotStable || !Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed || !Host.desktopCaptureReady) return;
-        prepareBackdrop();
-    }
     Timer { id: warmup; interval: 0; onTriggered: win.prepareBackdrop() }
-    // Submit transparent frames before the initial capture, not between pills.
+    // Give the overlay a transparent frame before capturing the output.
     Timer { id: acquire; interval: 32; onTriggered: { if (!win.acquiringBackdrop) return; backgroundCapture.captureSource = win.screen; } }
-    // Reacquire the screen source after returning from an interactive state.
-    // The texture provider stays alive, so the old frame remains until content arrives.
-    Timer { id: refreshAcquire; interval: 32; onTriggered: { if (!win.refreshingBackdrop) return; backgroundCapture.captureSource = win.screen; } }
     ScreencopyView {
-        id: backgroundCapture; anchors.fill: parent; paintCursor: false; live: win.presentationReady && !win.snapshotStable || win.refreshingBackdrop
-        captureSource: win.presentationReady && !win.snapshotStable && Config.island.screenCapture && Theme.glass && Host.desktopCaptureAllowed && Host.desktopCaptureReady ? win.screen : null
+        id: backgroundCapture; anchors.fill: parent; paintCursor: false; live: false
         onHasContentChanged: if (hasContent && win.acquiringBackdrop) {
             Host.backdrop(win.screenName, desktopTexture);
             win.completePresentation();
-        } else if (hasContent && win.refreshingBackdrop) {
-            Host.backdrop(win.screenName, desktopTexture);
-            win.completeRefresh();
         }
     }
     ShaderEffectSource {
@@ -154,21 +127,12 @@ PanelWindow {
         hideSource: true; visible: false; live: true; mipmap: true
     }
     Timer { interval: 700; running: win.acquiringBackdrop; onTriggered: win.completePresentation() }
-    Timer { interval: 700; running: win.refreshingBackdrop; onTriggered: win.completeRefresh() }
-    onSnapshotStableChanged: {
-        if (snapshotStable) {
-            backgroundCapture.live = false;
-            if (refreshingBackdrop) completeRefresh();
-        } else if (presentationReady && !acquiringBackdrop && Config.island.screenCapture && Theme.glass && Host.desktopCaptureAllowed && Host.desktopCaptureReady) {
-            refreshBackdrop();
-        }
-    }
     Connections { target: Host
         function onDesktopCaptureReadyChanged() { if (Host.desktopCaptureReady) warmup.restart(); }
         function onPrepareRequested(screen,kind,value) { if (screen === win.screenName) win.prepare(kind,value); }
         function onPreparationCancelled() { win.pendingKind = ""; }
     }
-    Component.onDestruction: { Host.unregisterWindow(win); Host.backdrop(win.screenName, null); if (acquiringBackdrop || refreshingBackdrop) Host.endCapture(); }
+    Component.onDestruction: { Host.unregisterWindow(win); Host.backdrop(win.screenName, null); if (acquiringBackdrop) Host.endCapture(); }
 
     MouseArea { id: outsideDismiss; anchors.fill: parent; visible: win.dismissableOpen && (!Host.canGrab || !win.explicitOpen); z: 0; onPressed: Hub.dismiss() }
     // ── Notification Center backdrop: dims + (via the blur layerrule) frosts the desktop ──
