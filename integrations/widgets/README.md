@@ -9,9 +9,12 @@ read as functional and layout references. These implementations use original
 Tahow QML with the same geometric symbols and neutral/accent material policy
 as the shell. They import only public PluginKit and Quickshell APIs.
 
-Desktop cards use simulated glass: translucent gradients, rounded corners,
-rim and shadow. They do not continuously capture the screen or pretend to
-refract moving desktop windows. Right-click a widget for its material,
+Desktop cards default to simulated glass: translucent gradients, rounded corners,
+rim and shadow. Optional Liquid Glass uses the [Tahow Hyprland compositor
+provider](../../native/live-glass/README.md) to refract the real scene below the
+widget host surface. Moving applications contribute only when drawn below that
+surface; the material is not a wallpaper stand-in. Without the native provider,
+the widget retains simulated material. Right-click a widget for its material,
 appearance, refresh interval and applicable clock/temperature settings.
 
 Build the eight self-contained plugin folders:
@@ -49,10 +52,17 @@ Catalogue export: `bun tools/export-widgets.ts --to /path/to/ryostore`. Plugin m
 ## Material variants and compatibility
 
 Right-click any widget and choose Material: `simulated`, `liquid`, or `none`.
-Liquid Glass uses the attributed Ryoku optical shader over the wallpaper
-published by Ryogami, with adjustable bevel, depth, index, RGB dispersion and
-frost. It does not capture the screen or track application windows. With no
-wallpaper texture available it retains the simulated material fallback.
+Liquid Glass requires the optional matching [Hyprland native plugin](../../native/live-glass/README.md).
+Its damage-driven material samples the scene below the owning host surface
+before that surface is drawn, without client-side screen capture or cached
+wallpaper textures. Elements already flattened into the same QML host surface
+cannot refract one another. When the provider is unavailable, simulated glass
+remains visible; choosing `liquid` alone does not enable live refraction.
+
+Bevel, depth, index, RGB dispersion and frost map to native acrylic optics. The
+native material differs visually from the former wallpaper/QSB shader and still
+uses the compositor's blur defaults. Widget settings remain independent of the
+shell's General and component overrides.
 The clock also offers a `bare` style that removes its card, rim and shadow.
 
 New settings are read with defaults; rendering does not write preferences or

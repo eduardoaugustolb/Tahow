@@ -13,6 +13,7 @@ Item {
     required property string screenName
 
     readonly property real compactPadding: Math.max(12,Math.min(28,Config.island.compactPadding))
+    readonly property bool compositorReady: surface.compositorReady
     function layoutDump() { return { mode: mode, leftPadding: idleRow.x, rightPadding: width - idleRow.x - idleRow.width, width: width, liquidReady: surface.liquidReady, liquidMix: surface.liquidMix, material: surface.materialState() }; }
     Connections { target: Hub; function onDismissed() { root.peek = false; } }
     readonly property bool focusedHere: !Host.focusedOutput || Host.focusedOutput === screenName

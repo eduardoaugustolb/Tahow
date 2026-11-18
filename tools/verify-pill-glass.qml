@@ -6,6 +6,7 @@ import "./shell" as Tahow
 ShellRoot {
     id: root
     property bool expectCapture: Quickshell.env("TAHOW_CAPTURE_TEST") === "1"
+    property bool expectNative: Quickshell.env("TAHOW_NATIVE_TEST") === "1"
     property int phase: -1
     property int samples: 0
     property var texture: null
@@ -49,7 +50,8 @@ ShellRoot {
             const s = win.layoutDump();
             if (!s.presentationReady || s.acquiringBackdrop) return;
             if (root.expectCapture && (!s.liquidReady || s.liquidMix < 0.999)) return;
-            root.check(s.captureHasContent === root.expectCapture, "capture/fallback mismatch");
+            root.check(s.captureHasContent === (root.expectCapture && !root.expectNative), "capture/fallback mismatch");
+            root.check(!root.expectNative || s.material.compositorReady, "native material not presented");
             root.texture = Tahow.Host.backdrops[win.screenName];
             root.phase = 0;
             Tahow.Hub.event = root.modes[0];

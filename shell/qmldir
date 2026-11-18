@@ -7,6 +7,7 @@ CCPill 1.0 CCPill.qml
 singleton Config 1.0 Config.qml
 ControlsTab 1.0 ControlsTab.qml
 Glass 1.0 Glass.qml
+CompositorGlass 1.0 CompositorGlass.qml
 GlassSettings 1.0 GlassSettings.qml
 HomeTab 1.0 HomeTab.qml
 singleton Hub 1.0 Hub.qml

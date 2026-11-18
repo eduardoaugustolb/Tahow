@@ -21,8 +21,13 @@ Item {
     onRefractionChanged: sampledFrame = false
     // QSB shaders can retain Uncompiled with a cached RHI pipeline. Wait for
     // an actual submitted frame instead of using Compiled as a readiness gate.
-    readonly property bool liquidReady: glass.visible && sampledFrame && glass.status !== ShaderEffect.Error
-    function materialState() { return {screen: Screen.name, textureReady: texture !== null, shaderVisible: glass.visible, shaderStatus: glass.status, shaderLog: glass.log, themeGlass: Theme.glass}; }
+    readonly property bool compositorReady: compositor.ready
+    // A fully clipped consumer needs no texture; unsupported transforms still
+    // require their QML fallback even when the primary island is already native.
+    readonly property bool snapshotFallbackNeeded: root.refraction && Theme.glass && !compositorReady
+        && (!compositor.geometry.supported || (compositor.geometry.clipWidth > 0 && compositor.geometry.clipHeight > 0))
+    readonly property bool liquidReady: compositor.ready || (glass.visible && sampledFrame && glass.status !== ShaderEffect.Error)
+    function materialState() { return {provider: compositor.ready ? "compositor-live" : root.texture !== null ? "snapshot" : "simulated", compositorAvailable: compositor.available, compositorReady: compositor.ready, screen: Screen.name, textureReady: texture !== null, shaderVisible: glass.visible, shaderStatus: glass.status, shaderLog: glass.log, themeGlass: Theme.glass}; }
     property real liquidMix: liquidReady ? 1 : 0
     Behavior on liquidMix { NumberAnimation { duration: Theme.reduced ? 1 : 150; easing.type: Easing.InOutQuad } }
     Connections {
@@ -43,9 +48,17 @@ Item {
         border.color: Theme.alpha(Theme.mix(Theme.accent,Qt.rgba(1,1,1,1),0.6),Theme.dark ? 0.36 : 0.65)
     }
     Rectangle { anchors.fill: parent; anchors.margins: 1.5; radius: Math.max(0,root.r-1.5); color: "transparent"; visible: !root.refraction; border.width: 0.5; border.color: Qt.rgba(1,1,1,Theme.dark ? 0.08 : 0.34) }
+    CompositorGlass {
+        id: compositor
+        anchors.fill: parent
+        active: root.refraction && Theme.glass && Config.island.screenCapture
+        radius: root.r
+        bezel: Config.island.bezel; thickness: Config.island.thickness * root.refractionAmount
+        ior: Config.island.ior; dispersion: Config.island.dispersion; frost: Config.island.frost
+    }
     NativeGlass {
         id: glass
-        anchors.fill: parent; visible: root.refraction && Theme.glass && root.texture !== null
+        anchors.fill: parent; visible: root.refraction && Theme.glass && root.texture !== null && !compositor.ready
         // Keep one nearly transparent draw while the shader is prepared. The
         // fallback stays underneath until the replacement is ready to blend in.
         opacity: Math.max(0.01, root.liquidMix)
@@ -67,7 +80,7 @@ Item {
     Rectangle {
         anchors.fill: parent; anchors.margins: 1
         radius: Math.max(0, root.r - 1)
-        visible: glass.visible
+        visible: glass.visible || compositor.ready
         color: Qt.rgba(root.tint.r, root.tint.g, root.tint.b, 1); opacity: Math.min(0.14, Theme.glassA * 0.25) * root.liquidMix
     }
     Rectangle { anchors.fill: parent; radius: root.r; color: "transparent"; border.width: root.rim ? 1 : 0; border.color: Theme.alpha(Theme.mix(Theme.accent,Qt.rgba(1,1,1,1),0.72), Theme.dark ? 0.16 : 0.28) }

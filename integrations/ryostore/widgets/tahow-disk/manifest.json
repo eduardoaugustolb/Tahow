@@ -234,16 +234,16 @@
       "source": "PROVENANCE.txt",
       "destination": "PROVENANCE.txt",
       "mode": "0644",
-      "size": 551,
-      "sha256": "d746639a8012d1af5228f2a53a5ebb5dee0fe31d88428ddc1fa17ae110751a58",
+      "size": 569,
+      "sha256": "dad02a532ea232f393483f68a53df6d6892e70b583e96710bd4ba6c89ff3f865",
       "install": true
     },
     {
       "source": "README.md",
       "destination": "README.md",
       "mode": "0644",
-      "size": 1251,
-      "sha256": "eb292f2be21be495e78084f992feb0ae06b3dc7386d6c3f93c74a316fad9be49",
+      "size": 1334,
+      "sha256": "9763a387e103fec11cf52afc213b61944a580959f560ed3403c010b99702a75f",
       "install": true
     },
     {
@@ -253,6 +253,14 @@
       "size": 41675,
       "sha256": "da6caa2591b269c2b37a8afd9fdcd2f0988d8762a443aa89169f74ff7001149d",
       "install": false
+    },
+    {
+      "source": "content/CompositorGlass.qml",
+      "destination": "content/CompositorGlass.qml",
+      "mode": "0644",
+      "size": 6980,
+      "sha256": "c623036a4d50b8a7f00e960ae9b81fc06dad6b6c57b01a6ff34f94f919c39a55",
+      "install": true
     },
     {
       "source": "content/GithubWidget.qml",
@@ -266,8 +274,8 @@
       "source": "content/LiquidWidgetGlass.qml",
       "destination": "content/LiquidWidgetGlass.qml",
       "mode": "0644",
-      "size": 2939,
-      "sha256": "ef28f7e6ce78cd876e5b17cd5976c29c86fb9ae5b635bf170941982cf30b0f3e",
+      "size": 884,
+      "sha256": "df838897db0df1bf33c71aff7d3bf4acf5e9a9acedb785008f5ddd7066bfb0a6",
       "install": true
     },
     {
@@ -290,8 +298,8 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 14411,
-      "sha256": "10a296bde7b46704fd36b4803fbd2aa673533334ab211b413030219898f299d9",
+      "size": 14614,
+      "sha256": "8b59504e5982b4ac66177dae267cedbe96515d8727bfba2deda0e4081a2928a0",
       "install": true
     },
     {

@@ -26,16 +26,16 @@
       "source": "PROVENANCE.txt",
       "destination": "PROVENANCE.txt",
       "mode": "0644",
-      "size": 551,
-      "sha256": "d746639a8012d1af5228f2a53a5ebb5dee0fe31d88428ddc1fa17ae110751a58",
+      "size": 569,
+      "sha256": "dad02a532ea232f393483f68a53df6d6892e70b583e96710bd4ba6c89ff3f865",
       "install": true
     },
     {
       "source": "README.md",
       "destination": "README.md",
       "mode": "0644",
-      "size": 1317,
-      "sha256": "2b5518821a864f60ac59792d94d47dc546f3b835d2e152eaa2656326099e7e75",
+      "size": 1400,
+      "sha256": "10ab22dca3a78de871a3b4951d1cbbdcbfa928b721de4ec360de58c7222720e8",
       "install": true
     },
     {
@@ -45,6 +45,14 @@
       "size": 90808,
       "sha256": "cf77909464365145c14c54d6a38aa00b3c5ea1be30c5bc006a5514a360fa4fbf",
       "install": false
+    },
+    {
+      "source": "content/CompositorGlass.qml",
+      "destination": "content/CompositorGlass.qml",
+      "mode": "0644",
+      "size": 6980,
+      "sha256": "c623036a4d50b8a7f00e960ae9b81fc06dad6b6c57b01a6ff34f94f919c39a55",
+      "install": true
     },
     {
       "source": "content/GithubWidget.qml",
@@ -58,8 +66,8 @@
       "source": "content/LiquidWidgetGlass.qml",
       "destination": "content/LiquidWidgetGlass.qml",
       "mode": "0644",
-      "size": 2939,
-      "sha256": "ef28f7e6ce78cd876e5b17cd5976c29c86fb9ae5b635bf170941982cf30b0f3e",
+      "size": 884,
+      "sha256": "df838897db0df1bf33c71aff7d3bf4acf5e9a9acedb785008f5ddd7066bfb0a6",
       "install": true
     },
     {
@@ -82,8 +90,8 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 14451,
-      "sha256": "ab5239ddaa470fffe93dfed22ef2028cfefa2dfadc89ad3e349fc964549ebb03",
+      "size": 14614,
+      "sha256": "8b59504e5982b4ac66177dae267cedbe96515d8727bfba2deda0e4081a2928a0",
       "install": true
     },
     {
@@ -178,8 +186,8 @@
       "source": "manifest.json",
       "destination": "manifest.json",
       "mode": "0644",
-      "size": 9399,
-      "sha256": "976dbcf16b781a8d3ec86b492f10156f16511e6a8fce8f38390b551abde6c134",
+      "size": 9658,
+      "sha256": "ab420bc9a8536f6be9a858b994e45db6a5394d9edbd446b96f4c8ec6c6dd2c55",
       "install": true
     }
   ]

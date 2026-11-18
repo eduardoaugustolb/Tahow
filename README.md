@@ -82,7 +82,7 @@ with moving refraction and highlights in a seamless four-second loop.
 
 ## What it includes
 
-- An island with simulated glass while collapsed and snapshot refraction when expanded by click or hover.
+- An island with optional compositor-live refraction across collapsed, preview and expanded states, with snapshot or simulated fallback.
 - A command palette and settings that follow the general dark/light appearance and desktop accent.
 - General preferences with separate island, palette, and lockscreen overrides.
 - A Glass settings section with live preview, numeric sliders and per-component overrides.
@@ -112,15 +112,17 @@ Exporting retires the old `launchers/tahoe` listing while preserving its files f
 
 ## Glass behavior
 
-Expanded surfaces acquire frozen desktop snapshots while excluding their own surfaces. Capture happens before the opening animation. These textures do not update when windows move behind an open surface. Capture availability depends on the compositor/provider; fallback rendering is used when capture is disabled or unavailable. The collapsed island does not take screenshots or run the refraction shader.
+The optional [Hyprland compositor provider](native/live-glass/README.md) refracts the real scene below each owning Wayland surface and updates from compositor damage. It renders the material before the Tahow surface, without wallpaper stand-ins or a continuous screen-capture loop. The source can include applications drawn below that surface; sibling elements flattened into the same QML surface cannot refract one another.
 
-Glass shares one neutral light/dark base and accent mixing policy across the island, palette, and lock password field. Palette and island apply the same `glassOpacity` intensity; component overrides still take precedence over General. The lock field intentionally keeps its separate, lower `lockTint` intensity so the wallpaper remains visible through the small input. Its field optics (`lockIor`, `lockDispersion`, etc.) remain independent. Chromatic dispersion defaults to `0.08` and can be overridden per component; it adds colored refraction at the lens edges without animating RGB channels. The palette and island share the same lens settings unless component overrides are set; the collapsed island keeps its simulated glass treatment.
+Live refraction requires the matching native plugin and supported Hyprland OpenGL backend. Without it, the island shares a clean frozen desktop snapshot across collapsed, preview and expanded states; palette and settings retain their own snapshot lifecycles. These fallback textures do not follow moving windows. Simulated material is used when capture is disabled or unavailable. If the provider arrives after startup, the island releases its startup snapshot only after all visible Glass consumers have ready native replacements.
+
+Glass shares one neutral light/dark base and accent mixing policy across the island, palette, and lock password field. Palette and island apply the same `glassOpacity` intensity; component overrides still take precedence over General. The lock field intentionally keeps its separate, lower `lockTint` intensity so the wallpaper remains visible through the small input. Its field optics (`lockIor`, `lockDispersion`, etc.) remain independent. Chromatic dispersion defaults to `0.08` and can be overridden per component; it adds colored refraction at the lens edges without animating RGB channels. The palette and island share the same lens settings unless component overrides are set. The native provider maps lens preferences to Hyprland acrylic, whose optical response differs from the QSB snapshot fallback; compositor blur defaults still apply. The lockscreen keeps its separate visual pipeline.
 
 ## Development
 
 Eight independent desktop widgets are available as Ryoku plugins: CPU,
 temperature, disk, memory, session controls, clock, media and GitHub contributions. They use Tahow's
-simulated-glass cards and do not require either subshell to run. See the
+simulated-glass cards by default, offer optional native compositor Liquid Glass, and do not require either subshell to run. See the
 [widget sources and installation guide](integrations/widgets/README.md).
 
 Use **Bun** for scripts and dependencies:

@@ -28,7 +28,7 @@ try {
     ipc('tahoe', 'closeLauncher');
     await until(s => !s.layout, 'Palette did not release its surface.');
     ipc('tahoeIsland', 'open', '0');
-    await until(s => s.islands.some((i: any) => i.mode === 'expanded' && i.backdropReady && !i.acquiringBackdrop)
+    await until(s => s.islands.some((i: any) => i.mode === 'expanded' && (i.backdropReady || i.material?.compositorReady) && !i.acquiringBackdrop)
       && s.captureCount === 0, 'Island did not present its backdrop.');
     if (screenshots && cycle === 0) {
       await Bun.sleep(500);
@@ -37,7 +37,7 @@ try {
     ipc('tahoeIsland', 'close');
     await until(s => s.islands.every((i: any) => i.mode !== 'expanded'), 'Island did not close.');
   }
-  console.log('Glass runtime OK: two palette/island capture, presentation and close cycles; capture ownership released.');
+  console.log('Glass runtime OK: two palette/island material presentation and close cycles; capture ownership released.');
 } finally {
   ipc('tahoe', 'closeLauncher');
   ipc('tahoeIsland', 'close');

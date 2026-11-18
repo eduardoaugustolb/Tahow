@@ -4,7 +4,8 @@ import {cpSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync} fro
 // Requires a live Wayland compositor (PanelWindow has no offscreen backend).
 // --wayland enables real capture/GPU; default mode checks capture-disabled fallback.
 // Preferences and notifications are fixtures in both modes.
-const capture = process.argv.includes('--wayland');
+const native = process.argv.includes('--native');
+const capture = native || process.argv.includes('--wayland');
 const temporary = mkdtempSync('/tmp/tahow-pill-glass-');
 try {
     cpSync('shell', temporary + '/shell', {recursive: true});
@@ -15,7 +16,7 @@ try {
         bannerTimeout: 60, weatherEnabled: false, reloadCoverFollowWallpaper: false
     }));
     writeFileSync(temporary + '/shell.qml', readFileSync('tools/verify-pill-glass.qml'));
-    const env = {...process.env, XDG_CONFIG_HOME: temporary, TAHOW_CAPTURE_TEST: capture ? '1' : '0'};
+    const env = {...process.env, XDG_CONFIG_HOME: temporary, TAHOW_CAPTURE_TEST: capture ? '1' : '0', TAHOW_NATIVE_TEST: native ? '1' : '0'};
     const output = execFileSync('qs', ['-p', temporary + '/shell.qml'], {
         env, encoding: 'utf8', timeout: 16000, stdio: ['ignore', 'pipe', 'pipe']
     });

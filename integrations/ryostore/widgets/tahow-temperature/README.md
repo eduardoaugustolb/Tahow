@@ -2,7 +2,7 @@
 
 Available hardware temperature sensors.
 
-Independent Ryoku desktopWidget plugin. No Tahow subshell is required. Material variants: simulated glass, Liquid Glass refracting the published wallpaper, and no background. Liquid Glass does not capture the desktop or track windows; it falls back to simulated glass when no wallpaper is available. Existing settings remain unchanged, and simulated glass remains the default.
+Independent Ryoku desktopWidget plugin. No Tahow subshell is required. Material variants: simulated glass, live compositor Liquid Glass, and no background. Liquid Glass requires the optional Tahow Hyprland compositor plugin. It refracts the real scene below the widget without wallpaper snapshots or screen capture and falls back to simulated glass when the provider is unavailable. Existing settings remain unchanged, and simulated glass remains the default.
 
 Reads pluginApi.pluginSettings with defaults. Settings and desktop placement are written by Ryoku's host; this plugin does not edit shared Tahow or host preferences. Right-click the tile to configure its material and available data options.
 

@@ -1,4 +1,5 @@
 import QtQuick
+import "lib/backdrop.js" as Backdrop
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
@@ -42,6 +43,7 @@ PanelWindow {
             acquiringBackdrop: acquiringBackdrop,
             presentationReady: presentationReady,
             captureHasContent: backgroundCapture.hasContent,
+            liveBackdropAvailable: compositorProbe.available,
             backdropReady: !!Host.backdrops[screenName]
         });
     }
@@ -84,6 +86,34 @@ PanelWindow {
     }
 
 
+    CompositorGlass {
+        id: compositorProbe
+        discoverWhileHidden: true
+        active: Config.island.screenCapture && Theme.glass
+        onAvailableChanged: if (available && !win.presentationReady) {
+            backgroundCapture.captureSource = null;
+            win.completePresentation();
+        }
+    }
+    property bool snapshotReleased: false
+    function snapshotConsumersReady(item, inheritedOpacity) {
+        const effectiveOpacity = inheritedOpacity * item.opacity;
+        if (!item.visible || effectiveOpacity <= 0) return true;
+        if ("snapshotFallbackNeeded" in item && item.width > 0 && item.height > 0 && item.snapshotFallbackNeeded) return false;
+        for (const child of item.children) {
+            if (!snapshotConsumersReady(child, effectiveOpacity)) return false;
+        }
+        return true;
+    }
+    readonly property bool canReleaseSnapshot: !snapshotReleased && presentationReady && !acquiringBackdrop
+        && island.compositorReady && snapshotConsumersReady(win.contentItem, 1)
+    onCanReleaseSnapshotChanged: if (canReleaseSnapshot) {
+        // Every currently visible consumer has submitted its native replacement.
+        // Keep the snapshot while any sibling still needs its QML fallback.
+        Host.backdrop(win.screenName, null);
+        snapshotReleased = true;
+        backgroundCapture.captureSource = null;
+    }
     property bool acquiringBackdrop: false
     property bool presentationReady: false
     property string pendingKind: ""
@@ -97,6 +127,7 @@ PanelWindow {
     // pill states so the material never samples its own overlay.
     function prepareBackdrop() {
         if (presentationReady || acquiringBackdrop) return;
+        if (compositorProbe.available) { completePresentation(); return; }
         if (!Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed) { completePresentation(); return; }
         if (!Host.desktopCaptureReady) return;
         acquiringBackdrop = true; Host.beginCapture();
@@ -125,7 +156,8 @@ PanelWindow {
     ShaderEffectSource {
         id: desktopTexture
         width: win.width; height: win.height
-        sourceItem: backgroundCapture
+        sourceItem: win.snapshotReleased ? null : backgroundCapture
+        textureSize: { const s = Backdrop.size(win.width, win.height); return Qt.size(s.width, s.height); }
         hideSource: true; visible: false; live: true; mipmap: true
     }
     Timer { interval: 700; running: win.acquiringBackdrop; onTriggered: win.completePresentation() }

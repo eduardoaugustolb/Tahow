@@ -1,4 +1,5 @@
 import QtQuick
+import "lib/backdrop.js" as Backdrop
 import QtQuick.Controls
 import QtQuick.Effects
 import Quickshell
@@ -20,7 +21,7 @@ PanelWindow {
     property real reveal: 0
     property bool frameReady: false
     property bool captureFailed: false
-    function stateDump() { return { width: panel.width, height: panel.height, columns: cols, gridWidth: grid.width, cellWidth: grid.cellWidth, frameReady: frameReady, captureHasContent: capture.hasContent, captureFailed: captureFailed, bubble: panel.bubble }; }
+    function stateDump() { return { provider: compositor.ready ? "compositor-live" : capture.hasContent ? "snapshot" : "simulated", width: panel.width, height: panel.height, columns: cols, gridWidth: grid.width, cellWidth: grid.cellWidth, frameReady: frameReady, captureHasContent: capture.hasContent, captureFailed: captureFailed, bubble: panel.bubble }; }
     readonly property real targetWidth: Math.min(width - 32, 550)
     readonly property int cols: Math.max(1, Math.min(launcher.columns,
         Math.floor((targetWidth - 28) / 70)))
@@ -54,7 +55,7 @@ PanelWindow {
         width: sheet.width
         height: sheet.height
         sourceItem: capture
-        textureSize: Qt.size(Math.max(1, sheet.width), Math.max(1, sheet.height))
+        textureSize: { const s = Backdrop.size(sheet.width, sheet.height); return Qt.size(s.width, s.height); }
         mipmap: true
         // The screencopy already holds one frozen frame. Keep the texture
         // provider live so it uploads when the opening panel starts rendering.
@@ -95,14 +96,27 @@ PanelWindow {
             anchors.fill: parent
             radius: Tokens.px(22)
             color: sheet.launcher.tint
-            visible: !glass.visible
+            visible: !glass.visible && !compositor.ready
             border.width: 1
             border.color: Qt.rgba(1, 1, 1, sheet.launcher.dark ? 0.12 : 0.5)
+        }
+        CompositorGlass {
+            id: compositor
+            discoverWhileHidden: true
+            anchors.fill: parent; target: "launcher-noblur"
+            active: sheet.captureAllowed
+            radius: Tokens.px(22)
+            bezel: Config.palette.bezel; thickness: Config.palette.thickness
+            ior: Config.palette.ior; dispersion: Config.palette.dispersion; frost: Config.palette.frost
+            onAvailableChanged: if (available) {
+                captureDelay.stop(); capture.captureSource = null;
+                sheet.frameReady = true;
+            }
         }
         NativeGlass {
             id: glass
             anchors.fill: parent
-            visible: sheet.launcher.glass && sheet.frameReady
+            visible: sheet.launcher.glass && capture.hasContent && !compositor.ready
             src: frozen
             sourceRect: Qt.rect(panel.x / sheet.width, panel.y / sheet.height, panel.width / sheet.width, panel.height / sheet.height)
             topLeftRadius: Tokens.px(22); topRightRadius: Tokens.px(22)
@@ -123,7 +137,7 @@ PanelWindow {
             anchors.fill: parent
             anchors.margins: 1
             radius: Tokens.px(21)
-            visible: glass.visible
+            visible: glass.visible || compositor.ready
             color: sheet.launcher.tint
             opacity: sheet.launcher.glassOpacity
         }
@@ -131,7 +145,7 @@ PanelWindow {
             anchors.fill: parent
             anchors.margins: 0.5
             radius: 22
-            visible: glass.visible
+            visible: glass.visible || compositor.ready
             color: "transparent"
             border.width: 1
             border.color: Qt.rgba(1, 1, 1, sheet.launcher.dark ? 0.08 : 0.18)

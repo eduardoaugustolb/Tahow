@@ -1,4 +1,5 @@
 import QtQuick
+import "lib/backdrop.js" as Backdrop
 import QtQuick.Controls
 import QtQuick.Window
 import Quickshell.Wayland
@@ -103,7 +104,7 @@ FloatingWindow {
         paintCursor: false; live: !win.materialReady
         onHasContentChanged: if (hasContent) { settingsTexture.scheduleUpdate(); materialFinish.start(); }
     }
-    ShaderEffectSource { id: settingsTexture; sourceItem: settingsCapture; live: false; visible: false; hideSource: true; mipmap: true }
+    ShaderEffectSource { id: settingsTexture; sourceItem: settingsCapture; textureSize: { const s = Backdrop.size(settingsCapture.width, settingsCapture.height); return Qt.size(s.width, s.height); } live: false; visible: false; hideSource: true; mipmap: true }
     function finishMaterial() { materialReady = true; if (ownsCapture) { ownsCapture = false; Host.endCapture(); } }
     Timer { id: materialFinish; interval: 16; onTriggered: win.finishMaterial() }
     Timer { interval: 220; running: win.ownsCapture; onTriggered: win.finishMaterial() }
@@ -111,9 +112,19 @@ FloatingWindow {
     Rectangle { anchors.fill: parent; radius: 24; color: "transparent"; border.color: win.settingsDark ? "#505056" : "#e8e8eb" }
     Rectangle {
         id: side; width: 258; height: parent.height; radius: 24
-        color: win.sidebarTint
+        color: Theme.alpha(win.sidebarTint, compositor.ready ? 0.2 : 1)
+        CompositorGlass {
+            id: compositor; anchors { left: parent.left; top: parent.top; bottom: parent.bottom } width: parent.width + 24; target: "tahow-settings"
+            discoverWhileHidden: true
+            active: Config.general.screenCapture
+            radius: 24; bezel: 0; thickness: 0; ior: 1; dispersion: 0; frost: 30
+            onAvailableChanged: if (available) {
+                materialDelay.stop(); settingsCapture.captureSource = null;
+                win.finishMaterial();
+            }
+        }
         NativeGlass {
-            anchors.fill: parent; visible: settingsCapture.hasContent
+            anchors.fill: parent; visible: settingsCapture.hasContent && !compositor.ready
             src: settingsTexture; topLeftRadius: 24; bottomLeftRadius: 24
             tintColor: win.sidebarTint; tintAmount: win.settingsDark ? 0.72 : 0.68
             frost: 10; rim: 0.05; bezel: 0; thickness: 0; ior: 1; dispersion: 0
