@@ -105,11 +105,22 @@ Item {
     }
     LiquidGlass {
         anchors.fill: parent
-        visible: options.liquidGlass && !compositor.ready && root.glassEnabled
+        // Always draw the true-liquid-glass layer, not just while the
+        // compositor optics are still warming up. The Settings preview runs
+        // with useCompositor: false and therefore shows this layer; keeping it
+        // here makes components match the preview instead of drifting apart.
+        // z: 1 places it above the compositor/native glass (z:0) so the liquid
+        // silhouette is visible on top of the live blur, matching the preview
+        // where no compositor exists to obscure it.
+        visible: options.liquidGlass && root.glassEnabled
         opacity: 0.35
         blendRadius: options.liquidBlendRadius
-        tint: root.tint
-        z: -1
+        cornerRadius: root.r
+        // LiquidGroup multiplies tint.a by its own opacity. root.tint already
+        // carries the configured glass opacity, so pass an opaque tint here or
+        // the layer lands weaker than the preview.
+        tint: Theme.alpha(root.tint, 1)
+        z: 1
     }
     // The optical provider draws the rim; avoid a second flat outline.
 }

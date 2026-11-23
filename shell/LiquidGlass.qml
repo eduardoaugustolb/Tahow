@@ -11,13 +11,17 @@ Item {
     property real blendRadius: Config.general.liquidBlendRadius
     property color tint: Theme.glassTint
     property real opacityValue: 1
+    // Corner radius of the default silhouette. The default pill used
+    // min(width, height) / 2, which never matched the rounded rectangles the
+    // surfaces actually draw; consumers pass their own radius here.
+    property real cornerRadius: Math.min(width, height) / 2
     property list<LiquidShape> shapes: [
         LiquidShape {
             x: 0
             y: 0
             width: root.width
             height: root.height
-            radius: Math.min(root.width, root.height) / 2
+            radius: root.cornerRadius
             presence: 1
         }
     ]

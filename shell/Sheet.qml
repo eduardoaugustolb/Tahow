@@ -21,11 +21,11 @@ PanelWindow {
     property bool frameReady: false
     property bool captureFailed: false
     function stateDump() { return { provider: material.compositorReady ? "compositor-live" : capture.hasContent ? "snapshot" : "simulated", width: panel.width, height: panel.height, columns: cols, gridWidth: grid.width, cellWidth: grid.cellWidth, frameReady: frameReady, captureHasContent: capture.hasContent, captureFailed: captureFailed, bubble: panel.bubble }; }
-    readonly property real targetWidth: Math.min(width - 32, 664)
+    readonly property real targetWidth: Math.max(320, Math.min(width > 0 ? width - 32 : 664, 664))
     readonly property int cols: Math.max(1, Math.min(launcher.columns,
-        Math.floor((targetWidth - 36) / 80)))
+        Math.floor((Math.max(120, targetWidth) - 36) / 80)))
     readonly property int rowHeight: 80
-    readonly property int rows: Math.max(1, Math.min(4, Math.floor((height - 80 - 140) / rowHeight)))
+    readonly property int rows: Math.max(1, Math.min(4, Math.floor((Math.max(300, height) - 80 - 140) / rowHeight)))
     readonly property color ink: launcher.ink
     readonly property color accent: Theme.accent
     readonly property bool captureAllowed: launcher.glass && !captureFailed && Config.palette.screenCapture
@@ -99,7 +99,7 @@ PanelWindow {
             compositorTarget: "launcher-noblur"
             useCompositor: sheet.captureAllowed
             texture: capture.hasContent ? frozen : null
-            textureRect: Qt.rect(panel.x / sheet.width, panel.y / sheet.height, panel.width / sheet.width, panel.height / sheet.height)
+            textureRect: sheet.width > 0 && sheet.height > 0 ? Qt.rect(panel.x / sheet.width, panel.y / sheet.height, panel.width / sheet.width, panel.height / sheet.height) : Qt.rect(0, 0, 1, 1)
             onCompositorAvailableChanged: if (compositorAvailable) {
                 captureDelay.stop(); capture.captureSource = null;
                 sheet.frameReady = true;
@@ -238,22 +238,32 @@ PanelWindow {
             color: sheet.launcher.ink; opacity: 0.74
             font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(12); font.weight: Font.DemiBold
         }
+        // ScriptModel declared separately so its values are assigned after
+        // GridView::componentComplete. DesktopEntries.applications.values is
+        // populated asynchronously by Quickshell; if results change while the
+        // GridView is still completing, QQuickItemView::itemY() dereferences a
+        // deleted delegate item and segfaults. Deferring the initial assignment
+        // (and keeping sync via Connections afterwards) avoids that window.
+        ScriptModel {
+            id: gridScriptModel
+            values: []
+        }
         GridView {
             id: grid
             y: 121
             anchors.horizontalCenter: parent.horizontalCenter
-            cellWidth: Math.floor((panel.width - 36) / sheet.cols)
+            cellWidth: Math.max(48, Math.floor((Math.max(120, panel.width) - 36) / Math.max(1, sheet.cols)))
             cellHeight: sheet.rowHeight
-            width: cellWidth * sheet.cols
-            height: sheet.rows * cellHeight
+            width: Math.max(48, cellWidth * sheet.cols)
+            height: Math.max(sheet.rowHeight, sheet.rows * cellHeight)
             clip: true
             snapMode: GridView.SnapToRow
-            model: ScriptModel { values: sheet.launcher.results }
+            model: gridScriptModel
             boundsBehavior: Flickable.StopAtBounds
             currentIndex: sheet.launcher.selected
-            onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, GridView.Contain)
+            onCurrentIndexChanged: if (currentIndex >= 0 && count > 0 && grid.width > 0) positionViewAtIndex(currentIndex, GridView.Contain)
             onCountChanged: Qt.callLater(() => {
-                if (sheet.launcher.selected === 0) positionViewAtBeginning();
+                if (sheet.launcher.selected === 0 && count > 0 && grid.width > 0) positionViewAtBeginning();
             })
             delegate: Item {
                 id: tile
@@ -286,6 +296,21 @@ PanelWindow {
                     anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                     onPositionChanged: sheet.launcher.selected = tile.index
                     onClicked: sheet.launcher.launch(tile.modelData)
+                }
+            }
+            Component.onCompleted: {
+                // Defer the initial model assignment past componentComplete so an
+                // async DesktopEntries update cannot destroy delegate items mid-completion.
+                Qt.callLater(() => {
+                    gridScriptModel.values = sheet.launcher.results;
+                });
+            }
+            // Keep the model in sync when results change (query, section, hidden/pinned).
+            // These fire after componentComplete, so model swaps are safe.
+            Connections {
+                target: sheet.launcher
+                function onResultsChanged() {
+                    gridScriptModel.values = sheet.launcher.results;
                 }
             }
             ScrollBar.vertical: ScrollBar {

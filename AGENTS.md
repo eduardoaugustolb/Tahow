@@ -12,3 +12,14 @@
 - Run `bun run check` and `bun test` for relevant changes, plus targeted visual/runtime verification where needed. Record the actual environment and limitations. Hyprland has runtime testing; niri must not be advertised as validated without evidence.
 - Export companions using `bun tools/export-ryostore.ts --to <catalogue-checkout>` and inspect changes before publishing. Do not silently mutate the user's installed desktop.
 - Retain attribution and license notices. Add provenance for imported assets or source; do not add proprietary Apple/Icons8 assets.
+
+<!-- rtk-instructions v2 -->
+# Command output
+
+Command output here is condensed to save tokens, keeping every signal and
+dropping costly noise. Treat it as the complete result: run commands
+normally, and batch related commands into one call to avoid extra turns.
+Truncated results state their recovery path in their own output. Re-run a
+command as `rtk bypass <cmd>` only when its result is unusable: empty when
+output was clearly expected, contradicting its exit code, or garbled.
+<!-- /rtk-instructions -->

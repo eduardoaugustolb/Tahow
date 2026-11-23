@@ -194,7 +194,7 @@ Item {
         id: list
         x: 8
         y: root.headerH + 6
-        width: parent.width - 16
+        width: Math.max(0, parent.width - 16)
         height: Math.min(root.rows.length, root.maxRows) * root.rowH
         clip: true
         model: root.rows
