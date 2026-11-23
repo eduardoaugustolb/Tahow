@@ -51,7 +51,9 @@ Catalogue export: `bun tools/export-widgets.ts --to /path/to/ryostore`. Plugin m
 
 ## Material variants and compatibility
 
-Right-click any widget and choose Material: `simulated`, `liquid`, or `none`.
+Right-click any widget and choose Material: `simulated`, `liquid`, `prism`, or `none`.
+`prism` uses stronger, wider refraction and chromatic dispersion and requires
+the matching updated compositor plugin for live rendering.
 Liquid Glass requires the optional matching [Hyprland native plugin](../../native/live-glass/README.md).
 Its damage-driven material samples the scene below the owning host surface
 before that surface is drawn, without client-side screen capture or cached

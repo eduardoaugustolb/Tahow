@@ -22,7 +22,7 @@ Item {
     property bool accentFromHost: true
     readonly property var settings: pluginApi && pluginApi.pluginSettings || ({})
     readonly property var service: pluginApi ? pluginApi.mainInstance : null
-    readonly property bool liquidMaterial: settings.material === "liquid"
+    readonly property bool liquidMaterial: (settings.material === "liquid" || settings.material === "prism")
     readonly property bool bareClock: settings.material === "none" || (!liquidMaterial && kind === "clock" && settings.clockStyle === "bare")
     readonly property bool metric: ["cpu","temperature","disk","memory"].indexOf(kind) >= 0
     readonly property real unit: Math.max(0.4, Math.min(s, Number(settings.contentHeight)>0 ? Number(settings.contentHeight) / (kind === "github" ? 210 : metric ? 150 : kind === "clock" ? 220 : kind === "session" ? 200 : 160) : s))
@@ -30,7 +30,7 @@ Item {
     readonly property color accent: accentFromHost ? accentColor : Host.Theme.brand
     readonly property color ink: dark ? "#f5f5f7" : "#1d1d20"
     readonly property color muted: Qt.rgba(ink.r,ink.g,ink.b,0.62)
-    readonly property color tint: Material.tint(dark,settings.glassAccentTint !== false,accent)
+    readonly property color tint: Material.tint(dark,liveMaterial.effectiveSettings.glassAccentTint !== false,accent)
     readonly property string language: Locale.resolve(settings.language,"",Qt.locale().name)
     function tr(key) { return Locale.translate(Messages.catalogs,language,key); }
     function alpha(c,a) { return Qt.rgba(c.r,c.g,c.b,a); }
@@ -82,10 +82,10 @@ Item {
     Rectangle {
         id: plate; anchors.fill: parent; radius: 24*root.unit; clip: true
         gradient: Gradient {
-            GradientStop { position: 0; color: root.bareClock ? "transparent" : root.alpha(Qt.lighter(root.tint,root.dark ? 1.6 : 1.04),liveMaterial.ready ? Material.opacity(root.settings.glassOpacity)*0.24 : Math.min(0.96,Material.opacity(root.settings.glassOpacity)+0.18)) }
-            GradientStop { position: 1; color: root.bareClock ? "transparent" : root.alpha(root.tint,liveMaterial.ready ? Material.opacity(root.settings.glassOpacity)*0.2 : Material.opacity(root.settings.glassOpacity)) }
+            GradientStop { position: 0; color: root.bareClock ? "transparent" : root.alpha(Qt.lighter(root.tint,root.dark ? 1.6 : 1.04),liveMaterial.ready ? Material.opacity(liveMaterial.effectiveSettings.glassOpacity)*0.24 : Math.min(0.96,Material.opacity(liveMaterial.effectiveSettings.glassOpacity)+0.18)) }
+            GradientStop { position: 1; color: root.bareClock ? "transparent" : root.alpha(root.tint,liveMaterial.ready ? Material.opacity(liveMaterial.effectiveSettings.glassOpacity)*0.2 : Material.opacity(liveMaterial.effectiveSettings.glassOpacity)) }
         }
-        border.width: root.bareClock || root.settings.glassRim === false ? 0 : 1
+        border.width: root.bareClock || liveMaterial.effectiveSettings.glassRim === false ? 0 : 1
         border.color: root.alpha(root.dark ? "white" : root.accent,root.dark ? 0.22 : 0.3)
         Rectangle { visible: !root.bareClock; anchors.fill: parent; anchors.margins: 2; radius: parent.radius-2; color: "transparent"; border.width: 0.5; border.color: root.alpha("white",root.dark ? 0.06 : 0.55) }
         LiquidWidgetGlass { id: liveMaterial; anchors.fill:parent; enabledMaterial:root.active && root.liquidMaterial; settings:root.settings; screen:root.screen; tint:root.tint; radius:plate.radius }

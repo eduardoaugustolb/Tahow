@@ -18,12 +18,12 @@ FloatingWindow {
     readonly property var pages: ["General", "Island", "Command Palette", "Lockscreen", "System", "Shortcuts", "Glass"]
     readonly property var pageOrder: [0, 6, 1, 2, 3, 4, 5]
     readonly property string scope: page === 6 ? glassSettings.scope : ["general", "island", "palette", "lockscreen", "general", "general"][page]
-    readonly property var visualKeys: ["style","appearance","accentSource","customAccent","glassOpacity","glassRim","glassAccentTint","frost","font","motion","fastDuration","mediumDuration","easing"]
+    readonly property var visualKeys: ["style","appearance","accentSource","customAccent","glassOpacity","glassRim","innerShadow","glassAccentTint","frost","font","motion","fastDuration","mediumDuration","easing"]
     readonly property var islandKeys: visualKeys.concat(["bezel","thickness","ior","dispersion","compactPadding","topMargin","outerGaps","screenCapture","reserveSpace","overlayBar","hoverPeek","hoverDelay","splitActivities","activityClock","use24h","showAmPm","showSeconds","showBattery","showPrivacy","workspaceFlash"])
     readonly property var paletteKeys: visualKeys.concat(["dispersion","palettePosition","columns","matWidth","screenCapture","hiddenApps","pinnedApps"])
     readonly property var lockKeys: ["appearance","accentSource","customAccent","font","motion","fastDuration","mediumDuration","easing","use24h","lockFooterScale","lockRim","lockTint","lockThickness","lockIor","lockDispersion","lockEnergy","lockBezel","pamService"]
     readonly property var keys: page === 0 ? ["language"].concat(visualKeys) : page === 1 ? islandKeys : page === 2 ? paletteKeys : page === 3 ? lockKeys : page === 4 ? Object.keys(Config.defaults).filter(k => k !== "loginFollowWallpaper" && k !== "language" && k !== "settingsAppearance" && visualKeys.indexOf(k) < 0 && islandKeys.indexOf(k) < 0 && paletteKeys.indexOf(k) < 0 && lockKeys.indexOf(k) < 0) : []
-    readonly property var choices: ({language:["auto","en-US","pt-BR"],style:["glass","black"],appearance:["auto","dark","light"],accentSource:["auto","wallpaper","ryoku","custom","matugen","wal","gtk"],motion:["gentle","balanced","bouncy","reduced"],settingsAppearance:["light","dark"],activityClock:["split","inline","hidden"],units:["metric","imperial"],notifStyle:["banner","island","corner"],previews:["always","never"],locationMode:["auto","manual","ip"]})
+    readonly property var choices: ({language:["auto","en-US","pt-BR"],style:["glass","prism","black"],appearance:["auto","dark","light"],accentSource:["auto","wallpaper","ryoku","custom","matugen","wal","gtk"],motion:["gentle","balanced","bouncy","reduced"],settingsAppearance:["light","dark"],activityClock:["split","inline","hidden"],units:["metric","imperial"],notifStyle:["banner","island","corner"],previews:["always","never"],locationMode:["auto","manual","ip"]})
     property var bindings: []
     property string shortcutSearch: ""
     readonly property var filteredBindings: bindings.filter(b => !shortcutSearch || (b.label + " " + b.category + " " + b.combo).toLowerCase().indexOf(shortcutSearch.toLowerCase()) >= 0)
@@ -53,7 +53,7 @@ FloatingWindow {
     readonly property color secondary: settingsDark ? "#a5a5ab" : "#74747b"
     readonly property color group: settingsDark ? "#303033" : "#f6f6f7"
     readonly property color accent: Config.value("general","accentSource") === "custom" ? Config.value("general","customAccent") : DesktopTheme.accent
-    readonly property var labels: ({reloadCoverFollowWallpaper:"Generate glass reload cover from wallpaper",language:"Language",style:"Material",appearance:"Appearance",accentSource:"Color source",customAccent:"Accent color",glassOpacity:"Glass opacity",glassRim:"Specular rim",glassAccentTint:"Tint glass with accent",frost:"Frost",font:"Typeface",motion:"Animation",fastDuration:"Quick transitions (ms)",mediumDuration:"Transitions (ms)",easing:"Transition curve",bezel:"Lens edge",thickness:"Refraction depth",ior:"Refractive index",dispersion:"Chromatic dispersion",palettePosition:"Vertical position",screenCapture:"Refract desktop content",use24h:"24-hour clock",compactPadding:"Compact side padding",topMargin:"Distance from top",outerGaps:"Outer spacing",hoverPeek:"Preview on hover",hoverDelay:"Hover delay (ms)",matWidth:"Application tile width",columns:"Application columns",lockFooterScale:"Login panel size",lockRim:"Password field rim",lockTint:"Password field tint",lockThickness:"Password field depth",lockIor:"Password field refraction",lockDispersion:"Password field dispersion",lockEnergy:"Password field highlight",lockBezel:"Password field bevel",pamService:"PAM service (standalone)",reserveSpace:"Reserve space for the island",overlayBar:"Float over windows"})
+    readonly property var labels: ({reloadCoverFollowWallpaper:"Generate glass reload cover from wallpaper",language:"Language",style:"Material",appearance:"Appearance",accentSource:"Color source",customAccent:"Accent color",glassOpacity:"Glass opacity",glassRim:"Specular rim",innerShadow:"Inner shadow",glassAccentTint:"Tint glass with accent",frost:"Frost",font:"Typeface",motion:"Animation",fastDuration:"Quick transitions (ms)",mediumDuration:"Transitions (ms)",easing:"Transition curve",bezel:"Lens edge",thickness:"Refraction depth",ior:"Refractive index",dispersion:"Chromatic dispersion",palettePosition:"Vertical position",screenCapture:"Refract desktop content",use24h:"24-hour clock",compactPadding:"Compact side padding",topMargin:"Distance from top",outerGaps:"Outer spacing",hoverPeek:"Preview on hover",hoverDelay:"Hover delay (ms)",matWidth:"Application tile width",columns:"Application columns",lockFooterScale:"Login panel size",lockRim:"Password field rim",lockTint:"Password field tint",lockThickness:"Password field depth",lockIor:"Password field refraction",lockDispersion:"Password field dispersion",lockEnergy:"Password field highlight",lockBezel:"Password field bevel",pamService:"PAM service (standalone)",reserveSpace:"Reserve space for the island",overlayBar:"Float over windows"})
 
 
     component Toggle: Rectangle {
@@ -118,6 +118,8 @@ FloatingWindow {
             discoverWhileHidden: true
             active: Config.general.screenCapture
             radius: 24; bezel: 0; thickness: 0; ior: 1; dispersion: 0; frost: 30
+            innerShadow: 0
+            rim: 0
             onAvailableChanged: if (available) {
                 materialDelay.stop(); settingsCapture.captureSource = null;
                 win.finishMaterial();
@@ -127,6 +129,7 @@ FloatingWindow {
             anchors.fill: parent; visible: settingsCapture.hasContent && !compositor.ready
             src: settingsTexture; topLeftRadius: 24; bottomLeftRadius: 24
             tintColor: win.sidebarTint; tintAmount: win.settingsDark ? 0.72 : 0.68
+            innerShadow: 0
             frost: 10; rim: 0.05; bezel: 0; thickness: 0; ior: 1; dispersion: 0
             sourceRect: { const p = side.mapToGlobal(0,0); return Qt.rect((p.x - Screen.virtualX)/Math.max(1,Screen.width),(p.y - Screen.virtualY)/Math.max(1,Screen.height),side.width/Math.max(1,Screen.width),side.height/Math.max(1,Screen.height)); }
         }

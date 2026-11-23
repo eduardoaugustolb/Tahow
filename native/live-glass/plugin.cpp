@@ -13,6 +13,7 @@
 #include <hyprland/src/render/gl/blur/Acrylic.hpp>
 #include <map>
 #include <memory>
+#include <regex>
 #include <nlohmann/json.hpp>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -27,15 +28,62 @@ HANDLE handle;
 CFunctionHook *addHook = nullptr;
 CFunctionHook *renderHook = nullptr;
 CFunctionHook *expandHook = nullptr;
+CFunctionHook *shaderHook = nullptr;
+bool drawingNativeMaterial = false;
+// Private programs only: the host's shader cache and other acrylic users retain
+// the original material. Variants are bounded by the compositor's own keys.
+std::map<SShaderVariant, SP<CShader>> materialShaders;
 std::map<CRenderPass *, size_t> nativePassCounts;
 size_t nativeDamageDepth = 0;
 using RenderPass = CRegion (*)(CRenderPass *, CRenderContext &, const CRegion &);
 using ExpandDamage = void (*)(const GL::CHyprGLRenderer *, CRegion &, float);
 using Add = void (*)(CRenderPass *, UP<IPassElement> &&);
 struct Optics {
-    float refraction = 24, bulb = 14, clarity = 0.7, aberration = 0.08;
+    float refraction = 24, bulb = 14, clarity = 0.7, aberration = 0.08, innerShadow = 1, rim = 1, prism = 0;
 };
 Optics currentOptics;
+using ShaderVariant = WP<CShader> (*)(GL::CHyprOpenGLImpl *, ePreparedFragmentShader, const SShaderVariant &);
+WP<CShader> materialShader(GL::CHyprOpenGLImpl *backend, ePreparedFragmentShader fragment, const SShaderVariant &variant) {
+    if (!drawingNativeMaterial || fragment != SH_FRAG_ACRYLICFINISH)
+        return reinterpret_cast<ShaderVariant>(shaderHook->m_original)(backend, fragment, variant);
+    auto &shader = materialShaders[variant];
+    if (!shader) {
+        auto source = g_pShaderLoader->getVariantSource(fragment, variant);
+        const std::regex shadow(R"(acrylicLinear\s*\*=\s*1\.0\s*-\s*shadow\s*;)");
+        if (!std::regex_search(source, shadow))
+            throw std::runtime_error("Tahow: unsupported acrylic inner-shadow shader; rebuild required");
+        source = std::regex_replace(source, shadow, "acrylicLinear *= 1.0 - shadow * tahowInnerShadow;");
+        const std::regex highlight(R"(\*\s*highlight\s*;)");
+        if (!std::regex_search(source, highlight))
+            throw std::runtime_error("Tahow: unsupported acrylic rim shader; rebuild required");
+        source = std::regex_replace(source, highlight, "* highlight * tahowRim;");
+        source = std::regex_replace(source, std::regex(R"(vec4\s+applyAcrylic\s*\()"), "uniform highp float tahowInnerShadow;\nuniform highp float tahowRim;\nvec4 applyAcrylic(");
+        const std::string lens = "float lens = lensEntry * lensExit;";
+        const std::string bulbWidth = "float bulbWidth = clamp(acrylicBulb, 1.0, maximumBulb);";
+        const std::string displacement = "vec2 displacementPixels = outward * safeRefraction * lens * effect;";
+        const std::string channels = "vec2 redUV = clamp(v_texcoord + displacementUV, halfTexel, maximumUV);\n    vec2 greenUV = clamp(v_texcoord + displacementUV * (1.0 - aberration * 0.5), halfTexel, maximumUV);\n    vec2 blueUV = clamp(v_texcoord + displacementUV * (1.0 - aberration), halfTexel, maximumUV);";
+        const std::string clarity = "float clarity = clamp(acrylicClarity, 0.0, 1.0) * effect * fresnelTransmission * clarityCore;";
+        if (source.find(bulbWidth) == std::string::npos || source.find(lens) == std::string::npos || source.find(displacement) == std::string::npos || source.find(channels) == std::string::npos || source.find(clarity) == std::string::npos)
+            throw std::runtime_error("Tahow: unsupported acrylic lens shader; rebuild required");
+        source.replace(source.find(bulbWidth), bulbWidth.size(), "float bulbWidth = mix(clamp(acrylicBulb, 1.0, maximumBulb), clamp(acrylicBulb, maximumBulb, max(minimumHalfSize, 1.0)), tahowPrism);");
+        source.replace(source.find(lens), lens.size(), "float lens = mix(lensEntry * lensExit, lensEntry * (1.0 - smootherstep(0.35, 1.0, progress)), tahowPrism);");
+        // A steep rise in displacement folds the sampling profile and repeats the background.
+        source.replace(source.find(displacement), displacement.size(), "float travel = mix(safeRefraction * lens, min(safeRefraction, 0.5 * bulbWidth) * progress * (1.0 - smootherstep(0.55, 1.0, progress)), tahowPrism);\n    vec2 displacementPixels = outward * travel * effect;");
+        source.replace(source.find(channels), channels.size(), R"(
+    float prismSpread = 3.6 * aberration;
+    vec2 redUV = clamp(v_texcoord + displacementUV * mix(1.0, 1.0 + prismSpread, tahowPrism), halfTexel, maximumUV);
+    vec2 greenUV = clamp(v_texcoord + displacementUV * mix(1.0 - aberration * 0.5, 1.0, tahowPrism), halfTexel, maximumUV);
+    vec2 blueUV = clamp(v_texcoord + displacementUV * mix(1.0 - aberration, 1.0 - prismSpread, tahowPrism), halfTexel, maximumUV);)");
+        source.replace(source.find(clarity), clarity.size(), "float clarity = clamp(acrylicClarity, 0.0, 1.0) * effect * mix(fresnelTransmission * clarityCore, 1.0, tahowPrism);");
+        source = std::regex_replace(source, std::regex(R"(vec4\s+applyAcrylic\s*\()"), "uniform highp float tahowPrism;\nvec4 applyAcrylic(");
+        auto program = makeShared<CShader>();
+        const auto &vertex = source.find("#version 320") != std::string::npos ? backend->m_shaders->TEXVERTSRC320 : backend->m_shaders->TEXVERTSRC;
+        if (!program->createProgram(vertex, source))
+            throw std::runtime_error("Tahow: inner-shadow shader compilation failed");
+        shader = program;
+    }
+    return shader;
+}
 class Material final : public GL::IGLBlurMaterial {
     GL::CAcrylicBlurMaterial native;
 
@@ -50,6 +98,9 @@ class Material final : public GL::IGLBlurMaterial {
         shader->setUniformFloat(SHADER_ACRYLIC_CLARITY, currentOptics.clarity);
         shader->setUniformFloat(SHADER_ACRYLIC_ABERRATION, currentOptics.aberration);
         shader->setUniformFloat4(SHADER_ACRYLIC_TINT, 0, 0, 0, 0);
+        glUniform1f(glGetUniformLocation(shader->program(), "tahowInnerShadow"), currentOptics.innerShadow);
+        glUniform1f(glGetUniformLocation(shader->program(), "tahowRim"), currentOptics.rim);
+        glUniform1f(glGetUniformLocation(shader->program(), "tahowPrism"), currentOptics.prism);
     }
 };
 std::unique_ptr<GL::CDualKawaseBlurProvider> provider;
@@ -64,6 +115,8 @@ struct Region {
     std::string target, screen;
     Optics optics;
     bool presented = false;
+    bool surfaceLocal = false;
+    pid_t pid = -1;
 };
 struct Client {
     int fd;
@@ -80,7 +133,18 @@ void reply(Client &c, const json &msg) {
     // Status messages are small; never block the compositor for a slow consumer.
     send(c.fd, data.data(), data.size(), MSG_DONTWAIT | MSG_NOSIGNAL);
 }
-void damage(const Region &r) { g_pHyprRenderer->damageBox(r.box); }
+void damage(const Region &r) {
+    if (!r.surfaceLocal) { g_pHyprRenderer->damageBox(r.box); return; }
+    // Wayland clients do not know a toplevel's global position. Resolve the
+    // authenticated owner's real geometry inside the compositor instead.
+    for (const auto &window : Desktop::windowState()->windows()) {
+        if (window->metadata().title() != "Tahow Preferences" || window->backend().pid() != r.pid) continue;
+        auto box = r.box;
+        const auto base = window->geometricBox(Desktop::View::IGeometric::GEOMETRIC_CURRENT);
+        box.translate(Vector2D{base.x, base.y});
+        g_pHyprRenderer->damageBox(box);
+    }
+}
 void closeClient(int fd) {
     auto it = clients.find(fd);
     if (it == clients.end())
@@ -98,7 +162,7 @@ bool allowed(const std::string &s) {
 void message(Client &c, const json &j) {
     const auto op = j.value("op", std::string());
     if (op == "hello") {
-        reply(c, {{"op", "hello"}, {"version", 1}, {"provider", "hyprland-acrylic"}});
+        reply(c, {{"op", "hello"}, {"version", 1}, {"provider", "hyprland-acrylic"}, {"prism", true}});
         return;
     }
     if (op == "stats") {
@@ -119,20 +183,25 @@ void message(Client &c, const json &j) {
     if (op != "region" || (old == c.regions.end() && c.regions.size() >= 32))
         return;
     Region r;
+    r.pid = c.pid;
     r.target = j.at("target").get<std::string>();
     r.screen = j.value("screen", std::string());
     if (!allowed(r.target) || r.screen.size() > 128)
         return;
+    r.surfaceLocal = j.value("surfaceLocal", false);
+    if (r.surfaceLocal && r.target != "tahow-settings") return;
     const double x = j.at("x"), y = j.at("y"), w = j.at("width"), h = j.at("height");
     r.radius = j.at("radius");
     r.alpha = j.at("alpha");
     const double depth = j.value("thickness", 24.), ior = j.value("ior", 1.5), bezel = j.value("bezel", 14.), frost = j.value("frost", 8.),
-                 dispersion = j.value("dispersion", 0.08);
-    for (double v : {depth, ior, bezel, frost, dispersion})
+                 dispersion = j.value("dispersion", 0.08), innerShadow = j.value("innerShadow", 1.), rim = j.value("rim", 1.);
+    for (double v : {depth, ior, bezel, frost, dispersion, innerShadow, rim})
         if (!std::isfinite(v))
             return;
-    r.optics = {static_cast<float>(std::clamp(depth * (ior - 1), 0., 48.)), static_cast<float>(std::clamp(bezel * 1.45, 4., 256.)),
-                static_cast<float>(1 - std::clamp(frost / 30., 0., 1.)), static_cast<float>(std::clamp(dispersion, 0., 0.25))};
+    const bool prism = j.value("prism", false);
+    r.optics = {static_cast<float>(std::clamp(prism ? std::max(depth * (ior - 1) * 2.5, 38.) : depth * (ior - 1), 0., 48.)), static_cast<float>(std::clamp(bezel * (prism ? 4.0 : 2.175), 4., 256.)),
+                static_cast<float>(prism ? 1. : 1 - std::clamp(frost / 30., 0., 1.)), static_cast<float>(std::clamp(prism ? std::max(dispersion * 2., 0.18) : dispersion, 0., 0.25)),
+                static_cast<float>(std::clamp(innerShadow, 0., 1.)), static_cast<float>(std::clamp(rim, 0., 1.)), prism ? 1.F : 0.F};
     for (double v : {x, y, w, h, r.radius, r.alpha})
         if (!std::isfinite(v))
             return;
@@ -278,6 +347,8 @@ class GlassPass final : public IPassElement {
             blurContext.shape = SBlurShape{.box = box, .radius = static_cast<float>(region.radius * monitor->m_scale)};
             blurContext.patternBox = box;
             currentOptics = region.optics;
+            drawingNativeMaterial = true;
+            CScopeGuard restoreMaterial{[] { drawingNativeMaterial = false; }};
             blurred = provider->blur(ctx, target, 1.F, drawDamage, blurContext);
         }
         if (!blurred || !blurred->getTexture())
@@ -359,8 +430,13 @@ void addPass(CRenderPass *pass, UP<IPassElement> &&element) {
                     if (!mon || (!r.screen.empty() && r.screen != mon->m_name))
                         continue;
                     auto mapped = r;
-                    mapped.box = mapBox(r.box, base, surface->m_data);
-                    mapped.clip = mapBox(r.clip, base, surface->m_data);
+                    auto sourceBox = r.box, sourceClip = r.clip;
+                    if (r.surfaceLocal) {
+                        sourceBox.translate(Vector2D{base.x, base.y});
+                        sourceClip.translate(Vector2D{base.x, base.y});
+                    }
+                    mapped.box = mapBox(sourceBox, base, surface->m_data);
+                    mapped.clip = mapBox(sourceClip, base, surface->m_data);
                     mapped.radius *=
                         std::max(0., std::min(surface->m_data.w / std::max(base.width, 1.), surface->m_data.h / std::max(base.height, 1.)));
                     mapped.alpha *= std::clamp(surface->m_data.alpha * surface->m_data.fadeAlpha, 0.F, 1.F);
@@ -378,6 +454,8 @@ void shutdown() {
         renderHook->unhook();
     if (expandHook)
         expandHook->unhook();
+    if (shaderHook)
+        shaderHook->unhook();
     // Nested/redirected passes can also own plugin vtables. Destroy every live
     // GlassPass before dlclose; destructors mutate nativePassCounts, so iterate
     // over a snapshot of the owning pass pointers.
@@ -402,6 +480,7 @@ void shutdown() {
     socketOwned = false;
     socketPath.clear();
     provider.reset();
+    materialShaders.clear();
 }
 } // namespace
 APICALL EXPORT std::string PLUGIN_API_VERSION() { return HYPRLAND_API_VERSION; }
@@ -421,6 +500,10 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE h) {
     if (!addHook->hook())
         throw std::runtime_error("Tahow: hook patch failed");
     try {
+        const auto shaderAddress = dlsym(RTLD_DEFAULT, "_ZN6Render2GL15CHyprOpenGLImpl16getShaderVariantENS_23ePreparedFragmentShaderERKNS_14SShaderVariantE");
+        if (!shaderAddress) throw std::runtime_error("Tahow: shader variant hook unavailable");
+        shaderHook = HyprlandAPI::createFunctionHook(h, shaderAddress, reinterpret_cast<void *>(materialShader));
+        if (!shaderHook || !shaderHook->hook()) throw std::runtime_error("Tahow: shader variant hook failed");
         const auto renderAddress = dlsym(RTLD_DEFAULT, "_ZN6Render11CRenderPass6renderERNS_14CRenderContextERKN9Hyprutils4Math7CRegionE");
         const auto expandAddress = dlsym(RTLD_DEFAULT, "_ZNK6Render2GL15CHyprGLRenderer16expandBlurDamageERN9Hyprutils4Math7CRegionEf");
         if (!renderAddress || !expandAddress)

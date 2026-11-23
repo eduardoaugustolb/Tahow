@@ -1,7 +1,6 @@
 import QtQuick
 import "lib/backdrop.js" as Backdrop
 import QtQuick.Controls
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
@@ -21,10 +20,14 @@ PanelWindow {
     property real reveal: 0
     property bool frameReady: false
     property bool captureFailed: false
-    function stateDump() { return { provider: compositor.ready ? "compositor-live" : capture.hasContent ? "snapshot" : "simulated", width: panel.width, height: panel.height, columns: cols, gridWidth: grid.width, cellWidth: grid.cellWidth, frameReady: frameReady, captureHasContent: capture.hasContent, captureFailed: captureFailed, bubble: panel.bubble }; }
-    readonly property real targetWidth: Math.min(width - 32, 550)
+    function stateDump() { return { provider: material.compositorReady ? "compositor-live" : capture.hasContent ? "snapshot" : "simulated", width: panel.width, height: panel.height, columns: cols, gridWidth: grid.width, cellWidth: grid.cellWidth, frameReady: frameReady, captureHasContent: capture.hasContent, captureFailed: captureFailed, bubble: panel.bubble }; }
+    readonly property real targetWidth: Math.min(width - 32, 664)
     readonly property int cols: Math.max(1, Math.min(launcher.columns,
-        Math.floor((targetWidth - 28) / 70)))
+        Math.floor((targetWidth - 36) / 80)))
+    readonly property int rowHeight: 80
+    readonly property int rows: Math.max(1, Math.min(4, Math.floor((height - 80 - 140) / rowHeight)))
+    readonly property color ink: launcher.ink
+    readonly property color accent: Theme.accent
     readonly property bool captureAllowed: launcher.glass && !captureFailed && Config.palette.screenCapture
     property bool ownsCapture: false
     readonly property bool readyToReveal: !captureAllowed || frameReady
@@ -78,99 +81,73 @@ PanelWindow {
             SpringAnimation { spring: sheet.launcher.spring; damping: sheet.launcher.damping; epsilon: 0.001 }
         }
         width: sheet.targetWidth
-        height: Math.min(width * 380 / 550, sheet.height - 80)
+        height: 140 + sheet.rows * sheet.rowHeight
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.max(Tokens.px(56), (sheet.height - height) * Math.max(0, Math.min(1, Config.palette.palettePosition))) + (1 - bubble) * Tokens.px(-18)
         opacity: sheet.reveal
         scale: sheet.launcher.reduced ? 1 : 0.88 + bubble * 0.12
 
-        RectangularShadow {
+        Glass {
+            id: material
             anchors.fill: parent
-            radius: Tokens.px(22)
-            blur: Tokens.px(36); spread: Tokens.px(-8)
-            offset.y: Tokens.px(12)
-            color: Qt.rgba(0, 0, 0, 0.30)
-            visible: !sheet.launcher.glass
-        }
-        Rectangle {
-            anchors.fill: parent
-            radius: Tokens.px(22)
-            color: sheet.launcher.tint
-            visible: !glass.visible && !compositor.ready
-            border.width: 1
-            border.color: Qt.rgba(1, 1, 1, sheet.launcher.dark ? 0.12 : 0.5)
-        }
-        CompositorGlass {
-            id: compositor
-            discoverWhileHidden: true
-            anchors.fill: parent; target: "launcher-noblur"
-            active: sheet.captureAllowed
-            radius: Tokens.px(22)
-            bezel: Config.palette.bezel; thickness: Config.palette.thickness
-            ior: Config.palette.ior; dispersion: Config.palette.dispersion; frost: Config.palette.frost
-            onAvailableChanged: if (available) {
+            options: Config.palette
+            tint: sheet.launcher.tint
+            radius: Tokens.px(24)
+            shadow: !glassEnabled
+            shadowBlur: Tokens.px(36)
+            shadowY: Tokens.px(12)
+            compositorTarget: "launcher-noblur"
+            useCompositor: sheet.captureAllowed
+            texture: capture.hasContent ? frozen : null
+            textureRect: Qt.rect(panel.x / sheet.width, panel.y / sheet.height, panel.width / sheet.width, panel.height / sheet.height)
+            onCompositorAvailableChanged: if (compositorAvailable) {
                 captureDelay.stop(); capture.captureSource = null;
                 sheet.frameReady = true;
             }
         }
-        NativeGlass {
-            id: glass
-            anchors.fill: parent
-            visible: sheet.launcher.glass && capture.hasContent && !compositor.ready
-            src: frozen
-            sourceRect: Qt.rect(panel.x / sheet.width, panel.y / sheet.height, panel.width / sheet.width, panel.height / sheet.height)
-            topLeftRadius: Tokens.px(22); topRightRadius: Tokens.px(22)
-            bottomLeftRadius: Tokens.px(22); bottomRightRadius: Tokens.px(22)
-            tintColor: sheet.launcher.tint
-            tintAmount: sheet.launcher.glassOpacity
-            frost: Math.max(1.5, sheet.launcher.frost / 5)
-            // General optics apply unless the palette has component overrides.
-            bezel: Config.palette.bezel
-            thickness: Config.palette.thickness
-            ior: Config.palette.ior
-            dispersion: Config.palette.dispersion
-            nest: 1
-            rim: sheet.launcher.preferences.rim === false ? 0 : 0.16
-        }
-        // Same material veil and intensity as the island's Glass primitive.
         Rectangle {
             anchors.fill: parent
-            anchors.margins: 1
-            radius: Tokens.px(21)
-            visible: glass.visible || compositor.ready
-            color: sheet.launcher.tint
-            opacity: sheet.launcher.glassOpacity
-        }
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 0.5
-            radius: 22
-            visible: glass.visible || compositor.ready
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(1, 1, 1, sheet.launcher.dark ? 0.08 : 0.18)
+            radius: material.radius
+            color: sheet.launcher.dark ? "#ed1a1c22" : "#edf4f5f8"
         }
         MouseArea { anchors.fill: parent }
 
         Item {
             id: header
-            x: Tokens.px(16); y: Tokens.px(8)
-            width: parent.width - x * 2; height: Tokens.px(34)
-            Text {
+            x: Tokens.px(18); y: Tokens.px(16)
+            width: parent.width - x * 2; height: Tokens.px(42)
+            Rectangle {
+                anchors { left: parent.left; top: parent.top; bottom: parent.bottom; right: settingsButton.left; rightMargin: 8 }
+                radius: 11
+                color: Theme.alpha(sheet.ink, 0.07)
+                border.color: Theme.alpha(sheet.ink, 0.13)
+                MouseArea { anchors.fill: parent; onClicked: field.forceActiveFocus() }
+            }
+            Item {
                 id: mark
+                x: 13
+                width: 18; height: 18
                 anchors.verticalCenter: parent.verticalCenter
-                text: I18n.tr("⌘")
-                color: sheet.launcher.ink
-                font.family: sheet.launcher.fontFamily
-                font.pixelSize: Tokens.px(20)
+                Rectangle {
+                    width: 11; height: 11; x: 1; y: 1
+                    radius: width / 2
+                    color: "transparent"
+                    border.color: Theme.alpha(sheet.ink, 0.7)
+                    border.width: 1.5
+                }
+                Rectangle {
+                    x: 10; y: 9; width: 7; height: 1.5
+                    radius: 1; rotation: 45; transformOrigin: Item.Left
+                    color: Theme.alpha(sheet.ink, 0.7)
+                }
             }
             TextInput {
                 id: field
-                anchors { left: mark.right; leftMargin: Tokens.px(10); right: settingsButton.left; rightMargin: Tokens.px(8); verticalCenter: parent.verticalCenter }
+                anchors { left: mark.right; leftMargin: Tokens.px(10); right: settingsButton.left; rightMargin: Tokens.px(18); verticalCenter: parent.verticalCenter }
                 focus: true; clip: true
                 color: sheet.launcher.ink
                 font.family: sheet.launcher.fontFamily
-                font.pixelSize: Tokens.px(18)
+                font.pixelSize: Tokens.px(16)
                 selectByMouse: true
                 onTextEdited: { sheet.launcher.query = text; sheet.launcher.selected = 0; }
                 Component.onCompleted: forceActiveFocus()
@@ -198,14 +175,14 @@ PanelWindow {
                 }
                 Text {
                     visible: !field.text.length
-                    text: I18n.tr("Applications")
+                    text: I18n.tr("Search applications")
                     color: sheet.launcher.ink; opacity: 0.65
                     font: field.font
                 }
             }
             Text {
                 id: settingsButton
-                width: Tokens.px(30); height: parent.height
+                width: Tokens.px(38); height: parent.height
                 anchors.right: parent.right
                 text: I18n.tr("···"); color: sheet.launcher.ink
                 horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
@@ -216,15 +193,10 @@ PanelWindow {
                 }
             }
         }
-        Rectangle {
-            x: Tokens.px(14); y: header.y + header.height + Tokens.px(3)
-            width: parent.width - x * 2; height: 1
-            color: sheet.launcher.ink; opacity: 0.09
-        }
         Row {
             id: tabs
-            x: Tokens.px(14); y: Tokens.px(52)
-            width: parent.width - x * 2; height: Tokens.px(22)
+            x: Tokens.px(18); y: Tokens.px(68)
+            width: parent.width - x * 2; height: Tokens.px(29)
             spacing: Tokens.px(5)
             Repeater {
                 model: Catalog.groups
@@ -233,18 +205,23 @@ PanelWindow {
                     required property var modelData
                     width: (tabs.width - tabs.spacing * 4) / 5
                     height: tabs.height; radius: Tokens.px(7)
-                    color: Qt.rgba(1, 1, 1, sheet.launcher.section === modelData.id ? 0.30 : 0.10)
+                    readonly property bool active: !sheet.launcher.query && sheet.launcher.section === modelData.id
+                    color: active ? Theme.alpha(sheet.accent, 0.2) : Theme.alpha(sheet.ink, tabMouse.containsMouse ? 0.09 : 0)
+                    border.color: active ? Theme.alpha(sheet.accent, 0.55) : "transparent"
                     Text {
                         anchors.fill: parent; anchors.margins: Tokens.px(2)
                         text: I18n.tr(tab.modelData.label)
                         color: sheet.launcher.ink
                         horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                        font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(10)
-                        minimumPixelSize: Tokens.px(7); fontSizeMode: Text.Fit
+                        font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(12)
+                        elide: Text.ElideRight
                     }
                     MouseArea {
-                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                        id: tabMouse
+                        anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                         onClicked: {
+                            field.clear();
+                            sheet.launcher.query = "";
                             sheet.launcher.section = sheet.launcher.section === tab.modelData.id ? "all" : tab.modelData.id;
                             sheet.launcher.selected = 0;
                             field.forceActiveFocus();
@@ -255,20 +232,29 @@ PanelWindow {
         }
         Text {
             id: sectionTitle
-            x: Tokens.px(16); y: Tokens.px(87)
-            text: I18n.tr(sheet.launcher.query ? I18n.tr("Search results") : (sheet.launcher.section === "all" ? I18n.tr("All applications") : I18n.tr(Catalog.groups.find(g => g.id === sheet.launcher.section).label)))
-            color: sheet.launcher.ink
-            font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(10); font.weight: Font.DemiBold
+            x: Tokens.px(20); y: Tokens.px(103)
+            text: I18n.tr(sheet.launcher.query ? "Search results" : "All applications")
+            visible: sheet.launcher.query.length > 0 || sheet.launcher.section === "all"
+            color: sheet.launcher.ink; opacity: 0.74
+            font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(12); font.weight: Font.DemiBold
         }
         GridView {
             id: grid
-            anchors { top: sectionTitle.bottom; topMargin: Tokens.px(6); bottom: footer.top; bottomMargin: Tokens.px(4); left: parent.left; right: parent.right; leftMargin: Tokens.px(14); rightMargin: Tokens.px(14) }
+            y: 121
+            anchors.horizontalCenter: parent.horizontalCenter
+            cellWidth: Math.floor((panel.width - 36) / sheet.cols)
+            cellHeight: sheet.rowHeight
+            width: cellWidth * sheet.cols
+            height: sheet.rows * cellHeight
             clip: true
-            cellWidth: Math.floor(width / sheet.cols); cellHeight: 76
+            snapMode: GridView.SnapToRow
             model: ScriptModel { values: sheet.launcher.results }
             boundsBehavior: Flickable.StopAtBounds
             currentIndex: sheet.launcher.selected
             onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, GridView.Contain)
+            onCountChanged: Qt.callLater(() => {
+                if (sheet.launcher.selected === 0) positionViewAtBeginning();
+            })
             delegate: Item {
                 id: tile
                 required property var modelData
@@ -277,22 +263,22 @@ PanelWindow {
                 Rectangle {
                     anchors.fill: parent; anchors.margins: Tokens.px(2)
                     radius: Tokens.px(12)
-                    color: sheet.launcher.ink
-                    opacity: tile.index === sheet.launcher.selected ? 0.12 : (tileMouse.containsMouse ? 0.06 : 0)
-                    Behavior on opacity { NumberAnimation { duration: Tokens.dur(100) } }
+                    visible: tile.index === sheet.launcher.selected
+                    color: Theme.alpha(sheet.accent, 0.15)
+                    border.color: Theme.alpha(sheet.accent, 0.50)
                 }
                 IconImage {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    y: 5
-                    implicitSize: 43
+                    y: 9
+                    implicitSize: 40
                     source: Quickshell.iconPath(tile.modelData.icon || "application-x-executable", true)
                     asynchronous: true
                 }
                 Text {
-                    x: 3; y: 54; width: parent.width - x * 2
+                    x: 5; y: 55; width: parent.width - x * 2
                     text: I18n.tr(tile.modelData.name)
                     color: sheet.launcher.ink
-                    font.family: sheet.launcher.fontFamily; font.pixelSize: 10
+                    font.family: sheet.launcher.fontFamily; font.pixelSize: 12
                     elide: Text.ElideRight; horizontalAlignment: Text.AlignHCenter
                 }
                 MouseArea {
@@ -302,7 +288,12 @@ PanelWindow {
                     onClicked: sheet.launcher.launch(tile.modelData)
                 }
             }
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            ScrollBar.vertical: ScrollBar {
+                parent: panel
+                x: grid.x + grid.width + 4; y: grid.y
+                height: grid.height; width: 8
+                policy: ScrollBar.AsNeeded
+            }
         }
         Text {
             anchors.centerIn: grid
@@ -313,10 +304,10 @@ PanelWindow {
         }
         Text {
             id: footer
-            anchors { bottom: parent.bottom; bottomMargin: Tokens.px(10); left: parent.left; leftMargin: Tokens.px(18) }
+            anchors { bottom: parent.bottom; bottomMargin: Tokens.px(4); left: parent.left; leftMargin: Tokens.px(18) }
             text: I18n.tr("↑↓←→ Navigate   ↵ Open   ⇥ Category   Esc Close")
-            color: sheet.launcher.ink; opacity: 0.45
-            font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(9)
+            color: sheet.launcher.ink; opacity: 0.67
+            font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(10)
         }
         PalettePreferences {
             anchors.fill: parent; anchors.margins: Tokens.px(8)

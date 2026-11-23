@@ -146,3 +146,19 @@ render-pass hook API, and native Dual Kawase/acrylic provider, copyright Hyprlan
 contributors, BSD-3-Clause. No shader code or proprietary Apple assets are copied.
 References: https://github.com/hyprwm/Hyprland and
 https://wiki.hypr.land/hyprland-plugins/using-plugins/ .
+
+## Inner shadow and Preferences coordinates
+
+**Glass > Inner shadow** scales only the acrylic edge-darkening term from 0
+(disabled) to 1 (previous strength), independently of refraction, dispersion and
+highlights. General values are inherited by island/palette unless overridden;
+independent widgets expose their own setting. The provider caches private shader
+variants derived from the matching compositor's shader loader, selected only
+inside Tahow draws. It does not modify compositor shader files or the shared
+shader cache. Rebuild/reload the native library together with the shell for this
+control and the surface-local Preferences coordinate fix.
+
+Preferences regions and clips are window-local, resolved through the owning
+window's render-pass geometry. This prevents a sidebar at the output origin on
+Wayland, where client toplevel global coordinates are unavailable. See the
+[inner-shadow verification report](../../docs/verification-2026-11-18-inner-shadow.md).

@@ -8,4 +8,6 @@ Tahow is maintained by Eduardo Augusto and contributors. The combined project is
 - **Lockscreen localization adapter**, Ivan: MIT notice retained at `integrations/ryostore/lockscreen/content/i18n/LICENSE`.
 - **Original work**, Eduardo Augusto and contributors, 2026: 66 SVG glyphs, symbol mapping, and glyph-mask clock refraction work, under AGPL-3.0. The atlas is `docs/icons.png`.
 
+- **true-liquid-glass (shojiwm)**, bea4dev: smooth-min liquid silhouette shader and Quickshell components adapted from [true-liquid-glass-shojiwm](https://github.com/bea4dev/true-liquid-glass-shojiwm) (MIT). Vendored under `shell/liquid/` and `shell/shaders/liquid.frag`.
+
 No Apple or Icons8 icon assets, Apple artwork, wallpapers, avatars, logos, or proprietary fonts are bundled. Product names mentioned for compatibility remain the names of their respective projects.

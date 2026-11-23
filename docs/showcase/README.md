@@ -1,6 +1,6 @@
 # Showcase captures
 
-Refreshed on 2026-11-13 on Ryoku/Hyprland v0.57.2, Quickshell 0.3.2,
+Refreshed on 2026-11-22 on Ryoku/Hyprland v0.57.2, Quickshell 0.3.2,
 1920 × 1080 at scale 1, current desktop accent and pt-BR UI. Full screenshots
 retain their original resolution and use WebP quality 88. Media detail crops
 use quality 90. Clicking documentation images opens their original size.
@@ -8,19 +8,17 @@ use quality 90. Clicking documentation images opens their original size.
 ## Live desktop captures
 
 The collapsed island, expanded home/media/controls/timer, command palette and
-seven preference pages were captured from the installed shell. Spotify was
-playing: artwork, metadata, position and controls come from MPRIS. Playback was
-not changed by the capture tools; natural track changes occurred between shots.
+seven preference pages were captured from the installed shell, with the live
+compositor glass provider enabled. Artwork, metadata, position and controls
+come from an active MPRIS player. The capture tools did not control playback.
 The pill detail and individual media widget are crops of the new collapsed
-island capture. Their artwork confirms that the installed media widget accepts
-Spotify HTTPS covers and uses actual rounded image clipping.
+island capture. The live layout shows the existing installed widget placement.
 
 `bun tools/capture-showcase.ts` captures into a temporary output directory,
 using an empty workspace and restoring the original workspace afterward. It
 refuses a capture workspace containing application windows. Inspect every
 capture before publishing; user activity may change focus during a capture.
-The first home capture was discarded because an application window appeared;
-the replacement shows the clean desktop and live media card.
+Captures interrupted by application windows were discarded.
 
 ## Isolated source previews
 

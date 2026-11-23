@@ -43,7 +43,7 @@ PanelWindow {
             acquiringBackdrop: acquiringBackdrop,
             presentationReady: presentationReady,
             captureHasContent: backgroundCapture.hasContent,
-            liveBackdropAvailable: compositorProbe.available,
+            liveBackdropAvailable: compositorProbe.materialAvailable,
             backdropReady: !!Host.backdrops[screenName]
         });
     }
@@ -89,8 +89,9 @@ PanelWindow {
     CompositorGlass {
         id: compositorProbe
         discoverWhileHidden: true
+        prism: Config.island.style === "prism"
         active: Config.island.screenCapture && Theme.glass
-        onAvailableChanged: if (available && !win.presentationReady) {
+        onMaterialAvailableChanged: if (materialAvailable && !win.presentationReady) {
             backgroundCapture.captureSource = null;
             win.completePresentation();
         }
@@ -127,7 +128,7 @@ PanelWindow {
     // pill states so the material never samples its own overlay.
     function prepareBackdrop() {
         if (presentationReady || acquiringBackdrop) return;
-        if (compositorProbe.available) { completePresentation(); return; }
+        if (compositorProbe.materialAvailable) { completePresentation(); return; }
         if (!Config.island.screenCapture || !Theme.glass || !Host.desktopCaptureAllowed) { completePresentation(); return; }
         if (!Host.desktopCaptureReady) return;
         acquiringBackdrop = true; Host.beginCapture();

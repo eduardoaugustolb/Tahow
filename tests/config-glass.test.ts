@@ -7,7 +7,7 @@ function handler(name: string, argumentsList: string, context: Record<string, un
 }
 
 test('optical defaults are persistent in the shared adapter and inherited from General', () => {
-    const defaults = {bezel: 6, thickness: 8, ior: 1.2, dispersion: 0.08};
+    const defaults = {bezel: 6, thickness: 8, ior: 1.2, dispersion: 0.035, frost: 20, glassOpacity: 0.39};
     for (const [key, value] of Object.entries(defaults)) {
         expect(source).toContain(`${key}: ${value},`);
         expect(source.match(new RegExp(`property real ${key}: ${value}`, 'g'))).toHaveLength(1);

@@ -174,14 +174,18 @@ Singleton {
         bezel: 6,
         thickness: 8,
         ior: 1.2,
-        dispersion: 0.08,
-        frost: 12,
+        dispersion: 0.035,
+        frost: 20,
         pamService: "login",
         style: "glass",
         appearance: "auto",
-        glassOpacity: 0.55,
+        glassOpacity: 0.39,
         glassRim: true,
-        glassAccentTint: true,
+        rimStrength: 0.6,
+        liquidGlass: true,
+        liquidBlendRadius: 28,
+        innerShadow: 0.3,
+        glassAccentTint: false,
         glow: true,
         accentSource: "auto",
         customAccent: "#0a84ff",
@@ -311,16 +315,20 @@ Singleton {
             property real bezel: 6
             property real thickness: 8
             property real ior: 1.2
-            property real dispersion: 0.08
-            property real frost: 12
+            property real dispersion: 0.035
+            property real frost: 20
             property string pamService: "login"
 
             // ── Appearance ──
             property string style: "glass"          // glass | black
             property string appearance: "auto"      // auto | dark | light
-            property real glassOpacity: 0.55        // tint strength behind the blur
+            property real glassOpacity: 0.39        // tint strength behind the blur
             property bool glassRim: true            // liquid-glass specular edge
-            property bool glassAccentTint: true     // mix a hint of the accent into the glass
+            property real rimStrength: 0.6          // intensity of the white inner highlight
+            property bool liquidGlass: true          // use the true-liquid-glass (shojiwm) silhouette engine
+            property real liquidBlendRadius: 28      // smooth-min blend radius for liquid shapes
+            property real innerShadow: 0.3         // independent optical edge shading, 0 disables
+            property bool glassAccentTint: false    // mix a hint of the accent into the glass
             property bool glow: true
             property string accentSource: "auto"    // auto | wallpaper | wal | matugen | ryoku | gtk | album | custom
             property string customAccent: "#0a84ff"

@@ -15,9 +15,11 @@ Column {
     readonly property string scope: scopes[componentIndex]
     readonly property bool lockField: scope === "lockscreen"
     readonly property var options: scope === "general" ? Config.general : Config.effective(scope)
+    readonly property bool prismatic: options.style === "prism"
     readonly property bool dark: options.style === "black" || options.appearance === "dark" || (options.appearance !== "light" && Theme.autoDark)
     readonly property color tint: options.style === "black" ? "#000000" : Theme.materialTint(options, dark)
-    readonly property var glassKeys: ["style", "glassOpacity", "glassAccentTint", "glassRim", "frost", "screenCapture", "bezel", "thickness", "ior", "dispersion", "lockTint", "lockRim", "lockBezel", "lockThickness", "lockIor", "lockDispersion", "lockEnergy"]
+    readonly property bool opticalPreview: options.style !== "black" && (lockField || options.screenCapture)
+    readonly property var glassKeys: ["style", "glassOpacity", "glassAccentTint", "glassRim", "rimStrength", "innerShadow", "frost", "screenCapture", "bezel", "thickness", "ior", "dispersion", "liquidBlendRadius", "lockTint", "lockRim", "lockBezel", "lockThickness", "lockIor", "lockDispersion", "lockEnergy"]
     function save(key, value) { Config.set(scope, key, value); }
     function resetOverrides() { Config.inheritKeys(scope, glassKeys); }
     function optical(key) { return options[lockField ? ({bezel:"lockBezel", thickness:"lockThickness", ior:"lockIor", dispersion:"lockDispersion"})[key] : key]; }
@@ -57,36 +59,49 @@ Column {
             id: reference
             anchors.fill: parent
             Rectangle { anchors.fill: parent; color: root.dark ? "#132b42" : "#b6ddec" }
-            Repeater {
-                model: 12
-                Rectangle {
-                    required property int index
-                    x: index * reference.width / 12; y: 0
-                    width: reference.width / 24; height: reference.height
-                    color: index % 3 === 0 ? root.accent : (root.dark ? "#e3e8ec" : "#17374f")
-                    opacity: 0.65
-                }
+            Image {
+                anchors.fill: parent
+                objectName: "glass-preview-wallpaper"
+                source: Theme.wallpaper ? "file://" + encodeURI(Theme.wallpaper).replace(/#/g, "%23").replace(/\?/g, "%3F") : ""
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
             }
         }
         ShaderEffectSource { id: texture; sourceItem: reference; live: true; hideSource: false; visible: false; mipmap: true }
         Rectangle {
             id: lens
-            x: (parent.width - width) / 2; y: 24; width: parent.width * 0.68; height: 80; radius: 22
-            color: root.tint
+            anchors.centerIn: parent; width: Math.min(parent.width - 24, 180)
+            height: root.scope === "palette" ? 80 : 38
+            radius: root.scope === "palette" ? 22 : height / 2
+            color: root.options.style === "black" ? "black" : "transparent"
+            Glass {
+                anchors.fill: parent
+                visible: !root.lockField
+                options: root.options
+                tint: root.tint
+                radius: lens.radius
+                shadow: false
+                useCompositor: false
+                texture: root.opticalPreview ? texture : null
+                textureRect: Qt.rect(lens.x / reference.width, lens.y / reference.height, lens.width / reference.width, lens.height / reference.height)
+            }
             NativeGlass {
-                anchors.fill: parent; visible: root.options.style !== "black"
+                objectName: "glass-preview-lock-optics"
+                anchors.fill: parent; visible: root.lockField && root.opticalPreview
+                fragmentShader: Qt.resolvedUrl("lock/shaders/liquid_glass.frag.qsb")
                 src: texture
                 sourceRect: Qt.rect(lens.x / reference.width, lens.y / reference.height, lens.width / reference.width, lens.height / reference.height)
                 topLeftRadius: 22; topRightRadius: 22; bottomLeftRadius: 22; bottomRightRadius: 22
                 tintColor: root.tint
-                tintAmount: root.lockField ? root.options.lockTint : root.options.glassOpacity
-                bezel: root.optical("bezel"); thickness: root.optical("thickness")
-                ior: root.optical("ior"); dispersion: root.optical("dispersion")
-                frost: root.lockField ? 0.55 : root.options.frost / 5
-                rim: root.lockField ? root.options.lockRim : root.options.glassRim ? 0.25 : 0
-                energy: root.lockField ? root.options.lockEnergy : 0
+                tintAmount: root.options.lockTint
+                bezel: root.optical("bezel") * (root.prismatic ? 1.5 : 1)
+                thickness: root.optical("thickness") * (root.prismatic ? 2 : 1)
+                ior: root.optical("ior")
+                dispersion: root.prismatic ? Math.max(0.16, root.optical("dispersion") * 2) : root.optical("dispersion")
+                frost: 0.55
+                rim: root.options.lockRim
+                energy: root.options.lockEnergy
             }
-            Rectangle { anchors.fill: parent; radius: parent.radius; color: root.tint; opacity: root.lockField ? root.options.lockTint : root.options.glassOpacity }
             Label { anchors.centerIn: parent; text: I18n.tr("Preview"); color: root.dark ? "white" : "#17171b"; font.pixelSize: 16; font.weight: Font.DemiBold }
         }
     }
@@ -105,9 +120,9 @@ Column {
         width: parent.width; height: 40
         Label { anchors.verticalCenter: parent.verticalCenter; width: parent.width - 170; text: I18n.tr("Glass material"); color: root.ink; font.pixelSize: 13 }
         ComboBox {
-            id: material; width: 170; height: 34; model: ["glass", "black"]
-            currentIndex: root.options.style === "black" ? 1 : 0
-            displayText: I18n.tr(currentIndex === 0 ? "glass" : "black")
+            id: material; width: 170; height: 34; model: ["glass", "prism", "black"]
+            currentIndex: Math.max(0, model.indexOf(root.options.style))
+            displayText: I18n.tr(model[currentIndex])
             delegate: ItemDelegate { required property string modelData; width: material.width; text: I18n.tr(modelData) }
             onActivated: index => root.save("style", model[index])
         }
@@ -186,7 +201,10 @@ Column {
     Label { text: I18n.tr("Transparency and tint"); color: root.secondary; font.pixelSize: 12 }
     ToggleRow { settingKey: "glassAccentTint"; label: "Tint glass with accent" }
     ToggleRow { visible: !root.lockField; settingKey: "glassRim"; label: "Specular rim" }
+    RangeRow { visible: !root.lockField; settingKey: "rimStrength"; label: "Rim intensity"; minimum: 0; maximum: 1; step: 0.01; digits: 2 }
+    RangeRow { visible: !root.lockField; settingKey: "innerShadow"; label: "Inner shadow"; minimum: 0; maximum: 1; step: 0.01; digits: 2 }
     RangeRow { visible: !root.lockField; settingKey: "frost"; label: "Frost"; minimum: 0; maximum: 30; step: 0.5; digits: 1 }
+    RangeRow { visible: !root.lockField; settingKey: "liquidBlendRadius"; label: "Liquid blend radius"; minimum: 0; maximum: 80; step: 1; digits: 0 }
     Label { text: I18n.tr("Optical refraction"); color: root.secondary; font.pixelSize: 12 }
     ToggleRow { visible: !root.lockField; settingKey: "screenCapture"; label: "Refract desktop content" }
     RangeRow { settingKey: root.lockField ? "lockBezel" : "bezel"; label: "Lens edge"; minimum: 0; maximum: 40; step: 0.5; digits: 1 }

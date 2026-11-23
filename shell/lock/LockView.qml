@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Qt5Compat.GraphicalEffects
 import ".."
+import "." as Lock
 import "../lib/material.js" as Material
 
 Rectangle {
@@ -201,15 +202,15 @@ Rectangle {
             scale: root.expanded ? 1 : 0.92
             Behavior on opacity { NumberAnimation { duration: root.reducedMotion ? 1 : (root.expanded ? 280 : 150); easing.type: Easing.OutCubic } }
             Behavior on scale { NumberAnimation { duration: root.reducedMotion ? 1 : 460; easing.type: Easing.OutBack; easing.overshoot: 1.3 } }
-            LiquidGlass {
+            Lock.LiquidGlass {
                 anchors.fill: parent
                 src: wallpaperTexture
                 topLeftRadius: parent.radius; topRightRadius: parent.radius
                 bottomLeftRadius: parent.radius; bottomRightRadius: parent.radius
                 tintColor: root.materialTint
                 tintAmount: Material.amount(Config.lockscreen.lockTint, 0.035); frost: 0.55; rim: Config.lockscreen.lockRim
-                ior: Config.lockscreen.lockIor; thickness: (Config.lockscreen.lockThickness) * root.s; bezel: (Config.lockscreen.lockBezel) * root.s
-                dispersion: Config.lockscreen.lockDispersion; energy: Config.lockscreen.lockEnergy
+                ior: Config.lockscreen.lockIor; thickness: (Config.lockscreen.lockThickness) * root.s * (Config.lockscreen.style === "prism" ? 2 : 1); bezel: (Config.lockscreen.lockBezel) * root.s * (Config.lockscreen.style === "prism" ? 1.5 : 1)
+                dispersion: Config.lockscreen.style === "prism" ? Math.max(0.16, Config.lockscreen.lockDispersion * 2) : Config.lockscreen.lockDispersion; energy: Config.lockscreen.lockEnergy
                 sourceRect: {
                     const point = mapToItem(root, 0, 0)
                     return Qt.rect(point.x / root.width, point.y / root.height, width / root.width, height / root.height)

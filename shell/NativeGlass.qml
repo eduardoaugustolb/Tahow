@@ -24,6 +24,8 @@ ShaderEffect {
     property real clear: 0
     property real glassPad: 0
     property real shadowAmt: 0
+    property real innerShadow: 1
+    property real prism: 0
     property real energy: 0
     property real nest: 0
     property real morph: 0

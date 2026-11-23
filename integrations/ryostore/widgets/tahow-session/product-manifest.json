@@ -18,8 +18,8 @@
       "source": "NOTICE.md",
       "destination": "NOTICE.md",
       "mode": "0644",
-      "size": 1647,
-      "sha256": "a9516c4150ca1e26cd399be2549668767e5520fe70bd9da6746e8ecd14c18a96",
+      "size": 1920,
+      "sha256": "2f0fd7761790fa1ddb1c1212dd93b2909a246427dcc51f67f896abd5e4b62d53",
       "install": true
     },
     {
@@ -34,8 +34,8 @@
       "source": "README.md",
       "destination": "README.md",
       "mode": "0644",
-      "size": 1355,
-      "sha256": "be01cfab993798544fa4909c395af669e2c2fcccca216d550a1dd836951ad0f4",
+      "size": 1394,
+      "sha256": "2dd63210048322f6ac67d0053c943338f232564076bf608985392ceaf95e5dda",
       "install": true
     },
     {
@@ -50,8 +50,8 @@
       "source": "content/CompositorGlass.qml",
       "destination": "content/CompositorGlass.qml",
       "mode": "0644",
-      "size": 6980,
-      "sha256": "c623036a4d50b8a7f00e960ae9b81fc06dad6b6c57b01a6ff34f94f919c39a55",
+      "size": 7684,
+      "sha256": "528ac1584cd411f6bbccd6a167fee2b1ee1243e93b0e5584f3cdfe59fcf1ab92",
       "install": true
     },
     {
@@ -66,8 +66,8 @@
       "source": "content/LiquidWidgetGlass.qml",
       "destination": "content/LiquidWidgetGlass.qml",
       "mode": "0644",
-      "size": 884,
-      "sha256": "df838897db0df1bf33c71aff7d3bf4acf5e9a9acedb785008f5ddd7066bfb0a6",
+      "size": 2370,
+      "sha256": "a0e1a71c2a48ba6ce677dabba7ceae9d27d160041f995d4c272675ee51d73823",
       "install": true
     },
     {
@@ -90,8 +90,8 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 14614,
-      "sha256": "8b59504e5982b4ac66177dae267cedbe96515d8727bfba2deda0e4081a2928a0",
+      "size": 14756,
+      "sha256": "8acda1746b47cbc586cd08cab98f54d87d96a1e17cb76548de068bad662f3169",
       "install": true
     },
     {
@@ -146,8 +146,8 @@
       "source": "lib/messages.js",
       "destination": "lib/messages.js",
       "mode": "0644",
-      "size": 3566,
-      "sha256": "aad07ab485bfc7e876144927adbcef8982f879ff3d00dcbb95528cc8e13cfff5",
+      "size": 3824,
+      "sha256": "1602b6ec83392541c098dc50446cd437780f04cc0d28035175c358d27badd03e",
       "install": true
     },
     {
@@ -186,8 +186,8 @@
       "source": "manifest.json",
       "destination": "manifest.json",
       "mode": "0644",
-      "size": 9668,
-      "sha256": "0116aa167c7919358ca04ab755a1aeeb532d0567c85a30ef0b62fcb42e1656cc",
+      "size": 10136,
+      "sha256": "997402fda0a36b9e275204d3b84d95a1672a63109a118567ad2593116bf5afdd",
       "install": true
     }
   ]

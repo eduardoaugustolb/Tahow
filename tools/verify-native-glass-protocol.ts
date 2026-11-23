@@ -9,7 +9,8 @@ function send(message:any){socket.write(JSON.stringify(message)+'\n');}
 async function query(message:any){const result=new Promise<any>(resolve=>pending.push(resolve));send(message);return await Promise.race([result,new Promise((_,reject)=>setTimeout(()=>reject(new Error('native protocol timeout')),2000))]);}
 const region={op:'region',id:'bounded',target:'tahow-live-test',screen:'',x:0,y:0,width:100,height:100,radius:20,alpha:1};
 try{
- const hello:any=await query({op:'hello',version:1});if(hello.version!==1)throw new Error('version mismatch');
+ const hello:any=await query({op:'hello',version:1});
+ if(hello.version!==1 || hello.prism!==true)throw new Error('Native prism capability missing');
  for(let i=0;i<2000;i++)send({...region,x:i%10});
  let stats:any=await query({op:'stats'});if(stats.regions!==1)throw new Error('geometry updates accumulated regions');
  for(let i=0;i<100;i++)send({...region,id:'region-'+i});

@@ -33,12 +33,14 @@ var catalogs = {
     "Glass": "Glass",
     "simulated": "simulated",
     "liquid": "liquid",
+    "prism": "prism",
     "none": "none",
     "Lens edge": "Lens edge",
     "Refraction depth": "Refraction depth",
     "Refractive index": "Refractive index",
     "RGB dispersion": "RGB dispersion",
     "Frost": "Frost",
+    "Inner shadow": "Inner shadow",
     "Width": "Width",
     "Size": "Size",
     "Height": "Height",
@@ -51,7 +53,8 @@ var catalogs = {
     "light": "light",
     "Glass opacity": "Glass opacity",
     "Specular rim": "Specular rim",
-    "Tint glass with accent": "Tint glass with accent"
+    "Tint glass with accent": "Tint glass with accent",
+    "Follow Tahow general glass": "Follow Tahow general glass"
   },
   "pt-BR": {
     "CPU": "CPU",
@@ -85,12 +88,14 @@ var catalogs = {
     "Glass": "Vidro",
     "simulated": "Vidro simulado",
     "liquid": "Liquid Glass",
+    "prism": "Vidro prismático",
     "none": "Sem fundo",
     "Lens edge": "Borda da lente",
     "Refraction depth": "Profundidade de refração",
     "Refractive index": "Índice de refração",
     "RGB dispersion": "Dispersão RGB",
     "Frost": "Desfoque",
+    "Inner shadow": "Sombra interna",
     "Width": "Largura",
     "Size": "Tamanho",
     "Height": "Altura",
@@ -103,6 +108,7 @@ var catalogs = {
     "light": "claro",
     "Glass opacity": "Opacidade do vidro",
     "Specular rim": "Borda especular",
-    "Tint glass with accent": "Tingir vidro com a cor de destaque"
+    "Tint glass with accent": "Tingir vidro com a cor de destaque",
+    "Follow Tahow general glass": "Follow Tahow general glass"
   }
 };

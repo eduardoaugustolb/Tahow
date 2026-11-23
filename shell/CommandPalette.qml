@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "lib/catalog.js" as Catalog
-import "lib/material.js" as Material
 
 Scope {
     id: root
@@ -19,13 +18,10 @@ Scope {
     readonly property var preferences: ({ opacity: Config.palette.glassOpacity, appearance: Config.palette.appearance, material: Config.palette.style === "black" ? "solid" : "glass", rim: Config.palette.glassRim })
     readonly property int columns: Math.round(Catalog.number(shared.columns, 7, 3, 16))
     readonly property int tileWidth: Math.round(Catalog.number(shared.matWidth, 82, 64, 180))
-    readonly property real glassOpacity: Material.opacity(preferences.opacity)
-    readonly property real frost: Catalog.number(shared.frost, 12, 0, 30)
     readonly property bool glass: preferences.material !== "solid" &&
         (preferences.material !== "island" || island.style !== "black")
     readonly property bool dark: !glass || preferences.appearance === "dark" ||
-        (preferences.appearance !== "light" && (island.appearance === "dark" ||
-            (island.appearance !== "light" && DesktopTheme.dark)))
+        (preferences.appearance !== "light" && Theme.autoDark)
     readonly property color ink: dark ? Qt.rgba(1, 1, 1, 0.92) : Qt.rgba(0.12, 0.10, 0.09, 0.94)
     readonly property color tint: glass ? Theme.materialTint(Config.palette, dark) : "#000000"
     readonly property string fontFamily: typeof island.font === "string" && island.font !== "auto" ? island.font : "sans-serif"

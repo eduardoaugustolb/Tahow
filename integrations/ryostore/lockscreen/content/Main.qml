@@ -204,8 +204,8 @@ Rectangle {
                 bottomLeftRadius: parent.radius; bottomRightRadius: parent.radius
                 tintColor: root.materialTint
                 tintAmount: Material.amount(root.live ? root.live.option("lockTint") : 0.035, 0.035); frost: 0.55; rim: root.live ? root.live.option("lockRim") : 0.22
-                ior: root.live ? root.live.option("lockIor") : 1.25; thickness: (root.live ? root.live.option("lockThickness") : 14) * root.s; bezel: (root.live ? root.live.option("lockBezel") : 6) * root.s
-                dispersion: root.live ? root.live.option("lockDispersion") : 0.08; energy: root.live ? root.live.option("lockEnergy") : 0.05
+                ior: root.live ? root.live.option("lockIor") : 1.25; thickness: (root.live ? root.live.option("lockThickness") : 14) * root.s * (root.live && root.live.option("style") === "prism" ? 2 : 1); bezel: (root.live ? root.live.option("lockBezel") : 6) * root.s * (root.live && root.live.option("style") === "prism" ? 1.5 : 1)
+                dispersion: root.live && root.live.option("style") === "prism" ? Math.max(0.16, root.live.option("lockDispersion") * 2) : root.live ? root.live.option("lockDispersion") : 0.08; energy: root.live ? root.live.option("lockEnergy") : 0.05
                 sourceRect: {
                     const point = mapToItem(root, 0, 0)
                     return Qt.rect(point.x / root.width, point.y / root.height, width / root.width, height / root.height)

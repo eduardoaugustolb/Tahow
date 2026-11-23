@@ -3,7 +3,7 @@
 var groups = [
     { id: "social", label: "Social", categories: ["Network", "Chat", "InstantMessaging", "Email"] },
     { id: "creativity", label: "Creativity", categories: ["Graphics", "AudioVideo", "Audio", "Video"] },
-    { id: "productivity", label: "Productivity & Finance", categories: ["Office", "Finance", "Education", "Science", "Development"] },
+    { id: "productivity", label: "Productivity", categories: ["Office", "Finance", "Education", "Science", "Development"] },
     { id: "utilities", label: "Utilities", categories: ["System", "Utility", "Settings"] },
     { id: "other", label: "Other", categories: [] }
 ];
