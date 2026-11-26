@@ -15,8 +15,10 @@ Install Quickshell and its Qt/QML dependencies using your distribution. A Waylan
 ```sh
 git clone https://github.com/eduardoaugustolb/Tahow.git
 cd Tahow
-qs -p "$PWD/shell/shell.qml"
+sh "$PWD/shell/bin/start-shell.sh"
 ```
+
+The launcher runs Quickshell detached from the terminal and does nothing if the shell is already running, so closing the terminal or typing `exit` cannot take the bar down.
 
 ## Ryoku integration
 
@@ -31,6 +33,18 @@ bun tools/export-ryostore.ts --to /path/to/ryostore
 Review the catalogue diff before publishing. See the repository integration guide for details.
 
 ## Open preferences
+
+On Hyprland, `./install.sh` sets up these shortcuts:
+
+- **Super + Space** toggles Spotlight.
+- **Super + Shift + Space** opens Tahow Preferences.
+- **Super + ← / →** switches to the previous or next workspace.
+- **Super + 1–9** switches directly to the corresponding workspace. **Super + 0** switches to workspace 10.
+- **Super + Shift + ← / →** moves the focused window and follows it to the destination workspace.
+- **Super + F** toggles fullscreen.
+- **Alt + Tab** cycles through open windows on the current workspace.
+
+To customize the bindings, open `~/.config/hypr/tahow/` (or `$XDG_CONFIG_HOME/hypr/tahow/`). Edit `workspace-shortcuts` for number keys, `window-shortcuts` for window controls and arrow keys, or `shortcuts` for Spotlight and preferences. Use the `.lua` or `.conf` extension that matches your Hyprland configuration. Choose unused combinations and run `hyprctl reload`. The installer preserves these files through updates and reinstalls.
 
 ```sh
 qs -c shell ipc call tahoe settings

@@ -5,30 +5,43 @@ const source = await Bun.file(new URL('../integrations/ryostore/launcher/Main.qm
 const body = source.match(/function show\(mon\) \{([\s\S]*?)^    \}/m)?.[1];
 if (!body) throw new Error('Missing launcher show handler');
 
-test('inactive subshell refuses to claim an open palette and explains the requirement', () => {
-  const requests: unknown[] = [], warnings: string[] = [];
+function makeHost(overrides: Record<string, unknown>) {
+  const requests: unknown[] = [], warnings: string[] = [], opened: string[] = [];
   const host = {
-    subshellActive: false, shown: true, monitor: '',
+    subshellActive: false, shown: false, monitor: '',
+    runtime: { item: { show: (mon: string) => opened.push(mon) } },
     Shell: { ShellState: { requestSurface: (...args: unknown[]) => requests.push(args) } },
     console: { warn: (message: string) => warnings.push(message) },
+    ...overrides,
   };
   const show = new Function('host', `with (host) { return function(mon) {${body}}; }`)(host);
-  show('DP-1');
-  expect(host.shown).toBe(false);
-  expect(requests).toHaveLength(0);
-  expect(warnings[0]).toContain('tahoe-shell');
-});
+  return { host, show, requests, warnings, opened };
+}
 
-test('active subshell routes to the preserved surface ID on the requested output', () => {
-  const requests: unknown[] = [];
-  const host = {
-    subshellActive: true, shown: false, monitor: '',
-    Shell: { ShellState: { requestSurface: (...args: unknown[]) => requests.push(args) } },
-    console: { warn: () => { throw new Error('Unexpected inactive diagnostic'); } },
-  };
-  const show = new Function('host', `with (host) { return function(mon) {${body}}; }`)(host);
+test('active subshell hands the palette to the preserved surface ID on the requested output', () => {
+  const { host, show, requests, opened } = makeHost({ subshellActive: true });
   show('DP-1');
   expect(host.shown).toBe(true);
   expect(host.monitor).toBe('DP-1');
   expect(requests).toEqual([['tahoe-palette', 'DP-1', {}]]);
+  expect(opened).toHaveLength(0);
+});
+
+test('inactive subshell opens the standalone runtime directly, without claiming a host surface', () => {
+  const { host, show, requests, warnings, opened } = makeHost({ subshellActive: false });
+  show('DP-1');
+  expect(host.shown).toBe(true);
+  expect(host.monitor).toBe('DP-1');
+  expect(opened).toEqual(['DP-1']);
+  expect(requests).toHaveLength(0);
+  expect(warnings).toHaveLength(0);
+});
+
+test('inactive subshell without an installed runtime explains the requirement instead of opening', () => {
+  const { host, show, requests, warnings, opened } = makeHost({ subshellActive: false, runtime: { item: null } });
+  show('DP-1');
+  expect(host.shown).toBe(false);
+  expect(opened).toHaveLength(0);
+  expect(requests).toHaveLength(0);
+  expect(warnings[0]).toContain('tahoe-shell');
 });

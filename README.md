@@ -17,7 +17,7 @@ A modular shell for Quickshell and Wayland.
 
 ---
 
-A modular Quickshell desktop shell with an island, command palette, settings, and glass lock visuals. Tahow runs from its own entry point and includes optional Ryoku companions for Ryostore.
+A modular Quickshell desktop shell with an island, Spotlight, settings, and glass lock visuals. Tahow runs from its own entry point and includes optional Ryoku companions for Ryostore.
 
 This is early software. Runtime testing has been performed on **Hyprland**. The host boundary uses Wayland protocols where available; **niri has not been validated**.
 
@@ -29,9 +29,9 @@ Captured on Hyprland at 1920 × 1080 with the author's current wallpaper, deskto
 
 ![Expanded island: clock, weather, calendar and system overview](docs/showcase/island-home.webp)
 
-| Collapsed island and desktop | Command palette |
+| Collapsed island and desktop | Spotlight |
 | --- | --- |
-| ![Collapsed island and desktop](docs/showcase/island-collapsed.webp) | ![Command palette](docs/showcase/command-palette.webp) |
+| ![Collapsed island and desktop](docs/showcase/island-collapsed.webp) | ![Spotlight](docs/showcase/command-palette.webp) |
 
 ![Compact media pills with album artwork](docs/showcase/media-pills.webp)
 
@@ -50,9 +50,9 @@ Captured on Hyprland at 1920 × 1080 with the author's current wallpaper, deskto
 <details>
 <summary>All component settings</summary>
 
-| Island overrides | Command palette overrides |
+| Island overrides | Spotlight overrides |
 | --- | --- |
-| ![Island overrides](docs/showcase/settings-island.webp) | ![Command palette overrides](docs/showcase/settings-palette.webp) |
+| ![Island overrides](docs/showcase/settings-island.webp) | ![Spotlight overrides](docs/showcase/settings-palette.webp) |
 
 | Lockscreen overrides | System preferences |
 | --- | --- |
@@ -83,7 +83,7 @@ with moving refraction and highlights in a seamless four-second loop.
 ## What it includes
 
 - An island with optional compositor-live refraction across collapsed, preview and expanded states, with snapshot or simulated fallback.
-- A command palette and settings that follow the general dark/light appearance and desktop accent.
+- Spotlight and settings that follow the general dark/light appearance and desktop accent.
 - General preferences with separate island, palette, and lockscreen overrides.
 - A Glass settings section with live preview, numeric sliders and per-component overrides.
 - English (`en-US`) and Brazilian Portuguese (`pt-BR`) translations, with automatic locale selection using the Ryoku default when hosted.
@@ -97,8 +97,10 @@ with moving refraction and highlights in a seamless four-second loop.
 Install Quickshell and its Qt/QML dependencies through your distribution. A Wayland desktop is required; desktop services and screen capture depend on the host and its available protocols. From this repository:
 
 ```sh
-qs -p "$PWD/shell/shell.qml"
+sh "$PWD/shell/bin/start-shell.sh"
 ```
+
+The launcher starts Quickshell detached (`--daemonize`) and idempotently (`--no-duplicate`), so closing the terminal or typing `exit` does not kill the bar. Plain `qs -p ... &` would leave it in the terminal's job table and a second `exit` would send it SIGHUP.
 
 Ryoku integration sources live in `integrations/ryostore/launcher` and `integrations/ryostore/lockscreen`. Export a reviewable catalogue checkout with:
 

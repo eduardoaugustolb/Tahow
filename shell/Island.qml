@@ -46,7 +46,7 @@ Item {
 
     //                       home media controls timer
     readonly property var tabHeights: [404, 312, 430, 300]
-    readonly property int expandedWidth: 700
+    readonly property int expandedWidth: 760
     readonly property size target: {
         switch (mode) {
         case "launcher":      return Qt.size(600, launcherPage.wantedHeight);
@@ -133,11 +133,6 @@ Item {
         id: surface
         anchors.fill: parent
         radius: root.isExpanded ? 36 : root.isLauncher ? 28 : root.height >= 60 ? 32 : root.height / 2
-        readonly property bool wideSurface: root.isExpanded || root.mode.endsWith("Peek")
-        // Keep larger surfaces from repeating high-contrast backdrop edges.
-        refractionAmount: wideSurface ? 0.4 : 1
-        bezel: wideSurface ? Math.min(options.bezel, 4) : options.bezel
-        innerShadow: wideSurface ? 0 : options.innerShadow
         shadow: !compositorReady
         glowColor: root.glowColor
         glowStrength: root.glowStrength

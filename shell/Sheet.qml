@@ -3,7 +3,6 @@ import "lib/backdrop.js" as Backdrop
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Widgets
 import "lib/catalog.js" as Catalog
 
 PanelWindow {
@@ -16,19 +15,57 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "launcher-noblur"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-    property bool settingsOpen: false
+    readonly property bool appsMode: launcher.appsMode
     property real reveal: 0
     property bool frameReady: false
     property bool captureFailed: false
-    function stateDump() { return { provider: material.compositorReady ? "compositor-live" : capture.hasContent ? "snapshot" : "simulated", width: panel.width, height: panel.height, columns: cols, gridWidth: grid.width, cellWidth: grid.cellWidth, frameReady: frameReady, captureHasContent: capture.hasContent, captureFailed: captureFailed, bubble: panel.bubble }; }
-    readonly property real targetWidth: Math.max(320, Math.min(width > 0 ? width - 32 : 664, 664))
+    function stateDump() { return { provider: material.compositorReady ? "compositor-live" : capture.hasContent ? "snapshot" : "simulated", width: panel.width, height: panel.height, columns: cols, gridWidth: grid.width, cellWidth: cellWidth, frameReady: frameReady, captureHasContent: capture.hasContent, captureFailed: captureFailed, bubble: panel.bubble }; }
+    readonly property real targetWidth: Math.min(width - Tokens.px(24), Tokens.px(660))
+    readonly property int inset: Tokens.px(22)
     readonly property int cols: Math.max(1, Math.min(launcher.columns,
-        Math.floor((Math.max(120, targetWidth) - 36) / 80)))
-    readonly property int rowHeight: 80
-    readonly property int rows: Math.max(1, Math.min(4, Math.floor((Math.max(300, height) - 80 - 140) / rowHeight)))
+        Math.floor((targetWidth - 2 * inset) / Tokens.px(110))))
+    readonly property real cellWidth: (targetWidth - 2 * inset) / cols
+    readonly property int rowHeight: Tokens.px(108)
+    readonly property var sections: Catalog.shelves(launcher.results, launcher.section,
+        launcher.query, Catalog.strings(launcher.shared.pinnedApps), cols)
+    readonly property var searchResults: launcher.query.trim() ? launcher.results : launcher.results.slice(0, 6)
+    readonly property var visibleApps: appsMode ? sections.reduce((apps, group) => apps.concat(group.entries), []) : searchResults
+    onVisibleAppsChanged: launcher.selected = 0
+
+    function selectSection(section) {
+        field.clear();
+        launcher.query = "";
+        launcher.section = section;
+        launcher.selected = 0;
+        grid.contentY = 0;
+        field.forceActiveFocus();
+    }
+
+    function toggleMode() {
+        launcher.appsMode = !appsMode;
+        launcher.section = "all";
+        launcher.selected = 0;
+        grid.contentY = 0;
+        resultsList.positionViewAtBeginning();
+        field.forceActiveFocus();
+    }
+
+    function move(delta) {
+        launcher.selected = Math.max(0, Math.min(visibleApps.length - 1, launcher.selected + delta));
+    }
+    function moveRow(direction) {
+        const selected = launcher.selected;
+        const rows = Catalog.shelfRows(sections, cols);
+        const row = rows.findIndex(row => selected >= row.start && selected < row.start + row.length);
+        const next = rows[row + direction];
+        if (row >= 0 && next)
+            launcher.selected = next.start + Math.min(selected - rows[row].start, next.length - 1);
+    }
+
     readonly property color ink: launcher.ink
-    readonly property color accent: Theme.accent
-    readonly property bool captureAllowed: launcher.glass && !captureFailed && Config.palette.screenCapture
+    readonly property color iconInk: Theme.alpha(ink, 1)
+    readonly property color accent: Theme.materialAccent(Config.palette)
+    readonly property bool captureAllowed: launcher.glass && !captureFailed && Config.palette.screenCapture && !material.compositorAvailable
     property bool ownsCapture: false
     readonly property bool readyToReveal: !captureAllowed || frameReady
     Component.onCompleted: {
@@ -75,15 +112,25 @@ PanelWindow {
     Item {
         id: panel
         property real bubble: 0
+        property real modeBubble: sheet.appsMode ? 1 : 0
+        readonly property real modeBlend: Math.max(0, Math.min(1, modeBubble))
+        Behavior on modeBubble {
+            enabled: !sheet.launcher.reduced
+            SpringAnimation { spring: sheet.launcher.spring; damping: sheet.launcher.damping; epsilon: 0.001 }
+        }
         transformOrigin: Item.Top
         Behavior on bubble {
             enabled: !sheet.launcher.reduced
             SpringAnimation { spring: sheet.launcher.spring; damping: sheet.launcher.damping; epsilon: 0.001 }
         }
         width: sheet.targetWidth
-        height: 140 + sheet.rows * sheet.rowHeight
+        readonly property real maxHeight: sheet.height - Tokens.px(32)
+        readonly property real searchHeight: Math.min(maxHeight,
+            header.height + Math.max(1, Math.min(sheet.searchResults.length, 6)) * Tokens.px(50) + Tokens.px(10))
+        height: Math.min(maxHeight, Math.max(header.height,
+            searchHeight + (Math.min(maxHeight, Tokens.px(644)) - searchHeight) * modeBubble))
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.max(Tokens.px(56), (sheet.height - height) * Math.max(0, Math.min(1, Config.palette.palettePosition))) + (1 - bubble) * Tokens.px(-18)
+        y: Math.max(Tokens.px(16), (sheet.height - height) * Math.max(0, Math.min(1, Config.palette.palettePosition))) + (1 - bubble) * Tokens.px(-18)
         opacity: sheet.reveal
         scale: sheet.launcher.reduced ? 1 : 0.88 + bubble * 0.12
 
@@ -97,248 +144,308 @@ PanelWindow {
             shadowBlur: Tokens.px(36)
             shadowY: Tokens.px(12)
             compositorTarget: "launcher-noblur"
-            useCompositor: sheet.captureAllowed
+            compositorWithoutCapture: true
             texture: capture.hasContent ? frozen : null
             textureRect: sheet.width > 0 && sheet.height > 0 ? Qt.rect(panel.x / sheet.width, panel.y / sheet.height, panel.width / sheet.width, panel.height / sheet.height) : Qt.rect(0, 0, 1, 1)
             onCompositorAvailableChanged: if (compositorAvailable) {
-                captureDelay.stop(); capture.captureSource = null;
+                captureDelay.stop();
+                if (!capture.hasContent) capture.captureSource = null;
                 sheet.frameReady = true;
             }
         }
         Rectangle {
             anchors.fill: parent
             radius: material.radius
-            color: sheet.launcher.dark ? "#ed1a1c22" : "#edf4f5f8"
+            color: sheet.launcher.glass ? Theme.alpha(sheet.launcher.tint, 0.48 * (1 - material.liquidMix)) : "transparent"
+            border.color: Theme.alpha(sheet.ink, 0.15 * (1 - material.liquidMix))
         }
         MouseArea { anchors.fill: parent }
 
         Item {
             id: header
-            x: Tokens.px(18); y: Tokens.px(16)
-            width: parent.width - x * 2; height: Tokens.px(42)
-            Rectangle {
-                anchors { left: parent.left; top: parent.top; bottom: parent.bottom; right: settingsButton.left; rightMargin: 8 }
-                radius: 11
-                color: Theme.alpha(sheet.ink, 0.07)
-                border.color: Theme.alpha(sheet.ink, 0.13)
-                MouseArea { anchors.fill: parent; onClicked: field.forceActiveFocus() }
-            }
-            Item {
+            x: sheet.inset
+            width: parent.width - 2 * x
+            height: Tokens.px(64)
+
+            Icon {
                 id: mark
-                x: 13
-                width: 18; height: 18
                 anchors.verticalCenter: parent.verticalCenter
-                Rectangle {
-                    width: 11; height: 11; x: 1; y: 1
-                    radius: width / 2
-                    color: "transparent"
-                    border.color: Theme.alpha(sheet.ink, 0.7)
-                    border.width: 1.5
-                }
-                Rectangle {
-                    x: 10; y: 9; width: 7; height: 1.5
-                    radius: 1; rotation: 45; transformOrigin: Item.Left
-                    color: Theme.alpha(sheet.ink, 0.7)
-                }
+                text: "search"
+                size: Tokens.px(22)
+                color: sheet.iconInk
             }
-            TextInput {
+            TextField {
                 id: field
-                anchors { left: mark.right; leftMargin: Tokens.px(10); right: settingsButton.left; rightMargin: Tokens.px(18); verticalCenter: parent.verticalCenter }
-                focus: true; clip: true
-                color: sheet.launcher.ink
+                anchors { left: mark.right; leftMargin: Tokens.px(12); right: modeButton.left; rightMargin: Tokens.px(8); verticalCenter: parent.verticalCenter }
+                padding: 0
+                focus: true
+                background: null
+                text: sheet.launcher.query
+                placeholderText: I18n.tr(sheet.appsMode ? "Search applications" : "Spotlight")
+                Accessible.name: I18n.tr("Search applications")
+                placeholderTextColor: Theme.alpha(sheet.ink, 0.65)
+                color: sheet.ink
                 font.family: sheet.launcher.fontFamily
-                font.pixelSize: Tokens.px(16)
+                font.pixelSize: Tokens.px(21)
                 selectByMouse: true
-                onTextEdited: { sheet.launcher.query = text; sheet.launcher.selected = 0; }
+                onTextEdited: {
+                    sheet.launcher.query = text;
+                    grid.contentY = 0;
+                    resultsList.positionViewAtBeginning();
+                }
                 Component.onCompleted: forceActiveFocus()
                 Keys.onPressed: event => {
                     switch (event.key) {
                     case Qt.Key_Escape:
-                        if (sheet.settingsOpen) sheet.settingsOpen = false;
-                        else if (text.length) { text = ""; sheet.launcher.query = ""; }
+                        if (text.length || sheet.launcher.section !== "all") sheet.selectSection("all");
                         else sheet.launcher.hide();
                         break;
-                    case Qt.Key_Return: case Qt.Key_Enter: sheet.launcher.launch(sheet.launcher.results[sheet.launcher.selected]); break;
-                    case Qt.Key_Down: sheet.launcher.move(sheet.cols); break;
-                    case Qt.Key_Up: sheet.launcher.move(-sheet.cols); break;
-                    case Qt.Key_Left: if (text.length) return; sheet.launcher.move(-1); break;
-                    case Qt.Key_Right: if (text.length) return; sheet.launcher.move(1); break;
+                    case Qt.Key_Return: case Qt.Key_Enter:
+                        sheet.launcher.launch(sheet.visibleApps[sheet.launcher.selected]);
+                        break;
+                    case Qt.Key_Down: sheet.appsMode ? sheet.moveRow(1) : sheet.move(1); break;
+                    case Qt.Key_Up: sheet.appsMode ? sheet.moveRow(-1) : sheet.move(-1); break;
+                    case Qt.Key_Left: if (text.length || !sheet.appsMode) return; sheet.move(-1); break;
+                    case Qt.Key_Right: if (text.length || !sheet.appsMode) return; sheet.move(1); break;
                     case Qt.Key_Tab: case Qt.Key_Backtab:
-                        const ids = ["all"].concat(Catalog.groups.map(g => g.id));
+                        if (event.modifiers & Qt.ControlModifier) { sheet.toggleMode(); break; }
+                        if (!sheet.appsMode) return;
+                        const ids = ["all"].concat(Catalog.groups.map(group => group.id));
                         const step = event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1;
-                        sheet.launcher.section = ids[(ids.indexOf(sheet.launcher.section) + step + ids.length) % ids.length];
-                        sheet.launcher.selected = 0;
+                        sheet.selectSection(ids[(ids.indexOf(sheet.launcher.section) + step + ids.length) % ids.length]);
                         break;
                     default: return;
                     }
                     event.accepted = true;
                 }
-                Text {
-                    visible: !field.text.length
-                    text: I18n.tr("Search applications")
-                    color: sheet.launcher.ink; opacity: 0.65
-                    font: field.font
-                }
             }
-            Text {
-                id: settingsButton
-                width: Tokens.px(38); height: parent.height
-                anchors.right: parent.right
-                text: I18n.tr("···"); color: sheet.launcher.ink
-                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                font.pixelSize: Tokens.px(22)
-                MouseArea {
-                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                    onClicked: sheet.settingsOpen = !sheet.settingsOpen
+            ToolButton {
+                id: modeButton
+                anchors { right: controls.left; rightMargin: Tokens.px(4); verticalCenter: parent.verticalCenter }
+                text: I18n.tr(sheet.appsMode ? "Spotlight" : "Applications")
+                leftPadding: Tokens.px(12)
+                rightPadding: Tokens.px(12)
+                contentItem: Text {
+                    text: modeButton.text
+                    color: sheet.ink
+                    font.family: sheet.launcher.fontFamily
+                    font.pixelSize: Tokens.px(13)
+                    verticalAlignment: Text.AlignVCenter
+                }
+                background: Rectangle {
+                    radius: Tokens.px(10)
+                    color: Theme.alpha(sheet.ink, modeButton.hovered || modeButton.activeFocus ? 0.16 : 0.08)
+                }
+                onClicked: sheet.toggleMode()
+            }
+            ToolButton {
+                id: controls
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                width: Tokens.px(34)
+                height: width
+                Accessible.name: I18n.tr("Settings")
+                contentItem: Item {
+                    Icon {
+                        anchors.centerIn: parent
+                        text: "settings"
+                        size: Tokens.px(20)
+                        color: sheet.iconInk
+                    }
+                }
+                background: Rectangle {
+                    radius: Tokens.px(10)
+                    color: controls.hovered || controls.visualFocus ? Theme.alpha(sheet.ink, 0.12) : "transparent"
+                }
+                onClicked: {
+                    sheet.launcher.hide();
+                    Host.openSettingsRequested();
                 }
             }
         }
-        Row {
-            id: tabs
-            x: Tokens.px(18); y: Tokens.px(68)
-            width: parent.width - x * 2; height: Tokens.px(29)
-            spacing: Tokens.px(5)
-            Repeater {
-                model: Catalog.groups
-                Rectangle {
-                    id: tab
-                    required property var modelData
-                    width: (tabs.width - tabs.spacing * 4) / 5
-                    height: tabs.height; radius: Tokens.px(7)
-                    readonly property bool active: !sheet.launcher.query && sheet.launcher.section === modelData.id
-                    color: active ? Theme.alpha(sheet.accent, 0.2) : Theme.alpha(sheet.ink, tabMouse.containsMouse ? 0.09 : 0)
-                    border.color: active ? Theme.alpha(sheet.accent, 0.55) : "transparent"
-                    Text {
-                        anchors.fill: parent; anchors.margins: Tokens.px(2)
-                        text: I18n.tr(tab.modelData.label)
-                        color: sheet.launcher.ink
-                        horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                        font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(12)
-                        elide: Text.ElideRight
+
+        ListView {
+            id: resultsList
+            visible: !sheet.appsMode || opacity > 0
+            enabled: !sheet.appsMode
+            opacity: Math.max(0, 1 - 2 * panel.modeBlend)
+            anchors { top: header.bottom; bottom: parent.bottom; left: header.left; right: header.right; bottomMargin: Tokens.px(10) }
+            clip: true
+            model: visible ? sheet.searchResults : []
+            currentIndex: launcher.selected
+            onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
+            boundsBehavior: Flickable.StopAtBounds
+            highlightMoveDuration: 0
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            delegate: ItemDelegate {
+                id: hit
+                required property var modelData
+                required property int index
+                width: resultsList.width
+                height: Tokens.px(50)
+                highlighted: sheet.launcher.selected === index
+                text: modelData.name
+                onClicked: sheet.launcher.launch(modelData)
+                background: Rectangle {
+                    radius: Tokens.px(12)
+                    color: Theme.alpha(sheet.accent, hit.highlighted ? 0.22 : hit.hovered ? 0.10 : 0)
+                }
+                contentItem: Item {
+                    AppIcon {
+                        id: appMark
+                        anchors.verticalCenter: parent.verticalCenter
+                        size: Tokens.px(32)
+                        styleEnabled: true
+                        styleInk: sheet.iconInk
+                        fallback: hit.modelData.glyph || "apps"
+                        fallbackColor: sheet.accent
+                        source: Quickshell.iconPath(hit.modelData.icon || "application-x-executable", true)
                     }
-                    MouseArea {
-                        id: tabMouse
-                        anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            field.clear();
-                            sheet.launcher.query = "";
-                            sheet.launcher.section = sheet.launcher.section === tab.modelData.id ? "all" : tab.modelData.id;
-                            sheet.launcher.selected = 0;
-                            field.forceActiveFocus();
+                    Column {
+                        anchors { left: appMark.right; leftMargin: Tokens.px(10); right: parent.right; verticalCenter: parent.verticalCenter }
+                        Text {
+                            width: parent.width
+                            text: hit.text
+                            elide: Text.ElideRight
+                            color: sheet.ink
+                            font.family: sheet.launcher.fontFamily
+                            font.pixelSize: Tokens.px(14)
+                            font.weight: Font.DemiBold
+                        }
+                        Text {
+                            width: parent.width
+                            visible: text.length > 0
+                            text: hit.modelData.genericName || hit.modelData.comment || ""
+                            elide: Text.ElideRight
+                            color: Theme.alpha(sheet.ink, 0.68)
+                            font.family: sheet.launcher.fontFamily
+                            font.pixelSize: Tokens.px(11)
+                        }
+                    }
+                }
+            }
+        }
+        Flickable {
+            id: grid
+            visible: sheet.appsMode || opacity > 0
+            enabled: sheet.appsMode
+            opacity: Math.max(0, 2 * panel.modeBlend - 1)
+            anchors { top: header.bottom; bottom: parent.bottom; left: parent.left; right: parent.right; margins: sheet.inset; topMargin: 0 }
+            clip: true
+            contentWidth: width
+            contentHeight: shelves.height
+            boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+            Column {
+                id: shelves
+                width: grid.width
+                spacing: Tokens.px(12)
+                Repeater {
+                    model: grid.visible ? sheet.sections : []
+                    delegate: Column {
+                        id: shelf
+                        required property var modelData
+                        width: shelves.width
+
+                        Rectangle { width: parent.width; height: 1; color: Theme.alpha(sheet.ink, 0.16) }
+                        Item {
+                            width: parent.width
+                            height: Tokens.px(42)
+                            Text {
+                                anchors { left: parent.left; right: action.left; verticalCenter: parent.verticalCenter }
+                                text: I18n.tr(shelf.modelData.label)
+                                color: sheet.ink
+                                elide: Text.ElideRight
+                                font.family: sheet.launcher.fontFamily
+                                font.pixelSize: Tokens.px(15)
+                                font.weight: Font.DemiBold
+                            }
+                            ToolButton {
+                                id: action
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                visible: shelf.modelData.more || (sheet.launcher.section !== "all" || sheet.launcher.query.length > 0)
+                                text: I18n.tr(shelf.modelData.more ? (shelf.modelData.id === "suggestions" ? "Show more" : "Show all") : "All applications")
+                                contentItem: Text {
+                                    text: action.text
+                                    color: sheet.ink
+                                    font.family: sheet.launcher.fontFamily
+                                    font.pixelSize: Tokens.px(12)
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                background: null
+                                onClicked: sheet.selectSection(shelf.modelData.more ? shelf.modelData.id : "all")
+                            }
+                        }
+                        Grid {
+                            columns: sheet.cols
+                            Repeater {
+                                model: shelf.modelData.entries
+                                delegate: Item {
+                                    id: tile
+                                    required property var modelData
+                                    required property int index
+                                    property int appIndex: shelf.modelData.start + index
+                                    readonly property bool selected: appIndex === sheet.launcher.selected
+                                    width: sheet.cellWidth
+                                    height: sheet.rowHeight
+                                    Accessible.role: Accessible.Button
+                                    Accessible.name: modelData.name
+                                    Accessible.onPressAction: sheet.launcher.launch(modelData)
+                                    onSelectedChanged: if (selected) {
+                                        const top = mapToItem(shelves, 0, 0).y;
+                                        if (top < grid.contentY) grid.contentY = top;
+                                        else if (top + height > grid.contentY + grid.height)
+                                            grid.contentY = Math.max(0, top + height - grid.height);
+                                    }
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        anchors.margins: Tokens.px(4)
+                                        radius: Tokens.px(14)
+                                        color: Theme.alpha(sheet.accent, 0.20)
+                                        border.color: Theme.alpha(sheet.accent, 0.45)
+                                        visible: tile.selected || tileMouse.containsMouse
+                                    }
+                                    AppIcon {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        y: Tokens.px(5)
+                                        size: Math.min(Tokens.px(58), tile.width - Tokens.px(8))
+                                        styleEnabled: true
+                                        styleInk: sheet.iconInk
+                                        fallback: tile.modelData.glyph || "apps"
+                                        fallbackColor: sheet.accent
+                                        source: Quickshell.iconPath(tile.modelData.icon || "application-x-executable", true)
+                                    }
+                                    Text {
+                                        anchors { bottom: parent.bottom; bottomMargin: Tokens.px(15); left: parent.left; right: parent.right; margins: Tokens.px(6) }
+                                        text: tile.modelData.name
+                                        color: sheet.ink
+                                        font.family: sheet.launcher.fontFamily
+                                        font.pixelSize: Tokens.px(13)
+                                        elide: Text.ElideRight
+                                        horizontalAlignment: Text.AlignHCenter
+                                    }
+                                    MouseArea {
+                                        id: tileMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: sheet.launcher.launch(tile.modelData)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
         Text {
-            id: sectionTitle
-            x: Tokens.px(20); y: Tokens.px(103)
-            text: I18n.tr(sheet.launcher.query ? "Search results" : "All applications")
-            visible: sheet.launcher.query.length > 0 || sheet.launcher.section === "all"
-            color: sheet.launcher.ink; opacity: 0.74
-            font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(12); font.weight: Font.DemiBold
-        }
-        // ScriptModel declared separately so its values are assigned after
-        // GridView::componentComplete. DesktopEntries.applications.values is
-        // populated asynchronously by Quickshell; if results change while the
-        // GridView is still completing, QQuickItemView::itemY() dereferences a
-        // deleted delegate item and segfaults. Deferring the initial assignment
-        // (and keeping sync via Connections afterwards) avoids that window.
-        ScriptModel {
-            id: gridScriptModel
-            values: []
-        }
-        GridView {
-            id: grid
-            y: 121
             anchors.horizontalCenter: parent.horizontalCenter
-            cellWidth: Math.max(48, Math.floor((Math.max(120, panel.width) - 36) / Math.max(1, sheet.cols)))
-            cellHeight: sheet.rowHeight
-            width: Math.max(48, cellWidth * sheet.cols)
-            height: Math.max(sheet.rowHeight, sheet.rows * cellHeight)
-            clip: true
-            snapMode: GridView.SnapToRow
-            model: gridScriptModel
-            boundsBehavior: Flickable.StopAtBounds
-            currentIndex: sheet.launcher.selected
-            onCurrentIndexChanged: if (currentIndex >= 0 && count > 0 && grid.width > 0) positionViewAtIndex(currentIndex, GridView.Contain)
-            onCountChanged: Qt.callLater(() => {
-                if (sheet.launcher.selected === 0 && count > 0 && grid.width > 0) positionViewAtBeginning();
-            })
-            delegate: Item {
-                id: tile
-                required property var modelData
-                required property int index
-                width: grid.cellWidth; height: grid.cellHeight
-                Rectangle {
-                    anchors.fill: parent; anchors.margins: Tokens.px(2)
-                    radius: Tokens.px(12)
-                    visible: tile.index === sheet.launcher.selected
-                    color: Theme.alpha(sheet.accent, 0.15)
-                    border.color: Theme.alpha(sheet.accent, 0.50)
-                }
-                IconImage {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    y: 9
-                    implicitSize: 40
-                    source: Quickshell.iconPath(tile.modelData.icon || "application-x-executable", true)
-                    asynchronous: true
-                }
-                Text {
-                    x: 5; y: 55; width: parent.width - x * 2
-                    text: I18n.tr(tile.modelData.name)
-                    color: sheet.launcher.ink
-                    font.family: sheet.launcher.fontFamily; font.pixelSize: 12
-                    elide: Text.ElideRight; horizontalAlignment: Text.AlignHCenter
-                }
-                MouseArea {
-                    id: tileMouse
-                    anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                    onPositionChanged: sheet.launcher.selected = tile.index
-                    onClicked: sheet.launcher.launch(tile.modelData)
-                }
-            }
-            Component.onCompleted: {
-                // Defer the initial model assignment past componentComplete so an
-                // async DesktopEntries update cannot destroy delegate items mid-completion.
-                Qt.callLater(() => {
-                    gridScriptModel.values = sheet.launcher.results;
-                });
-            }
-            // Keep the model in sync when results change (query, section, hidden/pinned).
-            // These fire after componentComplete, so model swaps are safe.
-            Connections {
-                target: sheet.launcher
-                function onResultsChanged() {
-                    gridScriptModel.values = sheet.launcher.results;
-                }
-            }
-            ScrollBar.vertical: ScrollBar {
-                parent: panel
-                x: grid.x + grid.width + 4; y: grid.y
-                height: grid.height; width: 8
-                policy: ScrollBar.AsNeeded
-            }
-        }
-        Text {
-            anchors.centerIn: grid
-            visible: !sheet.launcher.results.length
+            y: header.height + (parent.height - header.height - height) / 2
+            visible: !sheet.visibleApps.length
             text: I18n.tr("No applications found")
-            color: sheet.launcher.ink
-            font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(13)
-        }
-        Text {
-            id: footer
-            anchors { bottom: parent.bottom; bottomMargin: Tokens.px(4); left: parent.left; leftMargin: Tokens.px(18) }
-            text: I18n.tr("↑↓←→ Navigate   ↵ Open   ⇥ Category   Esc Close")
-            color: sheet.launcher.ink; opacity: 0.67
-            font.family: sheet.launcher.fontFamily; font.pixelSize: Tokens.px(10)
-        }
-        PalettePreferences {
-            anchors.fill: parent; anchors.margins: Tokens.px(8)
-            visible: sheet.settingsOpen
-            launcher: sheet.launcher
-            onDismissed: { sheet.settingsOpen = false; field.forceActiveFocus(); }
+            color: sheet.ink
+            font.family: sheet.launcher.fontFamily
+            font.pixelSize: Tokens.px(13)
         }
     }
 }

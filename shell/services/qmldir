@@ -1,0 +1,2 @@
+# Heavy, opt-in services. Lightweight companions import only `core`; the full
+# shell (Hub) and the island companion pull the services they actually need.

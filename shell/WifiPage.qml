@@ -6,13 +6,14 @@ import QtQuick.Controls
 // join straight away, new secured ones ask for the password inline.
 Item {
     id: root
+    property bool embedded: false
 
     Item {
         id: header
         width: parent.width
         height: 36
-        IconButton { id: backBtn; icon: "chevron_left"; size: 22; pad: 5; anchors.verticalCenter: parent.verticalCenter; onClicked: Hub.ccPage = "" }
-        Txt { anchors.left: backBtn.right; anchors.leftMargin: 4; anchors.verticalCenter: parent.verticalCenter; sourceText: "Wi-Fi"; size: 18; weight: Font.Bold }
+        IconButton { id: backBtn; visible: !root.embedded; icon: "chevron_left"; size: 22; pad: 5; anchors.verticalCenter: parent.verticalCenter; onClicked: Hub.ccPage = "" }
+        Txt { visible: !root.embedded; anchors.left: backBtn.right; anchors.leftMargin: 4; anchors.verticalCenter: parent.verticalCenter; sourceText: "Wi-Fi"; size: 18; weight: Font.Bold }
         Row {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -110,7 +111,10 @@ Item {
                             if (net.asking) { Hub.wifiNeedsPassword = ""; return; }
                             Hub.wifiConnect(modelData, "");
                         }
-                        onAskingChanged: if (asking) Qt.callLater(() => pw.forceActiveFocus())
+                        onAskingChanged: {
+                            if (asking) Qt.callLater(() => { if (asking) pw.forceActiveFocus(); });
+                            else { pw.clear(); showPw.checked = false; }
+                        }
 
                         // password, inline
                         Row {
@@ -120,6 +124,7 @@ Item {
                             spacing: 8
                             TextField {
                                 id: pw
+                                objectName: "wifi-password"
                                 width: parent.width - joinBtn.width - 8
                                 height: 34
                                 anchors.verticalCenter: parent.verticalCenter

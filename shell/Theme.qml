@@ -109,45 +109,58 @@ Singleton {
     // Wallpaper: find the current image and pull its most vivid colour.
     // Works with swww/awww, hyprpaper, swaybg, waypaper, pywal's cache and common symlinks.
     property string detectedWallpaper: ""
-    readonly property string wallpaper: Config.island.wallpaperPath ? root.home(Config.island.wallpaperPath) : (DesktopTheme.wallpaper || detectedWallpaper)
+    function wallpaperUrl(path) {
+        return path ? "file://" + path.split("/").map(segment => encodeURIComponent(segment)).join("/") : "";
+    }
+    readonly property string desktopWallpaper: DesktopTheme.wallpaper || detectedWallpaper || Config.general.desktopWallpaperPath
+    readonly property string wallpaper: Config.island.wallpaperPath ? root.home(Config.island.wallpaperPath) : desktopWallpaper
     Process {
         id: wallProc
         command: ["sh", "-c",
-            "p=\"$1\"; " +
             "for t in swww awww; do [ -n \"$p\" ] && break; command -v $t >/dev/null || continue; " +
             "  p=$($t query 2>/dev/null | grep -o 'image: .*' | head -1 | cut -d' ' -f2-); done; " +
             "[ -z \"$p\" ] && p=$(ps -o args= -C swaybg 2>/dev/null | grep -oE '(-i|--image) +[^ ]+' | head -1 | awk '{print $2}'); " +
             "[ -z \"$p\" ] && [ -f \"$HOME/.config/waypaper/config.ini\" ] && p=$(grep -E '^wallpaper *=' \"$HOME/.config/waypaper/config.ini\" | head -1 | sed -E 's/^[^=]*= *//'); " +
             "[ -z \"$p\" ] && [ -f \"$HOME/.cache/wal/wal\" ] && p=$(cat \"$HOME/.cache/wal/wal\"); " +
             "case \"$p\" in \"~/\"*) p=\"$HOME/${p#\\~/}\";; esac; echo \"$p\"",
-            "sh", root.home(Config.island.wallpaperPath)]
+            "sh"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const p = this.text.trim();
-                if (p !== "" && p !== root.wallpaper && !DesktopTheme.wallpaper) root.detectedWallpaper = p;
+                if (p !== "" && !DesktopTheme.wallpaper) root.detectedWallpaper = p;
             }
         }
     }
     Timer { interval: 15000; repeat: true; running: !DesktopTheme.wallpaper; triggeredOnStart: true; onTriggered: wallProc.running = true }
-    Connections { target: Config.s; function onWallpaperPathChanged() { wallProc.running = true; } }
     ColorQuantizer {
         id: wallQuant
-        source: root.wallpaper !== "" && /\.(png|jpe?g|webp|bmp|gif|tiff?)$/i.test(root.wallpaper) ? "file://" + root.wallpaper : ""
+        source: root.wallpaper !== "" && /\.(png|jpe?g|webp|bmp|gif|tiff?)$/i.test(root.wallpaper) ? root.wallpaperUrl(root.wallpaper) : ""
         depth: 4
         rescaleSize: 96
     }
     readonly property var wallColors: wallQuant.colors
-    readonly property string wallAccent: {
-        const cs = wallQuant.colors;
+    ColorQuantizer {
+        id: desktopQuant
+        source: root.desktopWallpaper !== root.wallpaper && /\.(png|jpe?g|webp|bmp|gif|tiff?)$/i.test(root.desktopWallpaper)
+            ? root.wallpaperUrl(root.desktopWallpaper) : ""
+        depth: 4
+        rescaleSize: 96
+    }
+    readonly property string desktopWallAccent: desktopWallpaper === wallpaper ? wallAccent : wallpaperAccent(desktopQuant.colors)
+    readonly property string wallAccent: wallpaperAccent(wallQuant.colors)
+    function wallpaperAccent(cs) {
         if (!cs || cs.length === 0) return "";
-        let best = null, score = -1;
+        let best = null, score = -1, lightness = 0;
         for (let i = 0; i < cs.length; i++) {
             const c = cs[i];
+            lightness += c.hslLightness;
             // vivid, mid-lightness colours win (Material You-ish "source colour")
             const s = c.hslSaturation * (1 - Math.abs(c.hslLightness - 0.5) * 1.4);
             if (s > score) { score = s; best = c; }
         }
-        return best && best.hslSaturation > 0.12 ? best.toString() : "";
+        if (best && best.hslSaturation > 0.12) return best.toString();
+        const gray = Math.max(0.38, Math.min(0.72, lightness / cs.length));
+        return Qt.rgba(gray, gray, gray, 1).toString();
     }
 
     readonly property string hyprAccent: ""
@@ -165,36 +178,39 @@ Singleton {
                                 : Config.island.appearance === "light" ? false : autoDark)
 
     // ═══════════════════════════ ACCENT ══════════════════════════
-    readonly property string origin: {
-        const src = Config.island.accentSource;
-        if ((src === "auto" || src === "wallpaper" || src === "ryoku") && DesktopTheme.available) return "ryoku";
+    function accentOrigin(src, imageAccent = wallAccent) {
+        if (src === "auto" && DesktopTheme.follow && imageAccent !== ""
+                && desktopWallpaper === Config.general.desktopWallpaperPath) return "wallpaper";
+        if (src === "auto" && DesktopTheme.available) return "ryoku";
         if (src !== "auto") return src;
         if (matAccent !== "") return "matugen";
         if (walAccent !== "") return "wal";
-        if (wallAccent !== "") return "wallpaper";
+        if (imageAccent !== "") return "wallpaper";
         if (gtkAccent !== "" && gtkAccent !== "blue") return "gtk";
         if (hyprAccent !== "") return "hyprland";
         return "default";
     }
+    readonly property string origin: accentOrigin(Config.island.accentSource)
     readonly property string originLabel: ({
         matugen: "Matugen", wal: "Pywal / Wallust", wallpaper: "Wallpaper", gtk: "GTK accent", hyprland: "Hyprland border",
         album: "Album art", custom: "Custom", default: "iOS Blue"
     })[origin] || origin
 
-    readonly property color rawAccent: {
+    function materialAccent(options, fallback = "#0a84ff", imageAccent = wallAccent) {
         let c = "";
-        switch (origin) {
-        case "ryoku": c = DesktopTheme.accent; break;
+        switch (accentOrigin(options.accentSource, imageAccent)) {
+        case "ryoku": c = DesktopTheme.selected.primary; break;
         case "matugen": c = matAccent; break;
         case "wal": c = walAccent; break;
-        case "wallpaper": c = wallAccent; break;
+        case "wallpaper": c = imageAccent || DesktopTheme.palette.primary; break;
         case "gtk": c = gtkAccents[gtkAccent] || ""; break;
         case "hyprland": c = hyprAccent; break;
-        case "album": c = Hub.albumColorValid ? Hub.albumColor : ""; break;
-        case "custom": c = Config.island.customAccent; break;
+        case "album": c = AlbumTint.valid ? AlbumTint.color : ""; break;
+        case "custom": c = options.customAccent; break;
         }
-        return c !== "" ? Qt.color(c) : (dark ? "#0a84ff" : "#007aff");
+        return Qt.color(c || fallback);
     }
+    readonly property color rawAccent: materialAccent(Config.island, dark ? "#0a84ff" : "#007aff")
     // keep it readable on glass
     function tune(c) {
         if (c.hslSaturation < 0.08) return c; // greys stay grey
@@ -204,29 +220,8 @@ Singleton {
         return Qt.hsla(c.hslHue, s, l, 1);
     }
     readonly property color accentTarget: tune(rawAccent)
-    // Resolve each component's effective settings rather than borrowing the
-    // island's overrides. Glass uses the same raw accent in every host.
-    function materialAccent(options) {
-        const source = options.accentSource;
-        if (source === "custom") return Qt.color(options.customAccent);
-        if (source === "album" && Hub.albumColorValid) return Hub.albumColor;
-        if ((source === "auto" || source === "wallpaper" || source === "ryoku") && DesktopTheme.available) return DesktopTheme.accent;
-        if (source === "matugen" && matAccent) return Qt.color(matAccent);
-        if (source === "wal" && walAccent) return Qt.color(walAccent);
-        if (source === "wallpaper" && wallAccent) return wallAccent;
-        if (source === "gtk") return Qt.color(gtkAccents[gtkAccent] || "#0a84ff");
-        if (source === "hyprland" && hyprAccent) return Qt.color(hyprAccent);
-        if (source === "auto") {
-            if (matAccent) return Qt.color(matAccent);
-            if (walAccent) return Qt.color(walAccent);
-            if (wallAccent) return wallAccent;
-            if (gtkAccent && gtkAccent !== "blue") return Qt.color(gtkAccents[gtkAccent] || "#0a84ff");
-            if (hyprAccent) return Qt.color(hyprAccent);
-        }
-        return Qt.color("#0a84ff");
-    }
     function materialTint(options, isDark) { return Material.tint(isDark, options.glassAccentTint, materialAccent(options)); }
-    readonly property color liveTarget: Config.island.albumTint && Hub.playing && Hub.albumColorValid ? tune(Hub.albumColor) : accentTarget
+    readonly property color liveTarget: Config.island.albumTint && AlbumTint.playing && AlbumTint.valid ? tune(AlbumTint.color) : accentTarget
 
     property color accent: "#0a84ff"
     property color live: "#0a84ff"     // album-aware accent for media UI and glow
@@ -286,8 +281,10 @@ Singleton {
 
     // ═══════════════════════════ MOTION ══════════════════════════
     readonly property bool reduced: Config.island.motion === "reduced"
-    readonly property real spring: ({ gentle: 3.0, balanced: 3.6, bouncy: 4.2, reduced: 7 })[Config.island.motion] || 3.6
-    readonly property real damping: ({ gentle: 0.42, balanced: 0.30, bouncy: 0.21, reduced: 1.0 })[Config.island.motion] || 0.3
+    function springFor(motion) { return ({ gentle: 3.0, balanced: 3.6, bouncy: 4.2, reduced: 7 })[motion] || 3.6; }
+    function dampingFor(motion) { return ({ gentle: 0.42, balanced: 0.30, bouncy: 0.21, reduced: 1.0 })[motion] || 0.3; }
+    readonly property real spring: springFor(Config.island.motion)
+    readonly property real damping: dampingFor(Config.island.motion)
     readonly property int fast: reduced ? 1 : Math.max(1, Config.island.fastDuration)
     readonly property int med: reduced ? 1 : Math.max(1, Config.island.mediumDuration)
 }

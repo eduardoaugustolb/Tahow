@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Window
 import Quickshell
 import Quickshell.Io
+import "../lib/symbols.js" as Symbols
 FloatingWindow {
  id:win
  property string kind:"cpu"
@@ -46,7 +47,14 @@ FloatingWindow {
   anchors.fill:parent;anchors.margins:22;spacing:14
   Row{width:parent.width;height:38
    Text{width:parent.width-40;text:win.title;color:win.ink;font.family:"Inter";font.pixelSize:20;font.weight:Font.DemiBold}
-   Button{width:36;height:32;text:"×";onClicked:win.dismissed()}
+   Button {
+    width:34;height:34;padding:0
+    Accessible.name:win.translate("Close")
+    contentItem: Item {
+     Image { anchors.centerIn:parent;width:16;height:16;sourceSize:Qt.size(32,32);source:Symbols.image("close",false,win.ink.toString()) }
+    }
+    onClicked:win.dismissed()
+   }
   }
   ScrollView{width:parent.width;height:parent.height-60;contentWidth:availableWidth;clip:true
    Column{width:parent.width;spacing:12

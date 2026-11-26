@@ -11,6 +11,7 @@
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/render/Shader.hpp>
 #include <hyprland/src/render/gl/blur/Acrylic.hpp>
+#include <hyprland/src/state/MonitorState.hpp>
 #include <map>
 #include <memory>
 #include <regex>
@@ -53,28 +54,33 @@ WP<CShader> materialShader(GL::CHyprOpenGLImpl *backend, ePreparedFragmentShader
         if (!std::regex_search(source, shadow))
             throw std::runtime_error("Tahow: unsupported acrylic inner-shadow shader; rebuild required");
         source = std::regex_replace(source, shadow, "acrylicLinear *= 1.0 - shadow * tahowInnerShadow;");
-        const std::regex highlight(R"(\*\s*highlight\s*;)");
+        const std::regex highlight(R"(float highlight = outerRim[^;]*;[\s\S]*?highlight \*= effect[^;]*;)");
         if (!std::regex_search(source, highlight))
             throw std::runtime_error("Tahow: unsupported acrylic rim shader; rebuild required");
-        source = std::regex_replace(source, highlight, "* highlight * tahowRim;");
+        source = std::regex_replace(source, highlight, R"(float highlight = exp(-opticalDepth / 0.85) * (0.06 + 0.36 * max(directional, 0.0));
+    highlight += exp(-opticalDepth / 1.6) * 0.16 * max(-directional, 0.0);
+    highlight *= effect * tahowRim * mix(0.55, 0.32, normalizedLuma);)");
         source = std::regex_replace(source, std::regex(R"(vec4\s+applyAcrylic\s*\()"), "uniform highp float tahowInnerShadow;\nuniform highp float tahowRim;\nvec4 applyAcrylic(");
-        const std::string lens = "float lens = lensEntry * lensExit;";
         const std::string bulbWidth = "float bulbWidth = clamp(acrylicBulb, 1.0, maximumBulb);";
+        const std::string lens = "float lens = lensEntry * lensExit;";
+        const std::string travelDirection = "float availableTravel = availableTextureTravel(v_texcoord, outwardUV, halfTexel, maximumUV);";
         const std::string displacement = "vec2 displacementPixels = outward * safeRefraction * lens * effect;";
         const std::string channels = "vec2 redUV = clamp(v_texcoord + displacementUV, halfTexel, maximumUV);\n    vec2 greenUV = clamp(v_texcoord + displacementUV * (1.0 - aberration * 0.5), halfTexel, maximumUV);\n    vec2 blueUV = clamp(v_texcoord + displacementUV * (1.0 - aberration), halfTexel, maximumUV);";
         const std::string clarity = "float clarity = clamp(acrylicClarity, 0.0, 1.0) * effect * fresnelTransmission * clarityCore;";
-        if (source.find(bulbWidth) == std::string::npos || source.find(lens) == std::string::npos || source.find(displacement) == std::string::npos || source.find(channels) == std::string::npos || source.find(clarity) == std::string::npos)
+        if (source.find(bulbWidth) == std::string::npos || source.find(lens) == std::string::npos || source.find(travelDirection) == std::string::npos ||
+            source.find(displacement) == std::string::npos || source.find(channels) == std::string::npos || source.find(clarity) == std::string::npos)
             throw std::runtime_error("Tahow: unsupported acrylic lens shader; rebuild required");
-        source.replace(source.find(bulbWidth), bulbWidth.size(), "float bulbWidth = mix(clamp(acrylicBulb, 1.0, maximumBulb), clamp(acrylicBulb, maximumBulb, max(minimumHalfSize, 1.0)), tahowPrism);");
-        source.replace(source.find(lens), lens.size(), "float lens = mix(lensEntry * lensExit, lensEntry * (1.0 - smootherstep(0.35, 1.0, progress)), tahowPrism);");
-        // A steep rise in displacement folds the sampling profile and repeats the background.
-        source.replace(source.find(displacement), displacement.size(), "float travel = mix(safeRefraction * lens, min(safeRefraction, 0.5 * bulbWidth) * progress * (1.0 - smootherstep(0.55, 1.0, progress)), tahowPrism);\n    vec2 displacementPixels = outward * travel * effect;");
+        source.replace(source.find(bulbWidth), bulbWidth.size(), "float bulbWidth = mix(clamp(acrylicBulb, 1.0, max(minimumHalfSize, 1.0)), clamp(acrylicBulb, maximumBulb, max(minimumHalfSize, 1.0)), tahowPrism);");
+        source.replace(source.find(lens), lens.size(), "float lens = mix(1.0 - progress, lensEntry * (1.0 - smootherstep(0.35, 1.0, progress)), tahowPrism);");
+        source.replace(source.find(travelDirection), travelDirection.size(), "float availableTravel = availableTextureTravel(v_texcoord, outwardUV * mix(-1.0, 1.0, tahowPrism), halfTexel, maximumUV);");
+        // Bound the slope of the inward lens so it cannot fold and repeat the backdrop.
+        source.replace(source.find(displacement), displacement.size(), "float travel = mix(min(safeRefraction, 0.94 * bulbWidth) * lens, min(safeRefraction, 0.68 * bulbWidth) * progress * (1.0 - smootherstep(0.55, 1.0, progress)), tahowPrism);\n    vec2 displacementPixels = outward * travel * effect * mix(-1.0, 1.0, tahowPrism);");
         source.replace(source.find(channels), channels.size(), R"(
-    float prismSpread = 3.6 * aberration;
-    vec2 redUV = clamp(v_texcoord + displacementUV * mix(1.0, 1.0 + prismSpread, tahowPrism), halfTexel, maximumUV);
-    vec2 greenUV = clamp(v_texcoord + displacementUV * mix(1.0 - aberration * 0.5, 1.0, tahowPrism), halfTexel, maximumUV);
-    vec2 blueUV = clamp(v_texcoord + displacementUV * mix(1.0 - aberration, 1.0 - prismSpread, tahowPrism), halfTexel, maximumUV);)");
-        source.replace(source.find(clarity), clarity.size(), "float clarity = clamp(acrylicClarity, 0.0, 1.0) * effect * mix(fresnelTransmission * clarityCore, 1.0, tahowPrism);");
+    float spread = aberration * mix(1.0, 3.6, tahowPrism);
+    vec2 redUV = clamp(v_texcoord + displacementUV * (1.0 + spread), halfTexel, maximumUV);
+    vec2 greenUV = clamp(v_texcoord + displacementUV * 1.0, halfTexel, maximumUV);
+    vec2 blueUV = clamp(v_texcoord + displacementUV * (1.0 - spread), halfTexel, maximumUV);)");
+        source.replace(source.find(clarity), clarity.size(), "float clarity = effect * mix(max(0.82 * acrylicClarity * clarityCore, lens), acrylicClarity, tahowPrism);");
         source = std::regex_replace(source, std::regex(R"(vec4\s+applyAcrylic\s*\()"), "uniform highp float tahowPrism;\nvec4 applyAcrylic(");
         auto program = makeShared<CShader>();
         const auto &vertex = source.find("#version 320") != std::string::npos ? backend->m_shaders->TEXVERTSRC320 : backend->m_shaders->TEXVERTSRC;
@@ -135,6 +141,22 @@ void reply(Client &c, const json &msg) {
 }
 void damage(const Region &r) {
     if (!r.surfaceLocal) { g_pHyprRenderer->damageBox(r.box); return; }
+    if (r.target == "quickshell:tahow-input") {
+        for (const auto &monitor : State::monitorState()->monitors()) {
+            if (!r.screen.empty() && monitor->m_name != r.screen) continue;
+            for (const auto &layers : monitor->m_layerSurfaceLayers) {
+                for (const auto &ref : layers) {
+                    const auto layer = ref.lock();
+                    if (!layer || layer->m_namespace != r.target || layer->getPID() != r.pid) continue;
+                    const auto base = layer->geometricBox(Desktop::View::IGeometric::GEOMETRIC_CURRENT);
+                    auto box = r.box;
+                    box.translate(Vector2D{base.x, base.y});
+                    g_pHyprRenderer->damageBox(box);
+                }
+            }
+        }
+        return;
+    }
     // Wayland clients do not know a toplevel's global position. Resolve the
     // authenticated owner's real geometry inside the compositor instead.
     for (const auto &window : Desktop::windowState()->windows()) {
@@ -157,12 +179,12 @@ void closeClient(int fd) {
     clients.erase(it);
 }
 bool allowed(const std::string &s) {
-    return s == "quickshell:island" || s == "launcher-noblur" || s == "ryoku-widgets" || s == "tahow-live-test" || s == "tahow-settings";
+    return s == "quickshell:island" || s == "launcher-noblur" || s == "ryoku-widgets" || s == "tahow-live-test" || s == "tahow-settings" || s == "quickshell:tahow-input";
 }
 void message(Client &c, const json &j) {
     const auto op = j.value("op", std::string());
     if (op == "hello") {
-        reply(c, {{"op", "hello"}, {"version", 1}, {"provider", "hyprland-acrylic"}, {"prism", true}});
+        reply(c, {{"op", "hello"}, {"version", 1}, {"provider", "hyprland-acrylic"}, {"prism", true}, {"inputPanel", true}});
         return;
     }
     if (op == "stats") {
@@ -189,7 +211,7 @@ void message(Client &c, const json &j) {
     if (!allowed(r.target) || r.screen.size() > 128)
         return;
     r.surfaceLocal = j.value("surfaceLocal", false);
-    if (r.surfaceLocal && r.target != "tahow-settings") return;
+    if (r.surfaceLocal && r.target != "tahow-settings" && r.target != "quickshell:tahow-input") return;
     const double x = j.at("x"), y = j.at("y"), w = j.at("width"), h = j.at("height");
     r.radius = j.at("radius");
     r.alpha = j.at("alpha");
@@ -199,7 +221,7 @@ void message(Client &c, const json &j) {
         if (!std::isfinite(v))
             return;
     const bool prism = j.value("prism", false);
-    r.optics = {static_cast<float>(std::clamp(prism ? std::max(depth * (ior - 1) * 2.5, 38.) : depth * (ior - 1), 0., 48.)), static_cast<float>(std::clamp(bezel * (prism ? 4.0 : 2.175), 4., 256.)),
+    r.optics = {static_cast<float>(std::clamp(prism ? std::max(depth * (ior - 1) * 2.5, 38.) : depth * (ior - 1) * 9.0, 0., 48.)), static_cast<float>(std::clamp(bezel * (prism ? 4.0 : 2.0), 1., 256.)),
                 static_cast<float>(prism ? 1. : 1 - std::clamp(frost / 30., 0., 1.)), static_cast<float>(std::clamp(prism ? std::max(dispersion * 2., 0.18) : dispersion, 0., 0.25)),
                 static_cast<float>(std::clamp(innerShadow, 0., 1.)), static_cast<float>(std::clamp(rim, 0., 1.)), prism ? 1.F : 0.F};
     for (double v : {x, y, w, h, r.radius, r.alpha})

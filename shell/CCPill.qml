@@ -1,6 +1,6 @@
 import QtQuick
 
-// macOS Control Center module row: the round icon toggles, the rest opens the menu (›).
+// The round icon toggles, and the rest of the tile opens the menu when available.
 Item {
     id: root
     property string icon: ""
@@ -17,8 +17,10 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 14
-        color: rowMa.containsMouse && root.hasMenu ? Theme.fill : "transparent"
+        radius: height / 2
+        color: rowMa.containsMouse ? Theme.fill2 : Theme.fill
+        border.width: 1
+        border.color: Theme.glass ? Qt.rgba(1, 1, 1, Theme.dark ? 0.12 : 0.42) : "transparent"
         Behavior on color { ColorAnimation { duration: 140 } }
     }
     MouseArea {
@@ -31,7 +33,7 @@ Item {
 
     Rectangle {
         id: circle
-        x: 4
+        x: 8
         anchors.verticalCenter: parent.verticalCenter
         width: 36; height: 36; radius: 18
         color: root.active ? root.activeColor : circMa.containsMouse ? Theme.fill3 : Theme.fill2

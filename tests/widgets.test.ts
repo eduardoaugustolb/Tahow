@@ -27,7 +27,7 @@ test('eight independent plugin products contain valid manifests and self-contain
   expect(manifest.defaults.desktopWidget.bg).toBe('none');
   expect(manifest.metadata.settings.find((setting:any)=>setting.key==='material').default).toBe('simulated');
   expect(manifest.metadata.settings.find((setting:any)=>setting.key==='material').options.map((option:any)=>option.value)).toContain('prism');
-  expect(await Bun.file(base+'/content/shaders/liquid_glass.frag.qsb').exists()).toBe(true);
+  expect(await Bun.file(base+'/content/shaders/frosted_glass.frag.qsb').exists()).toBe(true);
   if(product.kind==='clock')expect(manifest.metadata.settings.find((setting:any)=>setting.key==='clockStyle').default).toBe('card');
   expect(manifest.capabilities.network).toEqual(product.kind === "github" ? ["github-contributions-api.jogruber.de"] : product.kind === "media" ? ["*"] : []);
   expect(await Bun.file(base+'/assets/preview-widget.png').exists()).toBe(true);

@@ -8,10 +8,10 @@ Rectangle {
     property bool hoverable: false
     signal clicked()
 
-    radius: 22
+    radius: 24
     color: hoverable && ma.containsMouse ? Theme.fill2 : Theme.fill
     border.width: 1
-    border.color: Theme.glass ? Qt.rgba(1, 1, 1, Theme.dark ? 0.06 : 0.35) : "transparent"
+    border.color: Theme.glass ? Qt.rgba(1, 1, 1, Theme.dark ? 0.09 : 0.42) : "transparent"
     scale: hoverable && ma.pressed ? 0.97 : 1
     Behavior on color { ColorAnimation { duration: 160 } }
     Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 2 } }

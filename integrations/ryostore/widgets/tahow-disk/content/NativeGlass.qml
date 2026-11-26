@@ -1,4 +1,4 @@
-// Adapter for the Liquid Glass shader shipped by Ryoku. No private module import.
+// Frosted backdrop material with rounded clipping.
 import QtQuick
 
 ShaderEffect {
@@ -24,6 +24,8 @@ ShaderEffect {
     property real clear: 0
     property real glassPad: 0
     property real shadowAmt: 0
+    property real innerShadow: 1
+    property real prism: 0
     property real energy: 0
     property real nest: 0
     property real morph: 0
@@ -39,10 +41,9 @@ ShaderEffect {
     property vector2d itemSize: Qt.vector2d(width, height)
     property vector4d radii: Qt.vector4d(topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius)
     property vector4d srcRect: Qt.vector4d(sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height)
-    property vector2d cursor: Qt.vector2d(cursorPos.x, cursorPos.y)
     property vector4d fillet: Qt.vector4d(filletDir.x, filletDir.y, filletRadius, earsOnly ? 1 : 0)
     property vector4d sampleBounds: Qt.vector4d(validRect.x, validRect.y, validRect.x + validRect.width, validRect.y + validRect.height)
     property vector4d box:boxRect.width > 0 ? Qt.vector4d(boxRect.x + boxRect.width * 0.5 - width * 0.5, boxRect.y + boxRect.height * 0.5 - height * 0.5, boxRect.width * 0.5, boxRect.height * 0.5) : Qt.vector4d(0, 0, 0, 0)
 
-    fragmentShader: Qt.resolvedUrl("shaders/liquid_glass.frag.qsb")
+    fragmentShader: Qt.resolvedUrl("shaders/frosted_glass.frag.qsb")
 }

@@ -5,6 +5,11 @@ Singleton {
     signal prepareRequested(string screen, string kind, int value)
     signal prepared(string screen, string kind, int value)
     signal preparationCancelled()
+    // Element-level requests routed through the port so lightweight companions
+    // (palette, cards) never need the full Hub to close themselves or open prefs.
+    signal closePaletteRequested()
+    signal openSettingsRequested()
+    signal openDesktopAppRequested(string app)
     function prepare(screen,kind,value) { prepareRequested(screen,kind,value); }
     // Activity bookkeeping for focus/hover guards, never a visibility policy.
     // Each capturing window controls only its own presentation.
@@ -28,4 +33,5 @@ Singleton {
     readonly property bool ownsNotifications: !adapter
     function fullscreen(name) { return adapter ? adapter.fullscreen(name) : false; }
     function launch(entry) { if (adapter) adapter.launch(entry); else entry.execute(); }
+    function openSettings() { if (adapter && adapter.openSettings) adapter.openSettings(); }
 }

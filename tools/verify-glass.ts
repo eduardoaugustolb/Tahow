@@ -18,9 +18,11 @@ async function until(predicate: (value: any) => boolean, message: string) {
 }
 try {
   for (let cycle = 0; cycle < 2; cycle++) {
-    ipc('tahoe', 'openLauncher', '');
-    await until(s => s.layout?.frameReady && !s.layout.captureFailed && s.captureCount === 0,
-      'Palette did not present a captured frame. Check glass/capture preferences and compositor support.');
+    const apps = cycle === 1;
+    const mode = apps ? 'applications' : 'search';
+    ipc('tahoe', apps ? 'openApplications' : 'openLauncher', '');
+    await until(s => s.mode === mode && s.layout?.frameReady && !s.layout.captureFailed && s.captureCount === 0,
+      `Palette did not present its ${mode} mode. Check glass/capture preferences and compositor support.`);
     if (screenshots && cycle === 0) {
       await Bun.sleep(500);
       execFileSync('grim', ['/tmp/tahow-palette-verified.png']);

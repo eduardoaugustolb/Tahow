@@ -7,7 +7,7 @@ function handler(name: string, argumentsList: string, context: Record<string, un
 }
 
 test('optical defaults are persistent in the shared adapter and inherited from General', () => {
-    const defaults = {bezel: 6, thickness: 8, ior: 1.2, dispersion: 0.035, frost: 20, glassOpacity: 0.39};
+    const defaults = {bezel: 6, thickness: 8, ior: 1.2, dispersion: 0.06, frost: 10, glassOpacity: 0.3, rimStrength: 0.75};
     for (const [key, value] of Object.entries(defaults)) {
         expect(source).toContain(`${key}: ${value},`);
         expect(source.match(new RegExp(`property real ${key}: ${value}`, 'g'))).toHaveLength(1);
@@ -34,4 +34,13 @@ test('resetting Glass overrides preserves other settings and scopes without muta
     expect(adapter.overrides).toBe(unchanged);
     inheritKeys('island', ['topMargin']);
     expect(adapter.overrides).toEqual({palette: {columns: 8}});
+});
+
+test('standalone glass consumers ship the same Qt shader', async () => {
+    for (const name of ['frosted_glass.frag', 'frosted_glass.frag.qsb']) {
+        const canonical = await Bun.file(`shell/shaders/${name}`).bytes();
+        for (const directory of ['shell/lock', 'integrations/ryostore/lockscreen/content', 'integrations/widgets/content']) {
+            expect(await Bun.file(`${directory}/shaders/${name}`).bytes()).toEqual(canonical);
+        }
+    }
 });

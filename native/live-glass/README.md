@@ -84,8 +84,8 @@ clients and regions have fixed bounds. No pixel content is readable through it.
 
 ## Scope and limitations
 
-- Island, its Glass surfaces, command palette, independent ryoku-widgets, and
-  Tahow Preferences sidebar use the provider. Lockscreen authentication and its
+- Island, its Glass surfaces, command palette, the virtual keyboard panel,
+  independent ryoku-widgets, and Tahow Preferences sidebar use the provider. Lockscreen authentication and its
   own visual pipeline are untouched.
 - The underlay is the scene below the owning Wayland surface. Two UI elements
   inside the same QML surface cannot refract each other's already-flattened UI.
@@ -146,6 +146,8 @@ render-pass hook API, and native Dual Kawase/acrylic provider, copyright Hyprlan
 contributors, BSD-3-Clause. No shader code or proprietary Apple assets are copied.
 References: https://github.com/hyprwm/Hyprland and
 https://wiki.hypr.land/hyprland-plugins/using-plugins/ .
+The frosted surface's broad edge warp and softened interior take visual
+inspiration from the [WacOS glass demos](https://github.com/renzyxx/WacOS#liquid-glass-in-motion).
 
 ## Inner shadow and Preferences coordinates
 

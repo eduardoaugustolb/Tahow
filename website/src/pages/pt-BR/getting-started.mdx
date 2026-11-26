@@ -17,8 +17,10 @@ Clone o repositório e execute a entrada independente:
 ```sh
 git clone https://github.com/eduardoaugustolb/Tahow.git
 cd Tahow
-qs -p "$PWD/shell/shell.qml"
+sh "$PWD/shell/bin/start-shell.sh"
 ```
+
+O launcher inicia o Quickshell desanexado do terminal e não faz nada se o shell já estiver rodando, então fechar o terminal ou digitar `exit` não derruba a barra.
 
 ## Integração com Ryoku
 
@@ -33,6 +35,18 @@ bun tools/export-ryostore.ts --to /caminho/ryostore
 Esse comando exporta os companions; revise o diff do catálogo antes de publicar. Consulte também o guia de integração no repositório.
 
 ## Abra as preferências
+
+No Hyprland, o instalador `./install.sh` configura estes atalhos:
+
+- **Super + Espaço** abre ou fecha o Spotlight.
+- **Super + Shift + Espaço** abre as Preferências do Tahow.
+- **Super + ← / →** vai para o workspace anterior ou seguinte.
+- **Super + 1–9** abre o workspace correspondente. **Super + 0** abre o workspace 10.
+- **Super + Shift + ← / →** move a janela ativa e acompanha a mudança de workspace.
+- **Super + F** ativa ou desativa a tela cheia.
+- **Alt + Tab** alterna entre as janelas abertas no workspace atual.
+
+Para personalizar os atalhos, abra `~/.config/hypr/tahow/` (ou `$XDG_CONFIG_HOME/hypr/tahow/`). Edite `workspace-shortcuts` para as teclas numéricas, `window-shortcuts` para os controles de janela e as setas, ou `shortcuts` para o Spotlight e as preferências. Use a extensão `.lua` ou `.conf` conforme sua configuração do Hyprland. Escolha combinações livres e recarregue com `hyprctl reload`. O instalador preserva esses arquivos em atualizações e reinstalações.
 
 ```sh
 qs -c shell ipc call tahoe settings

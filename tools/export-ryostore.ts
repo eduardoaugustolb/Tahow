@@ -7,6 +7,7 @@ const products = [
   { category: 'barstyles', source: 'shell', name: 'Tahow', summary: 'Modular Quickshell subshell with liquid-glass surfaces' },
   { category: 'launchers', source: 'integrations/ryostore/launcher', name: 'Tahow Palette', summary: 'The Tahow application palette, sharing its preferences' },
   { category: 'lockscreens', source: 'integrations/ryostore/lockscreen', name: 'Tahow Lock', summary: 'Tahow lock visuals with host-owned authentication' },
+  { category: 'notifications', source: 'integrations/ryostore/notification', name: 'Tahow Banner', summary: 'Liquid-glass notification banners as a Ryoku notification design' },
 ];
 export function exportRyostore(targetPath: string) {
   const target = resolve(targetPath);
@@ -24,13 +25,14 @@ export function exportRyostore(targetPath: string) {
     const { category } = product;
     const destination = `${target}/${category}/tahoe-shell`;
     mkdirSync(destination, { recursive: true });
-    cpSync(`${root}/${product.source}`, destination, { recursive: true });
+    const sourceRoot = `${root}/${product.source}`;
+    cpSync(sourceRoot, destination, { recursive: true });
     Object.assign(entry, { name: product.name, summary: product.summary, upstream: 'https://github.com/eduardoaugustolb/Tahow', lastUpdated: new Date().toISOString().slice(0, 10) });
     const files: string[] = [];
     function walk(base = '') {
-      for (const name of readdirSync(`${destination}/${base}`).sort()) {
+      for (const name of readdirSync(`${sourceRoot}/${base}`).sort()) {
         const path = base ? `${base}/${name}` : name;
-        if (statSync(`${destination}/${path}`).isDirectory()) walk(path);
+        if (statSync(`${sourceRoot}/${path}`).isDirectory()) walk(path);
         else if (path !== 'manifest.json') files.push(path);
       }
     }

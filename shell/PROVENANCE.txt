@@ -7,3 +7,10 @@ Liquid glass: Ryoku installed shader and Tahoe uniform adapter; see THIRD_PARTY_
 Changes: compositor-neutral host port, centralized preferences, optional host seam, PAM/Wayland session-lock adapter.
 
 icons/* and lib/symbols.js: original geometric Tahoe glyphs, Eduardo Augusto and contributors, 2026; AGPL-3.0. No Apple or Icons8 icon assets are included.
+
+Keymoji
+Catalog, search, navigation and input from Ryoku-dev/ryostore/plugins/keymoji
+at revision e303439a030f22c39316d183a615c3df3e1f6315. Copyright Eduardo
+Augusto, hypruser and contributors. See THIRD_PARTY_LICENSES/Keymoji-MIT
+and Keymoji-Unicode. The CLDR snapshot and source checksums are recorded
+in lib/keymoji/data/source.json.

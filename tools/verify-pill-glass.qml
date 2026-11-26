@@ -63,10 +63,12 @@ ShellRoot {
         interval: 500; repeat: true
         onTriggered: {
             root.check(win.layoutDump().mode === root.modes[root.phase], "incorrect mode");
-            if (root.expectCapture && [1, 3, 4].indexOf(root.phase) >= 0) {
+            const pill = win.contentItem.children.find(item => item.objectName === "tahow-island");
+            const surface = pill?.children.find(item => item.materialState !== undefined);
+            root.check(!!surface && Math.abs(surface.bezel - Tahow.Config.island.bezel * 0.4) < 0.001
+                && surface.refractionAmount === 0.7, "island changed optical profile across pill states");
+            if (root.expectCapture && [1, 2, 3, 4].indexOf(root.phase) >= 0) {
                 const path = "/tmp/tahow-pill-" + root.modes[root.phase] + ".png";
-                const pill = win.contentItem.children.find(item => item.objectName === "tahow-island");
-                root.check(!!pill, "island not found for visual verification");
                 pill.grabToImage(result => result.saveToFile(path));
             }
             root.phase++;

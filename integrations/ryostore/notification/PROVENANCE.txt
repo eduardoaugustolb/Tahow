@@ -1,0 +1,5 @@
+Derived from the Ryoku notification template (notifications/template/Card.qml)
+structure and the catalogue authoring contract; original Tahow glass styling.
+Upstream: https://github.com/eduardoaugustolb/Tahow
+
+assets/close.svg uses the original Tahow close glyph (AGPL-3.0).

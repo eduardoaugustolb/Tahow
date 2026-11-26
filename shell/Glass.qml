@@ -6,14 +6,17 @@ Item {
     id: root
     property var options: Config.island
     readonly property bool glassEnabled: options.style !== "black"
+    readonly property color accent: options === Config.island ? Theme.accent : Theme.materialAccent(options)
     readonly property real tintOpacity: Material.opacity(options.glassOpacity)
     property string compositorTarget: "quickshell:island"
     property bool useCompositor: true
+    property bool compositorWithoutCapture: false
     readonly property bool compositorAvailable: compositor.materialAvailable
     property bool refraction: true
-    property real refractionAmount: 1
-    property real innerShadow: options.innerShadow
-    property real bezel: options.bezel
+    readonly property bool prismatic: options.style === "prism"
+    readonly property real refractionAmount: Material.glassRefraction(prismatic)
+    readonly property real innerShadow: Material.glassInnerShadow(options.innerShadow)
+    readonly property real bezel: Material.glassBezel(options.bezel)
     property real radius: 20
     property color tint: Theme.glassTint
     property bool rim: root.refraction && root.options.glassRim && root.glassEnabled
@@ -56,22 +59,22 @@ Item {
         anchors.fill: parent; radius: root.r
         opacity: 1 - root.liquidMix
         gradient: Gradient {
-            GradientStop { position: 0; color: root.refraction ? Theme.alpha(root.tint,root.glassEnabled ? root.tintOpacity : 1) : Theme.alpha(Theme.mix(root.tint,Qt.rgba(1,1,1,1),Theme.dark ? 0.22 : 0.44),0.64) }
-            GradientStop { position: 0.48; color: root.refraction ? Theme.alpha(root.tint,root.glassEnabled ? root.tintOpacity : 1) : Theme.alpha(Theme.mix(root.tint,Theme.accent,0.08),0.48) }
+            GradientStop { position: 0; color: root.refraction ? Theme.alpha(root.glassEnabled ? Theme.mix(root.tint, Qt.rgba(1,1,1,1), Theme.dark ? 0.09 : 0.38) : root.tint, root.glassEnabled ? Math.min(1, root.tintOpacity + 0.08) : 1) : Theme.alpha(Theme.mix(root.tint,Qt.rgba(1,1,1,1),Theme.dark ? 0.22 : 0.44),0.64) }
+            GradientStop { position: 0.48; color: root.refraction ? Theme.alpha(root.tint,root.glassEnabled ? root.tintOpacity : 1) : Theme.alpha(Theme.mix(root.tint,root.accent,0.08),0.48) }
             GradientStop { position: 1; color: root.refraction ? Theme.alpha(root.tint,root.glassEnabled ? root.tintOpacity : 1) : Theme.alpha(Theme.mix(root.tint,Qt.rgba(1,1,1,1),Theme.dark ? 0.10 : 0.3),0.58) }
         }
-        border.width: root.refraction ? 0 : 1
-        border.color: Theme.alpha(Theme.mix(Theme.accent,Qt.rgba(1,1,1,1),0.6),Theme.dark ? 0.36 : 0.65)
+        border.width: root.glassEnabled && !root.refraction ? 1 : 0
+        border.color: Qt.rgba(1, 1, 1, Theme.dark ? 0.26 : 0.54)
     }
     Rectangle { anchors.fill: parent; anchors.margins: 1.5; radius: Math.max(0,root.r-1.5); color: "transparent"; visible: !root.refraction; border.width: 0.5; border.color: Qt.rgba(1,1,1,Theme.dark ? 0.08 : 0.34) }
     CompositorGlass {
         id: compositor
         anchors.fill: parent
         target: root.compositorTarget
-        discoverWhileHidden: target === "launcher-noblur"
-        active: root.useCompositor && root.refraction && root.glassEnabled && root.options.screenCapture
+        discoverWhileHidden: target === "launcher-noblur" || target === "quickshell:tahow-input"
+        active: root.useCompositor && root.refraction && root.glassEnabled && (root.compositorWithoutCapture || root.options.screenCapture)
         radius: root.r
-        prism: root.options.style === "prism"
+        prism: root.prismatic
         bezel: root.bezel; thickness: root.options.thickness * root.refractionAmount
         ior: root.options.ior; dispersion: root.options.dispersion; frost: root.options.frost
         innerShadow: root.innerShadow
@@ -89,7 +92,7 @@ Item {
 
         topLeftRadius: root.r; topRightRadius: root.r; bottomLeftRadius: root.r; bottomRightRadius: root.r
         tintColor: root.tint; tintAmount: 0 // The shared veil below applies configured opacity once.
-        prism: root.options.style === "prism" ? 1 : 0
+        prism: root.prismatic ? 1 : 0
         bezel: root.bezel
         thickness: root.options.thickness * root.refractionAmount
         ior: root.options.ior; dispersion: root.options.dispersion * root.refractionAmount
@@ -103,24 +106,4 @@ Item {
         visible: glass.visible || compositor.ready
         color: Qt.rgba(root.tint.r, root.tint.g, root.tint.b, 1); opacity: root.tintOpacity * root.liquidMix
     }
-    LiquidGlass {
-        anchors.fill: parent
-        // Always draw the true-liquid-glass layer, not just while the
-        // compositor optics are still warming up. The Settings preview runs
-        // with useCompositor: false and therefore shows this layer; keeping it
-        // here makes components match the preview instead of drifting apart.
-        // z: 1 places it above the compositor/native glass (z:0) so the liquid
-        // silhouette is visible on top of the live blur, matching the preview
-        // where no compositor exists to obscure it.
-        visible: options.liquidGlass && root.glassEnabled
-        opacity: 0.35
-        blendRadius: options.liquidBlendRadius
-        cornerRadius: root.r
-        // LiquidGroup multiplies tint.a by its own opacity. root.tint already
-        // carries the configured glass opacity, so pass an opaque tint here or
-        // the layer lands weaker than the preview.
-        tint: Theme.alpha(root.tint, 1)
-        z: 1
-    }
-    // The optical provider draws the rim; avoid a second flat outline.
 }

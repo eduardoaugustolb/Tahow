@@ -1,4 +1,5 @@
 import QtQuick
+import "lib/material.js" as Material
 import QtQuick.Controls
 
 Column {
@@ -10,22 +11,39 @@ Column {
     required property color accent
     spacing: 18
     property int componentIndex: 0
-    readonly property var scopes: ["general", "island", "palette", "lockscreen"]
-    readonly property var scopeLabels: ["General", "Island", "Command Palette", "Lockscreen"]
-    readonly property string scope: scopes[componentIndex]
+    property string fixedScope: ""
+    readonly property var scopes: ["general", "island", "palette", "lockscreen", "input"]
+    readonly property var scopeLabels: ["General", "Island", "Spotlight", "Lockscreen", "Input panel"]
+    readonly property string scope: fixedScope || scopes[componentIndex]
     readonly property bool lockField: scope === "lockscreen"
     readonly property var options: scope === "general" ? Config.general : Config.effective(scope)
     readonly property bool prismatic: options.style === "prism"
     readonly property bool dark: options.style === "black" || options.appearance === "dark" || (options.appearance !== "light" && Theme.autoDark)
     readonly property color tint: options.style === "black" ? "#000000" : Theme.materialTint(options, dark)
     readonly property bool opticalPreview: options.style !== "black" && (lockField || options.screenCapture)
-    readonly property var glassKeys: ["style", "glassOpacity", "glassAccentTint", "glassRim", "rimStrength", "innerShadow", "frost", "screenCapture", "bezel", "thickness", "ior", "dispersion", "liquidBlendRadius", "lockTint", "lockRim", "lockBezel", "lockThickness", "lockIor", "lockDispersion", "lockEnergy"]
+    readonly property var glassKeys: ["style", "glassOpacity", "glassAccentTint", "glassRim", "rimStrength", "innerShadow", "frost", "screenCapture", "bezel", "thickness", "ior", "dispersion", "lockTint", "lockRim", "lockBezel", "lockThickness", "lockIor", "lockDispersion", "lockEnergy"]
     function save(key, value) { Config.set(scope, key, value); }
-    function resetOverrides() { Config.inheritKeys(scope, glassKeys); }
+    function resetOverrides() {
+        if (fixedScope) Config.inherit(scope);
+        else Config.inheritKeys(scope, glassKeys);
+    }
     function optical(key) { return options[lockField ? ({bezel:"lockBezel", thickness:"lockThickness", ior:"lockIor", dispersion:"lockDispersion"})[key] : key]; }
-    function valueText(value, digits) { return Number(value).toFixed(digits); }
+    readonly property real strength: Math.round(optical("thickness") / 60 * 100)
+    function setStrength(percent) {
+        const amount = percent / 100;
+        const optics = {bezel: 36 * amount, thickness: 60 * amount, ior: 1 + 1.1 * amount, dispersion: 0.2 * amount};
+        if (lockField) {
+            Config.setValues(scope, {lockBezel: optics.bezel, lockThickness: optics.thickness,
+                lockIor: optics.ior, lockDispersion: optics.dispersion});
+        } else {
+            Config.setValues(scope, Object.assign(optics, {
+                frost: 16 - 10 * amount, rimStrength: 0.4 + 0.5 * amount
+            }));
+        }
+    }
 
     Column {
+        visible: root.fixedScope === ""
         width: parent.width; spacing: 8
         Label { text: I18n.tr("Apply to"); color: root.secondary; font.pixelSize: 12 }
         Row {
@@ -36,7 +54,7 @@ Column {
                     id: scopeButton
                     required property int index
                     required property string modelData
-                    width: (root.width - 12) / 4; height: 34
+                    width: (root.width - 4 * (root.scopes.length - 1)) / root.scopes.length; height: 34
                     objectName: "glass-scope-" + root.scopes[index]
                     onClicked: root.componentIndex = index
                     contentItem: Text {
@@ -88,17 +106,18 @@ Column {
             NativeGlass {
                 objectName: "glass-preview-lock-optics"
                 anchors.fill: parent; visible: root.lockField && root.opticalPreview
-                fragmentShader: Qt.resolvedUrl("lock/shaders/liquid_glass.frag.qsb")
                 src: texture
                 sourceRect: Qt.rect(lens.x / reference.width, lens.y / reference.height, lens.width / reference.width, lens.height / reference.height)
                 topLeftRadius: 22; topRightRadius: 22; bottomLeftRadius: 22; bottomRightRadius: 22
                 tintColor: root.tint
                 tintAmount: root.options.lockTint
-                bezel: root.optical("bezel") * (root.prismatic ? 1.5 : 1)
-                thickness: root.optical("thickness") * (root.prismatic ? 2 : 1)
+                bezel: Material.glassBezel(root.optical("bezel")) * (root.prismatic ? 1.5 : 1)
+                thickness: root.optical("thickness") * (root.prismatic ? 2 : 1) * Material.glassRefraction(root.prismatic)
                 ior: root.optical("ior")
                 dispersion: root.prismatic ? Math.max(0.16, root.optical("dispersion") * 2) : root.optical("dispersion")
-                frost: 0.55
+                prism: root.prismatic ? 1 : 0
+                frost: 1.5
+                innerShadow: Material.glassInnerShadow(1)
                 rim: root.options.lockRim
                 energy: root.options.lockEnergy
             }
@@ -119,11 +138,11 @@ Column {
     Row {
         width: parent.width; height: 40
         Label { anchors.verticalCenter: parent.verticalCenter; width: parent.width - 170; text: I18n.tr("Glass material"); color: root.ink; font.pixelSize: 13 }
-        ComboBox {
+        SettingsControls.Choice {
             id: material; width: 170; height: 34; model: ["glass", "prism", "black"]
             currentIndex: Math.max(0, model.indexOf(root.options.style))
-            displayText: I18n.tr(model[currentIndex])
-            delegate: ItemDelegate { required property string modelData; width: material.width; text: I18n.tr(modelData) }
+            itemLabel: value => I18n.tr(value)
+            Accessible.name: I18n.tr("Glass material")
             onActivated: index => root.save("style", model[index])
         }
     }
@@ -133,85 +152,32 @@ Column {
         required property string label
         width: root.width; height: 40
         Label { width: parent.width - 60; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr(toggleRow.label); color: root.ink; font.pixelSize: 13 }
-        Switch {
-            id: control
-            width: 60; height: 36; anchors.verticalCenter: parent.verticalCenter
+        SettingsControls.Toggle {
+            anchors.verticalCenter: parent.verticalCenter
             checked: root.options[toggleRow.settingKey] === true
             Accessible.name: I18n.tr(toggleRow.label)
             onToggled: root.save(toggleRow.settingKey, checked)
-            indicator: Rectangle {
-                x: control.width - width; y: (control.height - height) / 2
-                width: 34; height: 20; radius: 10
-                color: control.checked ? root.accent : root.group
-                border.width: control.activeFocus ? 2 : 1; border.color: control.activeFocus ? root.ink : root.secondary
-                Rectangle { x: control.checked ? 16 : 2; y: 2; width: 16; height: 16; radius: 8; color: "white" }
-            }
-            background: Item {}
         }
     }
-    component RangeRow: Column {
-        id: row
-        required property string settingKey
-        required property string label
-        required property real minimum
-        required property real maximum
-        property real step: 0.01
-        property int digits: 2
-        width: root.width; spacing: 4
-        Row {
-            width: parent.width; height: 25
-            Label { width: parent.width - 74; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr(row.label); color: root.ink; font.pixelSize: 13 }
-            TextField {
-                id: numeric
-                objectName: "glass-value-" + row.settingKey
-                width: 74; height: 28; color: root.ink; font.pixelSize: 12; horizontalAlignment: Text.AlignRight
-                text: root.valueText(root.options[row.settingKey], row.digits)
-                validator: DoubleValidator { bottom: row.minimum; top: row.maximum; decimals: row.digits; locale: "en_US" }
-                Accessible.name: I18n.tr(row.label)
-                onEditingFinished: {
-                    const number = Number(text);
-                    if (acceptableInput && Number.isFinite(number)) root.save(row.settingKey, Math.max(row.minimum, Math.min(row.maximum, number)));
-                    text = Qt.binding(() => root.valueText(root.options[row.settingKey], row.digits));
-                }
-                background: Rectangle { radius: 6; color: root.group; border.width: numeric.activeFocus ? 1 : 0; border.color: root.accent }
-            }
+    Column {
+        width: parent.width; spacing: 6
+        Label {
+            text: I18n.tr("Liquid Glass strength") + " · " + strengthSlider.value + "%"
+            color: root.ink; font.pixelSize: 13
         }
-        Slider {
-            id: slider; width: parent.width; height: 24
-            objectName: "glass-slider-" + row.settingKey
-            from: row.minimum; to: row.maximum; stepSize: row.step
-            value: root.options[row.settingKey]
-            Accessible.name: I18n.tr(row.label)
-            onMoved: root.save(row.settingKey, value)
-            background: Rectangle {
-                x: slider.leftPadding; y: slider.topPadding + slider.availableHeight / 2 - height / 2
-                width: slider.availableWidth; height: 4; radius: 2; color: root.group
-                Rectangle { width: slider.visualPosition * parent.width; height: parent.height; radius: 2; color: root.accent }
-            }
-            handle: Rectangle {
-                x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
-                y: slider.topPadding + slider.availableHeight / 2 - height / 2
-                width: 16; height: 16; radius: 8; color: root.ink
-                border.width: slider.activeFocus ? 2 : 0; border.color: root.accent
-            }
+        SettingsControls.Range {
+            id: strengthSlider
+            objectName: "glass-slider-strength"
+            width: parent.width
+            from: 0; to: 100; stepSize: 1
+            value: root.strength
+            enabled: root.options.style !== "black"
+            Accessible.name: I18n.tr("Liquid Glass strength")
+            onMoved: root.setStrength(value)
+
         }
     }
-    RangeRow { settingKey: root.lockField ? "lockTint" : "glassOpacity"; label: root.lockField ? "Password field tint" : "Glass opacity"; minimum: root.lockField ? 0 : 0.15; maximum: 1; digits: 3; step: 0.005 }
-    RangeRow { settingKey: root.lockField ? "lockDispersion" : "dispersion"; label: "RGB dispersion"; minimum: 0; maximum: 0.2; step: 0.005; digits: 3 }
-    Label { text: I18n.tr("Transparency and tint"); color: root.secondary; font.pixelSize: 12 }
-    ToggleRow { settingKey: "glassAccentTint"; label: "Tint glass with accent" }
-    ToggleRow { visible: !root.lockField; settingKey: "glassRim"; label: "Specular rim" }
-    RangeRow { visible: !root.lockField; settingKey: "rimStrength"; label: "Rim intensity"; minimum: 0; maximum: 1; step: 0.01; digits: 2 }
-    RangeRow { visible: !root.lockField; settingKey: "innerShadow"; label: "Inner shadow"; minimum: 0; maximum: 1; step: 0.01; digits: 2 }
-    RangeRow { visible: !root.lockField; settingKey: "frost"; label: "Frost"; minimum: 0; maximum: 30; step: 0.5; digits: 1 }
-    RangeRow { visible: !root.lockField; settingKey: "liquidBlendRadius"; label: "Liquid blend radius"; minimum: 0; maximum: 80; step: 1; digits: 0 }
-    Label { text: I18n.tr("Optical refraction"); color: root.secondary; font.pixelSize: 12 }
     ToggleRow { visible: !root.lockField; settingKey: "screenCapture"; label: "Refract desktop content" }
-    RangeRow { settingKey: root.lockField ? "lockBezel" : "bezel"; label: "Lens edge"; minimum: 0; maximum: 40; step: 0.5; digits: 1 }
-    RangeRow { settingKey: root.lockField ? "lockThickness" : "thickness"; label: "Refraction depth"; minimum: 0; maximum: 60; step: 0.5; digits: 1 }
-    RangeRow { settingKey: root.lockField ? "lockIor" : "ior"; label: "Refractive index"; minimum: 1; maximum: 2.5; step: 0.01; digits: 2 }
-    RangeRow { visible: root.lockField; settingKey: "lockRim"; label: "Password field rim"; minimum: 0; maximum: 1; step: 0.01; digits: 2 }
-    RangeRow { visible: root.lockField; settingKey: "lockEnergy"; label: "Password field highlight"; minimum: 0; maximum: 1; step: 0.01; digits: 2 }
     Label {
         width: parent.width; wrapMode: Text.WordWrap; color: root.secondary; font.pixelSize: 12
         text: I18n.tr("Glass controls apply immediately.") + " " + I18n.tr(root.lockField ? "The lockscreen keeps separate field optics." : "The collapsed island uses simulated glass. Refraction appears when expanded.") + (!root.lockField && !root.options.screenCapture ? " " + I18n.tr("Refraction requires desktop capture.") : "")

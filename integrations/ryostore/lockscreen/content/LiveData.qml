@@ -42,7 +42,12 @@ Item {
     readonly property int easing: option("easing")
     readonly property int fastDuration: option("fastDuration")
     readonly property int mediumDuration: option("mediumDuration")
-    readonly property color accent: option("accentSource") === "custom" ? option("customAccent") : systemAccent
+    readonly property color accent: {
+        const source = option("accentSource");
+        if (source === "custom") return option("customAccent");
+        if (source === "wallpaper") return wallpaperPalette.primary || "#0a84ff";
+        return systemAccent;
+    }
     readonly property var paths: ({
         HOME: Quickshell.env("HOME"),
         XDG_CONFIG_HOME: Quickshell.env("XDG_CONFIG_HOME"),

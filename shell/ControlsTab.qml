@@ -65,95 +65,106 @@ Item {
                 Layout.preferredHeight: 164
                 spacing: 12
 
-                // Connectivity module (macOS style)
-                Widget {
+                ColumnLayout {
                     Layout.preferredWidth: 248
+                    Layout.maximumWidth: 248
                     Layout.fillHeight: true
-                    pad: 8
-                    Column {
-                        anchors.fill: parent
-                        spacing: 4
-                        CCPill {
-                            width: parent.width
-                            icon: Hub.wifiOn ? "wifi" : "wifi_off"
-                            label: "Wi-Fi"
-                            sub: Hub.wifiSub
-                            active: Hub.wifiOn
-                            activeColor: Theme.ccTint(Theme.blue)
-                            onToggled: Hub.toggleWifi()
-                            onOpened: Hub.ccPage = "wifi"
-                        }
-                        CCPill {
-                            width: parent.width
-                            icon: Hub.btOn ? "bluetooth" : "bluetooth_disabled"
-                            label: "Bluetooth"
-                            sub: Hub.btAdapter ? Hub.btSub : "Unavailable"
-                            active: Hub.btOn
-                            activeColor: Theme.ccTint(Theme.blue)
-                            onToggled: Hub.toggleBt()
-                            onOpened: Hub.ccPage = "bt"
-                        }
-                        CCPill {
-                            width: parent.width
-                            icon: "bedtime"
-                            label: "Focus"
-                            sub: Notifs.dnd ? "Do Not Disturb" : "Off"
-                            active: Notifs.dnd
-                            activeColor: Theme.ccTint(Theme.indigo)
-                            hasMenu: false
-                            onToggled: Notifs.toggleDnd()
-                        }
+                    spacing: 8
+                    CCPill {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        icon: Hub.wifiOn ? "wifi" : "wifi_off"
+                        label: "Wi-Fi"
+                        sub: Hub.wifiSub
+                        active: Hub.wifiOn
+                        activeColor: Theme.ccTint(Theme.blue)
+                        onToggled: Hub.toggleWifi()
+                        onOpened: Hub.ccPage = "wifi"
+                    }
+                    CCPill {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        icon: Hub.btOn ? "bluetooth" : "bluetooth_disabled"
+                        label: "Bluetooth"
+                        sub: Hub.btAdapter ? Hub.btSub : "Unavailable"
+                        active: Hub.btOn
+                        activeColor: Theme.ccTint(Theme.blue)
+                        onToggled: Hub.toggleBt()
+                        onOpened: Hub.ccPage = "bt"
+                    }
+                    CCPill {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        icon: "bedtime"
+                        label: "Focus"
+                        sub: Notifs.dnd ? "Do Not Disturb" : "Off"
+                        active: Notifs.dnd
+                        activeColor: Theme.ccTint(Theme.indigo)
+                        hasMenu: false
+                        onToggled: Notifs.toggleDnd()
                     }
                 }
 
-                // Sliders
-                Widget {
+                ColumnLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    pad: 14
-                    ColumnLayout {
-                        anchors.fill: parent
-                        spacing: 6
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Txt { sourceText: "Sound"; size: 11; weight: Font.DemiBold; color: Theme.fg2 }
-                            Item { Layout.fillWidth: true }
-                            Icon { text: Hub.sinkIcon(); size: 14; fill: 1; color: Theme.fg2 }
-                            Txt { sourceText: Hub.sinkName; size: 11; color: Theme.fg2; Layout.maximumWidth: 240 }
+                    spacing: 8
+                    Widget {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        pad: 10
+                        ColumnLayout {
+                            anchors.fill: parent
+                            spacing: 4
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Txt { sourceText: "Sound"; size: 11; weight: Font.DemiBold; color: Theme.fg2 }
+                                Item { Layout.fillWidth: true }
+                                Icon { text: Hub.sinkIcon(); size: 14; fill: 1; color: Theme.fg2 }
+                                Txt { sourceText: Hub.sinkName; size: 11; color: Theme.fg2; Layout.maximumWidth: 240 }
+                            }
+                            SliderBar {
+                                Layout.fillWidth: true
+                                big: true
+                                barHeight: 38
+                                icon: Hub.volumeIcon
+                                value: Hub.muted ? 0 : Hub.volume
+                                color: Config.island.ccAccent ? Theme.accent : "#ffffff"
+                                onMoved: v => Hub.setVolume(v)
+                            }
                         }
-                        SliderBar {
-                            Layout.fillWidth: true
-                            big: true
-                            barHeight: 38
-                            icon: Hub.volumeIcon
-                            value: Hub.muted ? 0 : Hub.volume
-                            color: Config.island.ccAccent ? Theme.accent : "#ffffff"
-                            onMoved: v => Hub.setVolume(v)
-                        }
-                        Txt {
-                            Layout.topMargin: 4
-                            sourceText: Hub.hasBacklight ? "Display" : "Microphone"
-                            size: 11; weight: Font.DemiBold; color: Theme.fg2
-                        }
-                        SliderBar {
-                            visible: Hub.hasBacklight
-                            Layout.fillWidth: true
-                            big: true
-                            barHeight: 38
-                            icon: "light_mode"
-                            value: Hub.brightness
-                            color: Config.island.ccAccent ? Theme.accent : "#ffffff"
-                            onMoved: v => Hub.setBrightness(v)
-                        }
-                        SliderBar {
-                            visible: !Hub.hasBacklight
-                            Layout.fillWidth: true
-                            big: true
-                            barHeight: 38
-                            icon: Hub.micMuted ? "mic_off" : "mic"
-                            value: Hub.source && Hub.source.audio && !Hub.micMuted ? Hub.source.audio.volume : 0
-                            color: Config.island.ccAccent ? Theme.accent : "#ffffff"
-                            onMoved: v => { if (Hub.source && Hub.source.audio) { Hub.source.audio.muted = false; Hub.source.audio.volume = v; } }
+                    }
+                    Widget {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        pad: 10
+                        ColumnLayout {
+                            anchors.fill: parent
+                            spacing: 4
+                            Txt {
+                                sourceText: Hub.hasBacklight ? "Display" : "Microphone"
+                                size: 11; weight: Font.DemiBold; color: Theme.fg2
+                            }
+                            SliderBar {
+                                visible: Hub.hasBacklight
+                                Layout.fillWidth: true
+                                big: true
+                                barHeight: 38
+                                icon: "light_mode"
+                                value: Hub.brightness
+                                color: Config.island.ccAccent ? Theme.accent : "#ffffff"
+                                onMoved: v => Hub.setBrightness(v)
+                            }
+                            SliderBar {
+                                visible: !Hub.hasBacklight
+                                Layout.fillWidth: true
+                                big: true
+                                barHeight: 38
+                                icon: Hub.micMuted ? "mic_off" : "mic"
+                                value: Hub.source && Hub.source.audio && !Hub.micMuted ? Hub.source.audio.volume : 0
+                                color: Config.island.ccAccent ? Theme.accent : "#ffffff"
+                                onMoved: v => { if (Hub.source && Hub.source.audio) { Hub.source.audio.muted = false; Hub.source.audio.volume = v; } }
+                            }
                         }
                     }
                 }

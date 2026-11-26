@@ -4,6 +4,8 @@ Open an issue describing the problem or submit a focused pull request with the r
 
 Use Bun exclusively for JavaScript/TypeScript scripts and dependencies. Keep shell components modular: configuration owns preference persistence, theme resolves appearance, and host adapters isolate desktop integration. Preserve compatibility IDs and the existing settings schema unless a migration is included.
 
+See the [shell boundaries](shell/README.md#boundaries) for component ownership and entry points. When moving a feature, update its runtime imports and verification scripts together, and check the generated Ryostore manifest for the new paths.
+
 ## Checks
 
 ```sh

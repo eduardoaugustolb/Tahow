@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
-import Quickshell.Widgets
 
 // Spotlight-style launcher that grows out of the island (Super+Space).
 //   type          → fuzzy-search apps (most-used float up)
@@ -214,11 +213,13 @@ Item {
                 x: 12
                 width: 30; height: 30
                 anchors.verticalCenter: parent.verticalCenter
-                IconImage {
+                AppIcon {
                     anchors.fill: parent
+                    size: parent.width
                     visible: row.modelData.kind === "app"
                     source: row.modelData.kind === "app" ? Quickshell.iconPath(row.modelData.entry.icon, "application-x-executable") : ""
-                    asynchronous: true
+                    styleEnabled: true
+                    fallback: "apps"
                 }
                 Rectangle {
                     anchors.fill: parent

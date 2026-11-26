@@ -2,6 +2,9 @@
 
 // Original Tahoe glyphs, Eduardo Augusto and contributors, 2026. AGPL-3.0.
 var paths = {
+  "folder": "<path d=\"M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>",
+  "description": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M9 8h6m-6 4h6m-6 4h3\"/>",
+  "download": "<path d=\"M12 3v11m-4-4 4 4 4-4M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3\"/>",
   "cpu": "<rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"/><rect x=\"9\" y=\"9\" width=\"6\" height=\"6\" rx=\"1\"/><path d=\"M9 2v4m6-4v4M9 18v4m6-4v4M2 9h4m-4 6h4m12-6h4m-4 6h4\"/>",
   "thermometer": "<path d=\"M9 14.5V5a3 3 0 0 1 6 0v9.5a5 5 0 1 1-6 0ZM12 8v9m6-11h3m-3 4h2\"/><circle cx=\"12\" cy=\"18\" r=\"1.5\"/>",
   "disk": "<rect x=\"4\" y=\"2.5\" width=\"16\" height=\"19\" rx=\"2.5\"/><circle cx=\"12\" cy=\"11\" r=\"5\"/><circle cx=\"12\" cy=\"11\" r=\"1\"/><path d=\"m12 11 4-3M7 18h.01M17 18h.01\"/>",
@@ -38,7 +41,20 @@ var paths = {
   "check": "<path d=\"m4 12 5 5L20 6\"/>",
   "logout": "<path d=\"M9 3H4v18h5m-1-9h13m-5-5 5 5-5 5\"/>",
   "refresh": "<path d=\"M20 9a8 8 0 1 0 .2 6M20 3v6h-6\"/>",
-  "light_mode": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 1v2m0 18v2M1 12h2m18 0h2M4 4l1.5 1.5m13 13L20 20M4 20l1.5-1.5m13-13L20 4\"/>"
+  "light_mode": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 1v2m0 18v2M1 12h2m18 0h2M4 4l1.5 1.5m13 13L20 20M4 20l1.5-1.5m13-13L20 4\"/>",
+  "image": "<rect x=\"3\" y=\"4.5\" width=\"18\" height=\"15\" rx=\"2.5\"/><circle cx=\"8.5\" cy=\"9.5\" r=\"1.5\"/><path d=\"m3 16 4-3 3 2 4.5-5 6.5 6\"/>",
+  "shield": "<path d=\"M12 3c2.3 1.7 4.7 2.6 7.5 3v5.3c0 4.5-2.8 7.5-7.5 9.7-4.7-2.2-7.5-5.2-7.5-9.7V6c2.8-.4 5.2-1.3 7.5-3z\"/><path d=\"m9 12 2 2 4-4\"/>",
+  "password": "<circle cx=\"8\" cy=\"10\" r=\"4.5\"/><path d=\"m11.3 13.3 6.2 6.2 2.5-2.5-2-2m-2 1.5 2.5-2.5\"/><path d=\"M7 9h.01\"/>",
+  "groups": "<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M3 20v-1.5a6 6 0 0 1 12 0V20M15.5 5.2a3 3 0 0 1 0 5.6M17 13a5 5 0 0 1 4 5v2\"/>",
+  "alternate_email": "<circle cx=\"11.5\" cy=\"12\" r=\"3.5\"/><path d=\"M15 8.5v5a2.5 2.5 0 0 0 5 0V12a8.5 8.5 0 1 0-3.7 7\"/>",
+  "sports_esports": "<path d=\"M8 7h8a4 4 0 0 1 3.9 3.2l1.5 5.7a2.5 2.5 0 0 1-4 2.5l-3.2-2.6H9.8l-3.2 2.6a2.5 2.5 0 0 1-4-2.5l1.5-5.7A4 4 0 0 1 8 7Z\"/><path d=\"M8 10v4m-2-2h4m5-1h.01m3 2h.01\"/>",
+  "cloud": "<path d=\"M7 18h10a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.5 1A3.5 3.5 0 0 0 7 18z\"/>",
+  "account_balance_wallet": "<path d=\"M20 9V6a2 2 0 0 0-2-2H6a3 3 0 0 0 0 6h14v9a1 1 0 0 1-1 1H6a3 3 0 0 1-3-3V7\"/><path d=\"M20 13h-4a2 2 0 0 0 0 4h4m-4-2h.01\"/>",
+  "input_panel": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"3\"/><path d=\"M3 9h18M7 6.5h.01m3 0h.01M7 13h.01m5 0h.01m5 0h.01M8 16.5h8\"/>",
+  "mouse": "<rect x=\"6\" y=\"3\" width=\"12\" height=\"18\" rx=\"6\"/><path d=\"M12 7v3\"/>",
+  "print": "<path d=\"M7 8V3h10v5m-10 8H4v-5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v5h-3m-10-3h10v8H7zM7 11h.01\"/>",
+  "bolt": "<path d=\"m13.5 3-9 11H11l-.5 7 9-11H13z\"/>",
+  "blur_on": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M8 8h.01m4 0h.01m4 0h.01M8 12h.01m4 0h.01m4 0h.01M8 16h.01m4 0h.01m4 0h.01\"/>"
 };
 var aliases = {"smart_button":"island","dashboard":"island","grid_view":"apps","control_camera":"tune","dark_mode":"nightlight","person":"account_circle","arrow_back":"chevron_left","arrow_forward":"chevron_right","graphic_eq":"music_note","stopwatch":"timer","settings_suggest":"settings"};
 function has(name) { return !!paths[aliases[name] || name]; }

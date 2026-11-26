@@ -172,3 +172,21 @@ integration('a failed save reports the error instead of silently claiming persis
     const state = run(root, 'Store.Config.set("general", "use24h", true);');
     expect(state.error).toContain('Cannot save preferences');
 });
+
+
+integration('input panel inherits General and isolates its appearance and glass overrides', () => {
+    const {root} = fixture(JSON.stringify({
+        style: 'glass', appearance: 'light', overrides: {island: {style: 'black'}}
+    }));
+    const state = run(root, `
+        const config = Store.Config;
+        if (config.input.style !== "glass" || config.input.appearance !== "light") throw Error("incorrect inheritance");
+        config.setValues("input", {style: "prism", appearance: "dark"});
+        if (config.input.style !== "prism" || config.input.appearance !== "dark") throw Error("missing input override");
+        config.inheritKeys("input", ["style"]);
+        if (config.input.style !== "glass" || config.input.appearance !== "dark") throw Error("incorrect glass reset");
+    `);
+    expect(state.overrides).toEqual({island: {style: 'black'}, input: {appearance: 'dark'}});
+    const reset = run(root, 'Store.Config.inherit("input");');
+    expect(reset.overrides).toEqual({island: {style: 'black'}});
+});

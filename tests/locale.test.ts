@@ -37,7 +37,9 @@ describe('translation catalogs', () => {
         expect(locale.translate({'en-US': en, 'pt-BR': pt}, 'pt', 'H:{high}  L:{low}', {high: '25°', low: '18°'})).toBe('Máx:25°  Mín:18°');
     });
     test('covers each main user-facing component', () => {
-        for (const key of ['Language', 'Appearance', 'Command Palette', 'Good Morning', 'Sound', 'Not Playing', 'Light Rain', 'Notification Center', 'Password', 'Touch sensor or enter password']) {
+        expect(en.Spotlight).toBe("Spotlight");
+        expect(pt.Spotlight).toBe("Spotlight");
+        for (const key of ['Language', 'Appearance', 'Suggestions', 'Good Morning', 'Sound', 'Not Playing', 'Light Rain', 'Notification Center', 'Password', 'Touch sensor or enter password']) {
             expect(pt[key]).toBeDefined(); expect(pt[key]).not.toBe(en[key]);
         }
     });

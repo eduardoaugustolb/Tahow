@@ -19,6 +19,7 @@ Rectangle {
     readonly property bool inSession: typeof sddm !== "undefined" && typeof sddm.fingerprintState !== "undefined"
     readonly property var live: ({motion: Config.lockscreen.motion, wallpaperUrl: Theme.wallpaper ? "file://" + Theme.wallpaper : "", batteryLevel: -1, charging: false})
     readonly property bool darkMaterial: Config.lockscreen.style === "black" || Config.lockscreen.appearance === "dark" || (Config.lockscreen.appearance !== "light" && Theme.autoDark)
+    readonly property color accent: Theme.materialAccent(Config.lockscreen)
     readonly property color materialTint: Config.lockscreen.style === "black" ? "#000000" : Theme.materialTint(Config.lockscreen, darkMaterial)
     property date now: new Date()
     property bool expanded: false
@@ -135,8 +136,6 @@ Rectangle {
         }
         GlassClock {
             anchors.horizontalCenter: parent.horizontalCenter
-            backdrop: wallpaperTexture
-            scene: root
             s: root.s
             text: Qt.formatTime(root.now, root.clock24h ? "HH:mm" : "h:mm")
         }
@@ -197,7 +196,7 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             width: 188 * root.s; height: Math.max(0, root.fieldHeight)
             visible: height > 0; clip: true; radius: 18 * root.s
-            color: root.darkMaterial ? "#30101318" : "#18ffffff"; border.color: password.activeFocus ? "#55ffffff" : "#30ffffff"
+            color: root.darkMaterial ? "#30101318" : "#18ffffff"; border.color: password.activeFocus ? Theme.alpha(root.accent, 0.48) : "#30ffffff"
             opacity: root.expanded ? 1 : 0
             scale: root.expanded ? 1 : 0.92
             Behavior on opacity { NumberAnimation { duration: root.reducedMotion ? 1 : (root.expanded ? 280 : 150); easing.type: Easing.OutCubic } }
@@ -208,8 +207,11 @@ Rectangle {
                 topLeftRadius: parent.radius; topRightRadius: parent.radius
                 bottomLeftRadius: parent.radius; bottomRightRadius: parent.radius
                 tintColor: root.materialTint
-                tintAmount: Material.amount(Config.lockscreen.lockTint, 0.035); frost: 0.55; rim: Config.lockscreen.lockRim
-                ior: Config.lockscreen.lockIor; thickness: (Config.lockscreen.lockThickness) * root.s * (Config.lockscreen.style === "prism" ? 2 : 1); bezel: (Config.lockscreen.lockBezel) * root.s * (Config.lockscreen.style === "prism" ? 1.5 : 1)
+                tintAmount: Material.amount(Config.lockscreen.lockTint, 0.035); frost: 1.5; rim: Config.lockscreen.lockRim
+                ior: Config.lockscreen.lockIor; thickness: (Config.lockscreen.lockThickness) * root.s * (Config.lockscreen.style === "prism" ? 2 : 1) * Material.glassRefraction(prism > 0.5)
+                bezel: Material.glassBezel(Config.lockscreen.lockBezel) * root.s * (Config.lockscreen.style === "prism" ? 1.5 : 1)
+                innerShadow: Material.glassInnerShadow(1)
+                prism: Config.lockscreen.style === "prism" ? 1 : 0
                 dispersion: Config.lockscreen.style === "prism" ? Math.max(0.16, Config.lockscreen.lockDispersion * 2) : Config.lockscreen.lockDispersion; energy: Config.lockscreen.lockEnergy
                 sourceRect: {
                     const point = mapToItem(root, 0, 0)

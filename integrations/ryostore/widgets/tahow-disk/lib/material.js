@@ -6,6 +6,10 @@ function clamp(value, minimum, maximum, fallback) {
 }
 function opacity(value) { return clamp(value, 0.15, 1, 0.55); }
 function amount(value, fallback) { return clamp(value, 0, 1, fallback); }
+// Optical profile from the expanded island, shared by the live and snapshot materials.
+function glassBezel(value) { return value * 0.4; }
+function glassRefraction(prism) { return prism ? 0.4 : 0.7; }
+function glassInnerShadow(value) { return value * 0.15; }
 function base(dark) { return dark ? "#0f0f14" : "#f7f7fc"; }
 function channels(color) {
     if (color && typeof color === "object" && Number.isFinite(color.r) && Number.isFinite(color.g) && Number.isFinite(color.b))
@@ -21,4 +25,4 @@ function tint(dark, accentEnabled, accent) {
     return "#" + neutral.map((value, index) => Math.round(clamp(value + (color[index] - value) * mix, 0, 1, value) * 255).toString(16).padStart(2, "0")).join("");
 }
 if (typeof module !== "undefined" && module.exports)
-    module.exports = { base, tint, opacity, amount };
+    module.exports = { base, tint, opacity, amount, glassBezel, glassRefraction, glassInnerShadow };

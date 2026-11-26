@@ -89,7 +89,7 @@ export function buildWidgets(options: BuildOptions = {}) {
         // Original, self-contained Tahow helpers. No private desktop imports
         // or optical shader without a captured texture are packaged here.
         for (const name of ['material.js', 'symbols.js', 'locale.js']) put(`lib/${name}`, readFileSync(`${repository}/shell/lib/${name}`));
-        const keys = ['CPU','Temperature','Disk','Memory','Unavailable','Local time','User','Session','Lock','Suspend','Restart','Shut Down','Click again to confirm','Session controls','Previous','Pause','Play','Next','Playback position','Not Playing','Start music in any MPRIS player','Set your GitHub username in widget settings','Loading contributions…','Unable to load contributions','contributions','Refresh','Settings'];
+        const keys = ['CPU','Temperature','Disk','Memory','Unavailable','Local time','User','Session','Lock','Suspend','Restart','Shut Down','Click again to confirm','Session controls','Previous','Pause','Play','Next','Playback position','Not Playing','Start music in any MPRIS player','Set your GitHub username in widget settings','Loading contributions…','Unable to load contributions','contributions','Refresh','Settings','Close'];
         keys.push(...widgetSettings(product.kind).flatMap((setting:any)=>[setting.label,setting.group,...(setting.options||[]).map((option:any)=>option.label)]));
         const catalogs: Record<string, Record<string,string>> = {};
         for (const code of ['en-US','pt-BR']) {

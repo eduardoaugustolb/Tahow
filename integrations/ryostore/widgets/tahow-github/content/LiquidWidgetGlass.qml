@@ -2,6 +2,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../lib/material.js" as Material
 Item {
     id: root
     property var settings: ({})
@@ -48,11 +49,11 @@ Item {
         target: "ryoku-widgets"; active: root.enabledMaterial
         prism: root.settings.material === "prism"
         radius: root.radius
-        bezel: root.number("bezel",14,0,40)
-        thickness: root.number("thickness",24,0,60)
+        bezel: Material.glassBezel(root.number("bezel",14,0,40))
+        thickness: root.number("thickness",24,0,60) * Material.glassRefraction(prism)
         ior: root.number("ior",1.5,1,2.5)
         dispersion: root.number("dispersion",0.08,0,0.2)
-        innerShadow: root.number("innerShadow",1,0,1)
+        innerShadow: Material.glassInnerShadow(root.number("innerShadow",1,0,1))
         frost: root.number("frost",8,0,30)
         rim: root.effectiveSettings.glassRim === false ? 0 : root.number("rimStrength",1,0,1)
     }

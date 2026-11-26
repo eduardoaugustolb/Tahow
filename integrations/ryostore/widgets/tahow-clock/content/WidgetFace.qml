@@ -82,12 +82,9 @@ Item {
     Rectangle {
         id: plate; anchors.fill: parent; radius: 24*root.unit; clip: true
         gradient: Gradient {
-            GradientStop { position: 0; color: root.bareClock ? "transparent" : root.alpha(Qt.lighter(root.tint,root.dark ? 1.6 : 1.04),liveMaterial.ready ? Material.opacity(liveMaterial.effectiveSettings.glassOpacity)*0.24 : Math.min(0.96,Material.opacity(liveMaterial.effectiveSettings.glassOpacity)+0.18)) }
+            GradientStop { position: 0; color: root.bareClock ? "transparent" : root.alpha(Qt.lighter(root.tint,root.dark ? 1.35 : 1.04),liveMaterial.ready ? Material.opacity(liveMaterial.effectiveSettings.glassOpacity)*0.24 : Math.min(0.96,Material.opacity(liveMaterial.effectiveSettings.glassOpacity)+0.18)) }
             GradientStop { position: 1; color: root.bareClock ? "transparent" : root.alpha(root.tint,liveMaterial.ready ? Material.opacity(liveMaterial.effectiveSettings.glassOpacity)*0.2 : Material.opacity(liveMaterial.effectiveSettings.glassOpacity)) }
         }
-        border.width: root.bareClock || liveMaterial.effectiveSettings.glassRim === false ? 0 : 1
-        border.color: root.alpha(root.dark ? "white" : root.accent,root.dark ? 0.22 : 0.3)
-        Rectangle { visible: !root.bareClock; anchors.fill: parent; anchors.margins: 2; radius: parent.radius-2; color: "transparent"; border.width: 0.5; border.color: root.alpha("white",root.dark ? 0.06 : 0.55) }
         LiquidWidgetGlass { id: liveMaterial; anchors.fill:parent; enabledMaterial:root.active && root.liquidMaterial; settings:root.settings; screen:root.screen; tint:root.tint; radius:plate.radius }
         GithubWidget { anchors.fill:parent; anchors.margins:14; visible:root.kind === "github"; active:root.active && visible; settings:root.settings; ink:root.ink; muted:root.muted; accent:root.accent; translate:root.tr }
         Item {

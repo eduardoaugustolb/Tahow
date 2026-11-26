@@ -18,8 +18,8 @@
       "source": "NOTICE.md",
       "destination": "NOTICE.md",
       "mode": "0644",
-      "size": 1920,
-      "sha256": "2f0fd7761790fa1ddb1c1212dd93b2909a246427dcc51f67f896abd5e4b62d53",
+      "size": 1901,
+      "sha256": "91b52f26ba594d9be389dda7c8727a178e5a8318b89a9811a7e9fdf779b8ca95",
       "install": true
     },
     {
@@ -66,16 +66,16 @@
       "source": "content/LiquidWidgetGlass.qml",
       "destination": "content/LiquidWidgetGlass.qml",
       "mode": "0644",
-      "size": 2370,
-      "sha256": "a0e1a71c2a48ba6ce677dabba7ceae9d27d160041f995d4c272675ee51d73823",
+      "size": 2492,
+      "sha256": "5aedcf7e9a2682686fdd5732deeddcc9f5da2489dc1237ffac0c6a8fe12c6817",
       "install": true
     },
     {
       "source": "content/NativeGlass.qml",
       "destination": "content/NativeGlass.qml",
       "mode": "0644",
-      "size": 2141,
-      "sha256": "1e83d39bb892e2f5856b5f2845d631fe856f9883cfe0dfac3ed62604ef612451",
+      "size": 2103,
+      "sha256": "66f0416256bb681cb7548593c29054577f214694a102f7b30119024a40e9fd15",
       "install": true
     },
     {
@@ -90,32 +90,32 @@
       "source": "content/WidgetFace.qml",
       "destination": "content/WidgetFace.qml",
       "mode": "0644",
-      "size": 14756,
-      "sha256": "8acda1746b47cbc586cd08cab98f54d87d96a1e17cb76548de068bad662f3169",
+      "size": 14354,
+      "sha256": "6928200828ab4f1ea717d1022b9ed07db2184de940731ac7e053a985bc17482d",
       "install": true
     },
     {
       "source": "content/WidgetPreferences.qml",
       "destination": "content/WidgetPreferences.qml",
       "mode": "0644",
-      "size": 4558,
-      "sha256": "c5306df256c8fe5ae59ab9da92ebeee4b274bd8eb37b5b8bc129f34812efbf07",
+      "size": 4822,
+      "sha256": "5af9e50b196513cbf043545a87b5d48650a90e7ce29c35d5132379ef4cdc184a",
       "install": true
     },
     {
-      "source": "content/shaders/liquid_glass.frag",
-      "destination": "content/shaders/liquid_glass.frag",
+      "source": "content/shaders/frosted_glass.frag",
+      "destination": "content/shaders/frosted_glass.frag",
       "mode": "0644",
-      "size": 9164,
-      "sha256": "640b2200b3e3891bec526d0534aa8707de87aec4534d7d8a578de22dd27c6e1f",
+      "size": 4937,
+      "sha256": "c389b5e4a55b41e18ed603e28fbcfb6e70ded11fb1b6bf12106a39c461e1794c",
       "install": true
     },
     {
-      "source": "content/shaders/liquid_glass.frag.qsb",
-      "destination": "content/shaders/liquid_glass.frag.qsb",
+      "source": "content/shaders/frosted_glass.frag.qsb",
+      "destination": "content/shaders/frosted_glass.frag.qsb",
       "mode": "0644",
-      "size": 22897,
-      "sha256": "00cbb0134f1a4c40142c6f075f8f4cf6bbcf59d5b760b808961e56e083239bef",
+      "size": 11993,
+      "sha256": "9be67793ff8eb73f159c6b0894bfcbe122074f809933bf0dd066f6a63ff60de2",
       "install": true
     },
     {
@@ -138,16 +138,16 @@
       "source": "lib/material.js",
       "destination": "lib/material.js",
       "mode": "0644",
-      "size": 1335,
-      "sha256": "a6aaef68bf5e74e54aff45d7a32144fcb95f5aa2e3ee3b1feb5d5f906e82d3ef",
+      "size": 1641,
+      "sha256": "6e8f5bd9231805ec6d81cfc3cf6fa7345269148d2ecdd2cb472aecf86bab300b",
       "install": true
     },
     {
       "source": "lib/messages.js",
       "destination": "lib/messages.js",
       "mode": "0644",
-      "size": 3824,
-      "sha256": "1602b6ec83392541c098dc50446cd437780f04cc0d28035175c358d27badd03e",
+      "size": 3869,
+      "sha256": "e7374f11e99fd6ef0202fc78d1ba1e0a79a284401dcce43ac6b6749c4831551f",
       "install": true
     },
     {
@@ -162,8 +162,8 @@
       "source": "lib/symbols.js",
       "destination": "lib/symbols.js",
       "mode": "0644",
-      "size": 5023,
-      "sha256": "99437d1e34bdd338b2edb0c9baf6e346269cb7cd070a4fe7e26e67c8b245ed71",
+      "size": 7077,
+      "sha256": "6a8854d9f759e4cb319990cbbb209dba10f6cae7d383f568cac6b46f28d897af",
       "install": true
     },
     {
@@ -186,8 +186,8 @@
       "source": "manifest.json",
       "destination": "manifest.json",
       "mode": "0644",
-      "size": 10126,
-      "sha256": "4514fe83c6c801f37377da7d8f4f0289c9f97634d8347d9cd232535ad83ecc3f",
+      "size": 10130,
+      "sha256": "48924d48c1b730a3074ad5517adf7a14451a3d80b76c3ce06d185147e0e9d200",
       "install": true
     }
   ]

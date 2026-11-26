@@ -6,8 +6,8 @@ Tahow is maintained by Eduardo Augusto and contributors. The combined project is
 - **Ryoku glass components**: liquid-glass wrapper and shader adaptations from [Ryoku](https://github.com/ryoku-dev/ryoku). Lock visual provenance is recorded in `integrations/ryostore/lockscreen/PROVENANCE.txt`; AGPL license copies accompany the shell and lockscreen.
 - **Tahoe palette and NativeGlass wrapper**: adapted from the earlier `launchers/tahoe` work, distributed under GPL-3.0. The original GPLv3 notice is retained verbatim at `shell/THIRD_PARTY_LICENSES/Tahoe-LICENSE`. See `shell/PROVENANCE.txt` for lineage. The combined distribution uses AGPL-3.0; this does not relicense the original MIT or GPL material.
 - **Lockscreen localization adapter**, Ivan: MIT notice retained at `integrations/ryostore/lockscreen/content/i18n/LICENSE`.
-- **Original work**, Eduardo Augusto and contributors, 2026: 66 SVG glyphs, symbol mapping, and glyph-mask clock refraction work, under AGPL-3.0. The atlas is `docs/icons.png`.
+- **Original work**, Eduardo Augusto and contributors, 2026: original SVG glyphs, symbol mapping, and glyph-mask clock refraction work, under AGPL-3.0. The atlas is `docs/icons.png`.
 
-- **true-liquid-glass (shojiwm)**, bea4dev: smooth-min liquid silhouette shader and Quickshell components adapted from [true-liquid-glass-shojiwm](https://github.com/bea4dev/true-liquid-glass-shojiwm) (MIT). Vendored under `shell/liquid/` and `shell/shaders/liquid.frag`.
+- **true-liquid-glass (shojiwm)**, bea4dev: smooth-min liquid silhouette shader and Quickshell components adapted from [true-liquid-glass-shojiwm](https://github.com/bea4dev/true-liquid-glass-shojiwm) (MIT). Used by earlier versions of the shell.
 
 No Apple or Icons8 icon assets, Apple artwork, wallpapers, avatars, logos, or proprietary fonts are bundled. Product names mentioned for compatibility remain the names of their respective projects.

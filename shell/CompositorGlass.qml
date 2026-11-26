@@ -19,13 +19,14 @@ Item {
     property real innerShadow: 1
     property real rim: 1
     property bool prism: false
-    readonly property bool surfaceLocal: target === "tahow-settings"
+    readonly property bool surfaceLocal: target === "tahow-settings" || target === "quickshell:tahow-input"
     function position(item, x, y) {
         return surfaceLocal && root.Window.window ? item.mapToItem(root.Window.window.contentItem, x, y) : item.mapToGlobal(x, y);
     }
     readonly property bool available: socket.connected && protocolReady
-    readonly property bool materialAvailable: available && (!prism || prismSupported)
+    readonly property bool materialAvailable: available && (!prism || prismSupported) && (target !== "quickshell:tahow-input" || inputPanelSupported)
     property bool prismSupported: false
+    property bool inputPanelSupported: false
     readonly property bool ready: active && materialAvailable && presented && geometry.supported && geometry.clipWidth > 0 && geometry.clipHeight > 0
     property bool protocolReady: false
     property bool presented: false
@@ -115,7 +116,7 @@ Item {
         path: root.socketPath
         connected: root.wantsConnection
         onConnectionStateChanged: {
-            root.protocolReady = false; root.prismSupported = false; root.presented = false;
+            root.protocolReady = false; root.prismSupported = false; root.inputPanelSupported = false; root.presented = false;
             if (connected) root.send({op:"hello",version:1});
         }
         parser: SplitParser { onRead: line => {
@@ -123,6 +124,7 @@ Item {
                 const message = JSON.parse(line);
                 if (message.op === "hello") {
                     root.prismSupported = message.prism === true;
+                    root.inputPanelSupported = message.inputPanel === true;
                     root.protocolReady = message.version === 1 && message.provider === "hyprland-acrylic";
                 }
                 if (message.op === "presented" && message.id === root.token) root.presented = true;

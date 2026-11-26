@@ -51,6 +51,7 @@ Singleton {
     property string expandedScreen: ""
     property int tab: 0
     property bool settingsOpen: false
+    property string settingsConnectivity: ""
 
     function focusedScreen() {
         if (Host.focusedOutput) return Host.focusedOutput;
@@ -210,6 +211,10 @@ Singleton {
     }
     readonly property bool albumColorValid: albumPick !== null
     readonly property color albumColor: albumPick ?? "#0a84ff"
+    // Publish album tint into the shared core so Theme stays Hub-free.
+    Binding { target: AlbumTint; property: "color"; value: root.albumColor }
+    Binding { target: AlbumTint; property: "valid"; value: root.albumColorValid }
+    Binding { target: AlbumTint; property: "playing"; value: root.playing }
 
     // Visualizer (cava, fake fallback)
     property bool cavaAvailable: false
@@ -277,10 +282,13 @@ Singleton {
     function toggleMute() { if (sink && sink.audio) sink.audio.muted = !sink.audio.muted; }
     function toggleMic() { if (source && source.audio) source.audio.muted = !source.audio.muted; }
 
+    function flashVolume() {
+        flash("osd", volumeIcon, muted ? "Muted" : "Volume", muted ? -1 : volume);
+    }
     Connections {
         target: root.sink ? root.sink.audio : null
-        function onVolumeChanged() { root.flash("osd", root.volumeIcon, "Volume", root.muted ? 0 : root.volume); }
-        function onMutedChanged() { root.flash("osd", root.volumeIcon, root.muted ? "Muted" : "Volume", root.muted ? 0 : root.volume); }
+        function onVolumeChanged() { Qt.callLater(root.flashVolume); }
+        function onMutedChanged() { Qt.callLater(root.flashVolume); }
     }
     Connections {
         target: root.source ? root.source.audio : null
@@ -289,7 +297,7 @@ Singleton {
                        root.micMuted ? Theme.red : Theme.green);
         }
     }
-    onSinkChanged: if (sink) flash("osd", sinkIcon(), sinkName, -1, null, 2200)
+    onSinkChanged: if (sink && event !== "device") flash("osd", sinkIcon(), sinkName, -1, null, 2200)
 
     // ═════════════════════════ BRIGHTNESS ════════════════════════
     property bool hasBacklight: false
@@ -377,7 +385,7 @@ Singleton {
     readonly property var btAdapter: Bluetooth.defaultAdapter
     readonly property bool btOn: btAdapter !== null && btAdapter.enabled
     readonly property var btConnected: Bluetooth.devices.values.filter(d => d.connected)
-    property var btSeen: []
+    property var btSeen: new Map()
     function btIcon(icon) {
         const i = (icon || "").toLowerCase();
         if (i.includes("headset") || i.includes("headphone") || i.includes("audio-card")) return "headphones";
@@ -389,19 +397,19 @@ Singleton {
         if (i.includes("speaker") || i.includes("audio")) return "speaker";
         return "bluetooth";
     }
-    property var eventDevice: null
     onBtConnectedChanged: {
-        const addrs = btConnected.map(d => d.address);
-        if (armed) {
-            for (let i = 0; i < btConnected.length; i++) {
-                const d = btConnected[i];
-                if (btSeen.indexOf(d.address) < 0) {
-                    eventDevice = d;
-                    flash("device", btIcon(d.icon), d.name || d.deviceName, d.batteryAvailable ? d.battery : -1, null, 3200, "Connected");
-                }
-            }
+        const current = new Map();
+        for (const d of btConnected) {
+            const device = { icon: btIcon(d.icon), name: d.name || d.deviceName || d.address };
+            current.set(d.address, device);
+            if (!btSeen.has(d.address))
+                flash("device", device.icon, device.name, d.batteryAvailable ? d.battery : -1, null, 3200, "Connected");
         }
-        btSeen = addrs;
+        for (const [address, device] of btSeen) {
+            if (!current.has(address))
+                flash("device", device.icon, device.name, -1, null, 3200, "Disconnected");
+        }
+        btSeen = current;
     }
     function toggleBt() { if (btAdapter) btAdapter.enabled = !btAdapter.enabled; }
     function setBt(on) { if (btAdapter) btAdapter.enabled = on; }
@@ -500,6 +508,10 @@ Singleton {
         else flash("osd", "stop_circle", "Recording Saved", -1, null, 2000);
     }
     function stopRecording() {
+        if (tahowRecording) {
+            stopTahowRecording();
+            return;
+        }
         Quickshell.execDetached(["sh", "-c",
             "pkill -INT -x wf-recorder; pkill -INT -x wl-screenrec; pkill -INT -f gpu-screen-recorder; true"]);
         privacyTimerKick.start();
@@ -811,9 +823,12 @@ Singleton {
                                      : wiredUp ? "Ethernet" : "Not Connected"
     Process {
         id: netProc
+        property bool initialized: false
+        environment: ({ "LC_ALL": "C" })
         command: ["sh", "-c",
             "echo \"W:$(nmcli radio wifi 2>/dev/null)\"; " +
-            "echo \"N:$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | grep -vE ':(loopback|bridge|tun|wireguard|vpn)$' | head -1)\""]
+            "active=$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null) || exit 1; " +
+            "echo \"N:$(printf '%s\\n' \"$active\" | grep -E ':(802-11-wireless|802-3-ethernet|wifi|ethernet)$' | head -1)\""]
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = this.text.split("\n");
@@ -821,24 +836,30 @@ Singleton {
                     const l = lines[i];
                     if (l.startsWith("W:")) root.wifiOn = l.slice(2).trim() === "enabled";
                     else if (l.startsWith("N:")) {
-                        const f = root.nmSplit(l.slice(2).trim());
-                        root.netName = f.length > 1 ? f.slice(0, -1).join(":") : (f[0] || "");
-                        root.netType = f.length > 1 ? f[f.length - 1] : "";
+                        const [name, type = ""] = root.nmSplit(l.slice(2));
+                        const changed = name !== root.netName || type !== root.netType;
+                        root.netName = name;
+                        root.netType = type;
+                        if (netProc.initialized && changed)
+                            root.flash("device", "wifi", name || I18n.tr("Network"), -1, null, 3200,
+                                       name ? "Connected" : "Disconnected");
+                        netProc.initialized = true;
                     }
                 }
             }
         }
     }
+    Timer { interval: 5000; repeat: true; triggeredOnStart: true; running: true; onTriggered: netProc.running = true }
     Timer {
         interval: 5000; repeat: true; triggeredOnStart: true
         running: root.expanded || root.settingsOpen
-        onTriggered: { netProc.running = true; if (root.hasBacklight) root.refreshBrightness(); }
+        onTriggered: if (root.hasBacklight) root.refreshBrightness()
     }
     Timer { id: netRefresh; interval: 1500; onTriggered: { netProc.running = true; if (root.wifiMenuOpen) wifiList.running = true; } }
     function toggleWifi() { setWifi(!wifiOn); }
     function setWifi(on) {
         wifiOn = on;
-        if (!on) wifiNetworks = [];
+        if (!on) { wifiNeedsPassword = ""; wifiNetworks = []; }
         Quickshell.execDetached(["nmcli", "radio", "wifi", on ? "on" : "off"]);
         netRefresh.restart();
     }
@@ -859,8 +880,9 @@ Singleton {
     }
     // Control Center drill-down page: "" | "wifi" | "bt"
     property string ccPage: ""
-    readonly property bool wifiMenuOpen: ccPage === "wifi" && expanded && tab === 2
-    readonly property bool btMenuOpen: ccPage === "bt" && expanded && tab === 2
+    readonly property bool wifiMenuOpen: (settingsOpen && settingsConnectivity === "wifi") || (ccPage === "wifi" && expanded && tab === 2)
+    readonly property bool btMenuOpen: (settingsOpen && settingsConnectivity === "bt") || (ccPage === "bt" && expanded && tab === 2)
+    onWifiMenuOpenChanged: if (!wifiMenuOpen) wifiNeedsPassword = ""
     onBtMenuOpenChanged: btScan(btMenuOpen)
     onExpandedChanged: { if (!expanded) ccPage = ""; else launcherOpen = false; }
     function openCC(page, screenName) { ccPage = page; openTab(screenName, 2); }
@@ -870,6 +892,7 @@ Singleton {
     property string wifiBusy: ""          // SSID being joined
     property string wifiError: ""
     property string wifiNeedsPassword: "" // SSID that asked for a password
+    onWifiNeedsPasswordChanged: if (!wifiNeedsPassword && wifiMenuOpen && wifiOn) wifiList.running = true
     Process {
         id: wifiList
         command: ["sh", "-c",
@@ -879,7 +902,7 @@ Singleton {
             onStreamFinished: {
                 const lines = this.text.split("\n");
                 const known = [];
-                const byName = {};
+                const byName = Object.create(null);
                 let k = false;
                 for (let i = 0; i < lines.length; i++) {
                     const l = lines[i];
@@ -899,7 +922,8 @@ Singleton {
                 for (const s in byName) { byName[s].known = known.indexOf(s) >= 0; list.push(byName[s]); }
                 list.sort((a, b) => (b.active - a.active) || (b.known - a.known) || (b.signal - a.signal));
                 root.wifiKnown = known;
-                root.wifiNetworks = list;
+                // Replacing the model destroys the inline editor and its focus.
+                if (!root.wifiNeedsPassword) root.wifiNetworks = list;
                 root.wifiScanning = false;
             }
         }
@@ -912,7 +936,7 @@ Singleton {
     Timer { id: wifiListLater; interval: 2200; onTriggered: wifiList.running = true }
     Timer {
         interval: 10000; repeat: true; triggeredOnStart: true
-        running: root.wifiMenuOpen && root.wifiOn && root.expanded
+        running: root.wifiMenuOpen && root.wifiOn
         onTriggered: root.wifiScan()
     }
     function wifiScan() {
@@ -936,7 +960,7 @@ Singleton {
             } else {
                 const msg = (joinErr.text + " " + joinOut.text).trim();
                 const secrets = /secret|password|802-1x|psk|key-mgmt/i.test(msg);
-                root.wifiNeedsPassword = secrets ? ssid : "";
+                root.wifiNeedsPassword = secrets && root.wifiMenuOpen ? ssid : "";
                 root.wifiError = secrets ? I18n.tr("Incorrect password for “{ssid}”",{ssid:ssid}) : (msg.replace(/^Error:\s*/, "") || I18n.tr("Could not join “{ssid}”",{ssid:ssid}));
                 // don't leave a broken profile behind for a network we just tried
                 if (!wasKnown) Quickshell.execDetached(["nmcli", "connection", "delete", "id", ssid]);
@@ -1037,7 +1061,8 @@ Singleton {
         Quickshell.execDetached(["sh", "-c", cmd]);
     }
     function screenshot() {
-        run("sleep 0.5; grim -g \"$(slurp)\" - | wl-copy && notify-send -a Screenshot -i camera-photo 'Screenshot' 'Copied to clipboard'", true);
+        expanded = false;
+        captureRequested();
     }
     function colorPick() { run("sleep 0.5; hyprpicker -a", true); }
     function openFirst(cmds) {
@@ -1055,6 +1080,7 @@ Singleton {
         { cmd: "grim", pkg: "grim", what: "Screenshot" },
         { cmd: "slurp", pkg: "slurp", what: "Screenshot region" },
         { cmd: "wl-copy", pkg: "wl-clipboard", what: "Screenshot to clipboard" },
+        { cmd: "wf-recorder", pkg: "wf-recorder", what: "Screen Recording" },
         { cmd: "hyprpicker", pkg: "hyprpicker", what: "Colour picker" },
         { cmd: "paplay", pkg: "libpulse", what: "Notification sounds" },
         { cmd: "notify-send", pkg: "libnotify", what: "Test notification" },
@@ -1141,6 +1167,9 @@ Singleton {
     function dismiss() { Host.preparationCancelled(); expanded = false; launcherOpen = false; Notifs.centerOpen = false; dismissed(); }
     signal lockRequested()
     signal closePalette()
+    signal captureRequested()
+    signal stopTahowRecording()
+    property bool tahowRecording: false
 
     // ════════════════════ IPC + GLOBAL SHORTCUTS ═════════════════
     // qs -c island ipc call island <function> [args]

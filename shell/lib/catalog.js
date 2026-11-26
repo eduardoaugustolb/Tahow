@@ -24,6 +24,7 @@ function results(entries, query, section, hidden, pinned) {
     var q = normalize(query).trim();
     return entries.filter(function(e) {
         if (!e || e.noDisplay || hidden.indexOf(e.id) >= 0) return false;
+        if (!q && section === "suggestions") return pinned.indexOf(e.id) >= 0;
         if (!q && section !== "all" && category(e) !== section) return false;
         return !q || normalize([e.name, e.genericName, e.comment, (e.keywords || []).join(" ")].join(" ")).indexOf(q) >= 0;
     }).sort(function(a, b) {
@@ -38,5 +39,38 @@ function number(value, fallback, lo, hi) {
 }
 
 function strings(value) {
-    return Array.isArray(value) ? value.filter(function(v) { return typeof v === "string"; }) : [];
+    // Qt exposes persisted lists as iterable sequences in QML.
+    return value && typeof value === "object" && typeof value[Symbol.iterator] === "function"
+        ? Array.from(value).filter(function(v) { return typeof v === "string"; })
+        : [];
+}
+
+function shelves(entries, section, query, pinned, columns) {
+    if (query.trim() || section !== "all") {
+        var group = groups.find(group => group.id === section);
+        return [{ label: query.trim() ? "Search results" : (group ? group.label : "Suggestions"), entries: entries, start: 0 }];
+    }
+    var categories = groups.map(group => ({
+        id: group.id, label: group.label, entries: entries.filter(entry => category(entry) === group.id)
+    })).filter(group => group.entries.length);
+    var fixed = entries.filter(entry => pinned.indexOf(entry.id) >= 0);
+    var suggested = fixed.length ? fixed : categories.slice(0, columns).map(group => group.entries[0]);
+    var start = 0;
+    return [{ id: "suggestions", label: "Suggestions", entries: suggested }].concat(categories)
+        .filter(group => group.entries.length).map(group => {
+            var shown = group.entries.slice(0, columns);
+            var shelf = { id: group.id, label: group.label, entries: shown,
+                start: start, more: group.entries.length > columns };
+            start += shown.length;
+            return shelf;
+        });
+}
+
+function shelfRows(sections, columns) {
+    var rows = [];
+    for (var shelf of sections) {
+        for (var offset = 0; offset < shelf.entries.length; offset += columns)
+            rows.push({ start: shelf.start + offset, length: Math.min(columns, shelf.entries.length - offset) });
+    }
+    return rows;
 }

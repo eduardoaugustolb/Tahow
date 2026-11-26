@@ -32,6 +32,7 @@ Singleton {
     readonly property var general: adapter
     readonly property var island: effective("island")
     readonly property var palette: effective("palette")
+    readonly property var input: effective("input")
     readonly property var lockscreen: effective("lockscreen")
     function effective(scope) {
         const values = {};
@@ -41,10 +42,15 @@ Singleton {
     }
     function value(scope, key) { return scope === "general" ? adapter[key] : effective(scope)[key]; }
     function set(scope, key, value) {
-        if (scope === "general") { adapter[key] = value; return; }
+        setValues(scope, {[key]: value});
+    }
+    function setValues(scope, values) {
+        if (scope === "general") {
+            for (const key of Object.keys(values)) adapter[key] = values[key];
+            return;
+        }
         const all = Object.assign({}, adapter.overrides || {});
-        all[scope] = Object.assign({}, all[scope] || {});
-        all[scope][key] = value;
+        all[scope] = Object.assign({}, all[scope] || {}, values);
         adapter.overrides = all;
     }
     function inherit(scope) {
@@ -52,7 +58,7 @@ Singleton {
         delete all[scope]; adapter.overrides = all;
     }
     function inheritKeys(scope, keys) {
-        if (["island", "palette", "lockscreen"].indexOf(scope) < 0 || !Array.isArray(keys)) return;
+        if (["island", "palette", "lockscreen", "input"].indexOf(scope) < 0 || !Array.isArray(keys)) return;
         const all = Object.assign({}, adapter.overrides || {});
         if (!all[scope]) return;
         const values = Object.assign({}, all[scope]);
@@ -174,14 +180,15 @@ Singleton {
         bezel: 6,
         thickness: 8,
         ior: 1.2,
-        dispersion: 0.035,
-        frost: 20,
+        dispersion: 0.06,
+        frost: 10,
         pamService: "login",
         style: "glass",
         appearance: "auto",
-        glassOpacity: 0.39,
+        iconStyle: "default",
+        glassOpacity: 0.3,
         glassRim: true,
-        rimStrength: 0.6,
+        rimStrength: 0.75,
         liquidGlass: true,
         liquidBlendRadius: 28,
         innerShadow: 0.3,
@@ -191,6 +198,8 @@ Singleton {
         customAccent: "#0a84ff",
         matugenPath: "~/.cache/matugen/colors.json",
         wallpaperPath: "",
+        desktopWallpaperPath: "",
+        desktopWallpaperMode: "crop",
         albumTint: true,
         font: "auto",
         overlayBar: true,
@@ -315,16 +324,17 @@ Singleton {
             property real bezel: 6
             property real thickness: 8
             property real ior: 1.2
-            property real dispersion: 0.035
-            property real frost: 20
+            property real dispersion: 0.06
+            property real frost: 10
             property string pamService: "login"
 
             // ── Appearance ──
             property string style: "glass"          // glass | black
             property string appearance: "auto"      // auto | dark | light
-            property real glassOpacity: 0.39        // tint strength behind the blur
+            property string iconStyle: "default"
+            property real glassOpacity: 0.3        // tint strength behind the blur
             property bool glassRim: true            // liquid-glass specular edge
-            property real rimStrength: 0.6          // intensity of the white inner highlight
+            property real rimStrength: 0.75          // intensity of the white inner highlight
             property bool liquidGlass: true          // use the true-liquid-glass (shojiwm) silhouette engine
             property real liquidBlendRadius: 28      // smooth-min blend radius for liquid shapes
             property real innerShadow: 0.3         // independent optical edge shading, 0 disables
@@ -333,6 +343,8 @@ Singleton {
             property string accentSource: "auto"    // auto | wallpaper | wal | matugen | ryoku | gtk | album | custom
             property string customAccent: "#0a84ff"
             property string matugenPath: "~/.cache/matugen/colors.json"
+            property string desktopWallpaperPath: ""
+            property string desktopWallpaperMode: "crop"
             property string wallpaperPath: ""       // empty = detect (swww, hyprpaper, swaybg, waypaper…)
             property bool albumTint: true           // tint island with album colour while music plays
             property string font: "auto"            // auto = SF Pro if installed, else Inter

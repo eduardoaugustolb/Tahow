@@ -4,6 +4,7 @@ BannerStack 1.0 BannerStack.qml
 BluetoothPage 1.0 BluetoothPage.qml
 CCButton 1.0 CCButton.qml
 CCPill 1.0 CCPill.qml
+CapturePanel 1.0 CapturePanel.qml
 singleton Config 1.0 Config.qml
 ControlsTab 1.0 ControlsTab.qml
 Glass 1.0 Glass.qml
@@ -24,9 +25,12 @@ NotificationCenter 1.0 NotificationCenter.qml
 singleton Notifs 1.0 Notifs.qml
 Ring 1.0 Ring.qml
 Segmented 1.0 Segmented.qml
+SettingsControls 1.0 SettingsControls.qml
 SettingsWindow 1.0 SettingsWindow.qml
 SliderBar 1.0 SliderBar.qml
 singleton Theme 1.0 Theme.qml
+singleton AlbumTint 1.0 AlbumTint.qml
+singleton Clock 1.0 Clock.qml
 TimerTab 1.0 TimerTab.qml
 Txt 1.0 Txt.qml
 Visualizer 1.0 Visualizer.qml
@@ -46,4 +50,6 @@ Sheet 1.0 Sheet.qml
 NativeGlass 1.0 NativeGlass.qml
 Runtime 1.0 Runtime.qml
 Lockscreen 1.0 Lockscreen.qml
-LiquidGlass 1.0 LiquidGlass.qml
+InputPanel 1.0 InputPanel.qml
+singleton DesktopWallpaper 1.0 DesktopWallpaper.qml
+WallpaperPage 1.0 WallpaperPage.qml
