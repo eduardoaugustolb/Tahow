@@ -92,9 +92,35 @@ with moving refraction and highlights in a seamless four-second loop.
 
 ![Original glyph atlas](docs/icons.png)
 
-## Run
+## Install
 
-Install Quickshell and its Qt/QML dependencies through your distribution. A Wayland desktop is required; desktop services and screen capture depend on the host and its available protocols. From this repository:
+Use the repository's `install.sh` as the supported installation and update
+method. It deploys Tahow to `~/.config/tahow-shell`, configures the Hyprland
+session lock and shortcut, and can install or restore the optional greetd login
+screen. Run it as your regular user; the installer requests `sudo` only when
+system package installation requires it. Do not launch it with `sudo`.
+
+Clone the repository and run the installer:
+
+```sh
+git clone https://github.com/eduardoaugustolb/Tahow.git
+cd Tahow
+./install.sh
+```
+
+To update an existing installation from this checkout, run `./install.sh
+--update`. Other supported actions are `./install.sh --login-screen` to select
+Tahow's greetd login at boot, `./install.sh --restore-login` to restore the
+previous login selection, and `./install.sh --uninstall` to remove the Tahow
+shell installation. The login-screen options require greetd, Cage, Quickshell,
+and Hyprland to be installed; see [boot login setup and recovery](integrations/greetd/README.md).
+
+## Run from source
+
+For development or a temporary source run, install Quickshell and its Qt/QML
+dependencies through your distribution. A Wayland desktop is required; desktop
+services and screen capture depend on the host and its available protocols.
+From this repository:
 
 ```sh
 sh "$PWD/shell/bin/start-shell.sh"
@@ -102,7 +128,9 @@ sh "$PWD/shell/bin/start-shell.sh"
 
 The launcher starts Quickshell detached (`--daemonize`) and idempotently (`--no-duplicate`), so closing the terminal or typing `exit` does not kill the bar. Plain `qs -p ... &` would leave it in the terminal's job table and a second `exit` would send it SIGHUP.
 
-The Hyprland installer (`./install.sh` or `./install.sh --update`) deploys the built-in session lock and binds **Super + Alt + L**. It uses Quickshell's Wayland session lock and the distribution's PAM configuration. See [standalone lock configuration](shell/README.md#controls).
+The installer deploys the built-in session lock and binds **Super + Alt + L**.
+It uses Quickshell's Wayland session lock and the distribution's PAM
+configuration. See [standalone lock configuration](shell/README.md#controls).
 
 To use Tahow's graphical login at boot, install the system packages for greetd (including its PAM configuration and `agreety`), Cage, Quickshell and Hyprland, then run `./install.sh --login-screen`. This selects Tahow's greeter for the next boot on systemd systems. The greeter authenticates through greetd and starts a Hyprland session. Use `./install.sh --restore-login` to restore the previous selection. [Boot login setup and recovery](integrations/greetd/README.md)
 
