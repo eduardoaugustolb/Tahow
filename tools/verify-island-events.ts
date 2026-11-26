@@ -8,6 +8,7 @@ try {
     mkdirSync(run, { mode: 0o700 });
     symlinkSync(join(import.meta.dir, '../shell'), join(dir, 'tahow'));
     writeFileSync(network, 'Initial Wi-Fi:802-11-wireless\n');
+    writeFileSync(join(dir, 'pgrep'), '#!/bin/sh\nexit 1\n', { mode: 0o700 });
     writeFileSync(join(dir, 'nmcli'), `#!/bin/sh
 case "$*" in
   "radio wifi") echo enabled ;;
@@ -35,6 +36,23 @@ ShellRoot {
                 root.observed.push(island.mode + "|" + Tahow.Hub.eventLabel + "|" + Tahow.Hub.eventSub);
         }
     }
+    property int stopRequests: 0
+    Connections {
+        target: Tahow.Hub
+        function onStopTahowRecording() { root.stopRequests++; }
+    }
+    Component.onCompleted: {
+        Tahow.Hub.externalRecording = true;
+        Tahow.Hub.stopRecording();
+        const externalReadOnly = Tahow.Hub.activities.includes("recording") && root.stopRequests === 0;
+        Tahow.Hub.recordingProcessId = 1234;
+        Tahow.Hub.stopRecording();
+        const ownCanStop = Tahow.Hub.activities.includes("recording") && root.stopRequests === 1;
+        Tahow.Hub.recordingProcessId = 0;
+        Tahow.Hub.externalRecording = false;
+        if (externalReadOnly && ownCanStop && !Tahow.Hub.activities.includes("recording"))
+            console.log("RECORDING_ACTIVITY_OK");
+    }
     Timer {
         interval: 3000; running: true
         onTriggered: console.log("BASELINE", Tahow.Hub.netName, root.observed.length, island.mode)
@@ -48,7 +66,7 @@ ShellRoot {
     }
 }
 `);
-    const result = Bun.spawn(['qs', '-p', join(dir, 'shell.qml')], {
+    const result = Bun.spawn(['dbus-run-session', '--', 'qs', '-p', join(dir, 'shell.qml')], {
         env: { ...process.env, PATH: dir + ':' + process.env.PATH, TAHOW_TEST_NETWORK: network,
             XDG_CONFIG_HOME: dir, XDG_RUNTIME_DIR: run, QT_QPA_PLATFORM: 'offscreen', QT_QUICK_BACKEND: 'software' },
         stdout: 'pipe', stderr: 'pipe', timeout: 15000,
@@ -60,10 +78,10 @@ ShellRoot {
     await Bun.sleep(5000);
     writeFileSync(network, '');
     const [code, out, err] = await Promise.all([result.exited, stdout, stderr]);
-    if (code !== 0 || !out.includes('BASELINE Initial Wi-Fi 0 idle') ||
+    if (code !== 0 || !out.includes('RECORDING_ACTIVITY_OK') || !out.includes('BASELINE Initial Wi-Fi 0 idle') ||
         !out.includes('EVENTS device|Office:Guest|Connected, device|Network|Disconnected false false'))
         throw new Error(out + err);
-    console.log('The collapsed Island showed both network transitions, with no startup event.');
+    console.log('The Island showed both network transitions, with no startup event, and only owned recordings could stop.');
 } finally {
     rmSync(dir, { recursive: true, force: true });
 }

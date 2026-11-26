@@ -1,12 +1,36 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import "lib/control-center.js" as ControlCenter
 
 // Control Center: connectivity module (with Wi-Fi / Bluetooth menus), big sliders,
 // toggles and power. Active toggles take your theme accent (Settings → Controls).
 Item {
     id: root
     clip: true
+
+    readonly property var controlLayout: ControlCenter.normalize(Config.island.ccLayout)
+    readonly property var pinnedControls: ControlCenter.visibleControls(controlLayout, true)
+    readonly property var unpinnedControls: ControlCenter.visibleControls(controlLayout, false)
+    readonly property var controls: ({
+        "night-shift": { icon: "nightlight", label: "Night Shift", sub: Hub.nightLight ? Config.island.nightLightTemp + "K" : "Off", active: Hub.nightLight, tint: Theme.ccTint("#ff9f45"), run: () => Hub.nightLight = !Hub.nightLight },
+        "caffeine": { icon: "coffee", label: "Caffeine", sub: Hub.caffeine ? "Awake" : "Off", active: Hub.caffeine, tint: Theme.ccTint(Theme.orange), run: () => Hub.caffeine = !Hub.caffeine },
+        "timer": { icon: "timer", label: "Timer", sub: Hub.timerActive ? Hub.fmtTime(Hub.timerLeft) : "25 min", active: Hub.timerActive, tint: Theme.ccTint(Theme.orange), run: () => Hub.timerActive ? Hub.timerToggle() : Hub.startTimer(1500) },
+        "mic": { icon: Hub.micMuted ? "mic_off" : "mic", label: "Mic", sub: Hub.micMuted ? "Muted" : "Live", active: Hub.micMuted, tint: Theme.red, run: () => Hub.toggleMic() },
+        "screenshot": { icon: "screenshot_region", label: "Screenshot", run: () => Hub.screenshot() },
+        "colour": { icon: "colorize", label: "Colour", run: () => Hub.colorPick() },
+        "settings": { icon: "settings", label: "Settings", run: () => Hub.openSettings() }
+    })
+
+    function updateControl(index, changes) {
+        const layout = controlLayout.slice();
+        layout[index] = Object.assign({}, layout[index], changes);
+        Config.set("island", "ccLayout", layout);
+    }
+
+    function moveControl(index, offset) {
+        Config.set("island", "ccLayout", ControlCenter.move(controlLayout, index, offset));
+    }
 
     component PowerBtn: Rectangle {
         id: pb
@@ -59,6 +83,8 @@ Item {
         ColumnLayout {
             anchors.fill: parent
             spacing: 12
+
+            QuickControls { entries: root.pinnedControls; controls: root.controls }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -170,18 +196,7 @@ Item {
                 }
             }
 
-            // Toggles
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 0
-                CCButton { Layout.fillWidth: true; icon: "nightlight"; label: "Night Shift"; sub: Hub.nightLight ? Config.island.nightLightTemp + "K" : "Off"; active: Hub.nightLight; activeColor: Theme.ccTint("#ff9f45"); onClicked: Hub.nightLight = !Hub.nightLight }
-                CCButton { Layout.fillWidth: true; icon: "coffee"; label: "Caffeine"; sub: Hub.caffeine ? "Awake" : "Off"; active: Hub.caffeine; activeColor: Theme.ccTint(Theme.orange); onClicked: Hub.caffeine = !Hub.caffeine }
-                CCButton { Layout.fillWidth: true; icon: "timer"; label: "Timer"; sub: Hub.timerActive ? Hub.fmtTime(Hub.timerLeft) : "25 min"; active: Hub.timerActive; activeColor: Theme.ccTint(Theme.orange); onClicked: Hub.timerActive ? Hub.timerToggle() : Hub.startTimer(1500) }
-                CCButton { Layout.fillWidth: true; icon: Hub.micMuted ? "mic_off" : "mic"; label: "Mic"; sub: Hub.micMuted ? "Muted" : "Live"; active: Hub.micMuted; activeColor: Theme.red; onClicked: Hub.toggleMic() }
-                CCButton { Layout.fillWidth: true; icon: "screenshot_region"; label: "Screenshot"; onClicked: Hub.screenshot() }
-                CCButton { Layout.fillWidth: true; icon: "colorize"; label: "Colour"; onClicked: Hub.colorPick() }
-                CCButton { Layout.fillWidth: true; icon: "settings"; label: "Settings"; onClicked: Hub.openSettings() }
-            }
+            QuickControls { entries: root.unpinnedControls; controls: root.controls }
 
             Item { Layout.fillHeight: true }
 
@@ -193,6 +208,11 @@ Item {
                 PowerBtn { icon: "logout"; label: "Log Out"; armColor: Theme.orange; onTriggered: Hub.session("logout") }
                 PowerBtn { icon: "restart_alt"; label: "Restart"; armColor: Theme.orange; onTriggered: Hub.session("reboot") }
                 PowerBtn { icon: "power_settings_new"; label: "Shut Down"; onTriggered: Hub.session("shutdown") }
+                SettingsControls.Button {
+                    id: editButton
+                    text: I18n.tr("Edit Controls")
+                    onClicked: Hub.ccPage = "edit"
+                }
             }
         }
     }
@@ -211,4 +231,69 @@ Item {
     }
     SubPage { page: "wifi"; width: root.width; height: root.height; WifiPage { anchors.fill: parent } }
     SubPage { page: "bt"; width: root.width; height: root.height; BluetoothPage { anchors.fill: parent } }
+    SubPage {
+        page: "edit"
+        width: root.width
+        height: root.height
+        onShownChanged: if (shown) doneButton.forceActiveFocus();
+        Keys.onEscapePressed: doneButton.clicked()
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 6
+
+            RowLayout {
+                Layout.fillWidth: true
+                Txt { sourceText: "Edit Controls"; size: 21; weight: Font.Bold; Layout.fillWidth: true }
+                SettingsControls.Button {
+                    text: I18n.tr("Restore Control Layout")
+                    onClicked: Config.set("island", "ccLayout", [])
+                }
+                SettingsControls.Button {
+                    id: doneButton
+                    text: I18n.tr("Done")
+                    onClicked: {
+                        Hub.ccPage = "";
+                        editButton.forceActiveFocus();
+                    }
+                }
+            }
+
+            Repeater {
+                model: ControlCenter.controlIds.length
+                delegate: RowLayout {
+                    id: row
+                    required property int index
+                    readonly property var entry: root.controlLayout[index]
+                    readonly property var control: root.controls[entry.id]
+                    Layout.fillWidth: true
+                    Icon { text: row.control.icon; size: 18 }
+                    Txt { sourceText: row.control.label; Layout.fillWidth: true }
+                    SettingsControls.Button {
+                        text: row.entry.hidden ? I18n.tr("Show Control") : I18n.tr("Hide Control")
+                        Accessible.name: text + " · " + I18n.tr(row.control.label)
+                        onClicked: root.updateControl(row.index, { hidden: !row.entry.hidden })
+                    }
+                    SettingsControls.Button {
+                        text: row.entry.pinned ? I18n.tr("Unpin Control") : I18n.tr("Pin Control")
+                        Accessible.name: text + " · " + I18n.tr(row.control.label)
+                        onClicked: root.updateControl(row.index, { pinned: !row.entry.pinned })
+                    }
+                    SettingsControls.Button {
+                        text: I18n.tr("Move Up")
+                        Accessible.name: text + " · " + I18n.tr(row.control.label)
+                        enabled: row.index > 0
+                        onClicked: root.moveControl(row.index, -1)
+                    }
+                    SettingsControls.Button {
+                        text: I18n.tr("Move Down")
+                        Accessible.name: text + " · " + I18n.tr(row.control.label)
+                        enabled: row.index < root.controlLayout.length - 1
+                        onClicked: root.moveControl(row.index, 1)
+                    }
+                }
+            }
+            Item { Layout.fillHeight: true }
+        }
+    }
 }

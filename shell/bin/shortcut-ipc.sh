@@ -2,13 +2,15 @@
 set -eu
 
 case "${1:-}" in
-    launcher|settings|clipboard|emojis|capture) action=$1 ;;
+    lock) target=tahoeLock ;;
+    launcher|settings|clipboard|emojis|capture|files) target=tahoe ;;
     *) exit 2 ;;
 esac
+action=$1
 
 shell_dir=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 call() {
-    response=$(qs -p "$shell_dir/shell.qml" ipc call tahoe "$action" 2>&1) || {
+    response=$(qs -p "$shell_dir/shell.qml" ipc call "$target" "$action" 2>&1) || {
         printf '%s\n' "$response" >&2
         return 1
     }

@@ -22,5 +22,5 @@ try {
     if (saved.iconStyle !== "tinted" || saved.thickness !== 30 || saved.dispersion !== 0.1 || saved.overrides.island.dispersion !== 0.04
         || saved.overrides.palette.columns !== 8 || saved.overrides.palette.thickness !== undefined
         || saved.overrides.lockscreen.lockThickness !== 48) throw new Error('Preference readback did not match UI changes');
-    console.log('Settings OK: accent sources, glass strength, preview, inheritance and persisted readback.');
+    console.log('Settings OK: accent sources, glass presets and strength, preview, inheritance and persisted readback.');
 } finally { rmSync(temporary, {recursive: true, force: true}); }

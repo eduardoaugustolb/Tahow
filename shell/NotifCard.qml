@@ -134,7 +134,7 @@ Item {
         opacity: !root.isBanner ? 1
             : 1 - Math.min(0.9, Math.max(Math.abs(root.dragX) / (root.width * 0.9), -root.dragY / (height * 1.3)))
         scale: root.isBanner && root.dragY > 0 ? 1 + root.dragY / 1200 : 1
-        Behavior on height { NumberAnimation { duration: Theme.reduced ? 1 : 260; easing.type: Config.island.easing } }
+        ResizeTransition on height {}
 
         Glass {
             anchors.fill: parent

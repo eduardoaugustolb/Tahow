@@ -4,12 +4,14 @@ BannerStack 1.0 BannerStack.qml
 BluetoothPage 1.0 BluetoothPage.qml
 CCButton 1.0 CCButton.qml
 CCPill 1.0 CCPill.qml
+QuickControls 1.0 QuickControls.qml
 CapturePanel 1.0 CapturePanel.qml
 singleton Config 1.0 Config.qml
 ControlsTab 1.0 ControlsTab.qml
 Glass 1.0 Glass.qml
 CompositorGlass 1.0 CompositorGlass.qml
 GlassSettings 1.0 GlassSettings.qml
+FocusSettings 1.0 FocusSettings.qml
 HomeTab 1.0 HomeTab.qml
 singleton Hub 1.0 Hub.qml
 Icon 1.0 Icon.qml
@@ -24,6 +26,7 @@ NotifCard 1.0 NotifCard.qml
 NotificationCenter 1.0 NotificationCenter.qml
 singleton Notifs 1.0 Notifs.qml
 Ring 1.0 Ring.qml
+ResizeTransition 1.0 ResizeTransition.qml
 Segmented 1.0 Segmented.qml
 SettingsControls 1.0 SettingsControls.qml
 SettingsWindow 1.0 SettingsWindow.qml
@@ -45,6 +48,8 @@ singleton ReloadCover 1.0 ReloadCover.qml
 singleton Tokens 1.0 Tokens.qml
 singleton I18n 1.0 I18n.qml
 CommandPalette 1.0 CommandPalette.qml
+singleton SpotlightActions 1.0 SpotlightActions.qml
+SpotlightQuickKeys 1.0 SpotlightQuickKeys.qml
 PalettePreferences 1.0 PalettePreferences.qml
 Sheet 1.0 Sheet.qml
 NativeGlass 1.0 NativeGlass.qml

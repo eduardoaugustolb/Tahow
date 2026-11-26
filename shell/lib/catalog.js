@@ -22,16 +22,72 @@ function normalize(text) {
 
 function results(entries, query, section, hidden, pinned) {
     var q = normalize(query).trim();
+    const terms = q.split(/\s+/);
     return entries.filter(function(e) {
         if (!e || e.noDisplay || hidden.indexOf(e.id) >= 0) return false;
         if (!q && section === "suggestions") return pinned.indexOf(e.id) >= 0;
         if (!q && section !== "all" && category(e) !== section) return false;
-        return !q || normalize([e.name, e.genericName, e.comment, (e.keywords || []).join(" ")].join(" ")).indexOf(q) >= 0;
-    }).sort(function(a, b) {
-        var ap = pinned.indexOf(a.id) >= 0, bp = pinned.indexOf(b.id) >= 0;
-        var ax = q && normalize(a.name).startsWith(q), bx = q && normalize(b.name).startsWith(q);
-        return Number(bx) - Number(ax) || Number(bp) - Number(ap) || a.name.localeCompare(b.name);
-    });
+        return true;
+    }).map((entry, order) => ({
+        entry,
+        order,
+        score: q ? searchScore(entry, q, terms) : 0,
+        pinned: pinned.includes(entry.id)
+    })).filter(hit => hit.score >= 0)
+        .sort((a, b) => b.score - a.score || Number(b.pinned) - Number(a.pinned)
+            || a.entry.name.localeCompare(b.entry.name) || a.order - b.order)
+        .map(hit => hit.entry);
+}
+
+function searchScore(entry, query, terms) {
+    const name = normalize(entry.name);
+    if (name === query) return 1000;
+    if (name.startsWith(query)) return 900;
+    if (name.includes(query)) return 800;
+
+    const words = name.split(/[^\p{L}\p{N}]+/u);
+    const metadata = normalize([entry.id, entry.genericName, entry.comment, ...strings(entry.keywords)].join(" "));
+    let score = 0;
+    for (const term of terms) {
+        if (words.some(word => word.startsWith(term))) score += 60;
+        else if (name.includes(term)) score += 40;
+        else if (metadata.includes(term)) score += 20;
+        else if (term.length >= 3 && words.some(word => closeSubsequence(word, term))) score += 10;
+        else return -1;
+    }
+    return score / terms.length;
+}
+
+function closeSubsequence(word, term) {
+    if (word[0] !== term[0] || word.length > term.length + 3) return false;
+    let matched = 0;
+    for (const letter of word) {
+        if (letter === term[matched] && ++matched === term.length) return true;
+    }
+    return false;
+}
+
+function recentFiles(bookmarks, query) {
+    const q = normalize(query).trim();
+    const terms = q.split(/\s+/);
+    const files = [];
+    for (const bookmark of bookmarks) {
+        const url = bookmark.href;
+        if (typeof url !== "string" || !url.startsWith("file:///") || url.startsWith("file:////")) continue;
+        try {
+            const path = decodeURIComponent(url.slice("file://".length));
+            if (path.startsWith("//")) continue;
+            const split = path.lastIndexOf("/");
+            const name = path.slice(split + 1);
+            if (!name) continue;
+            const visited = Date.parse(bookmark.visited || bookmark.modified) || 0;
+            const file = { name, comment: path.slice(0, split) || "/", fileUrl: url, glyph: "description", visited };
+            if (!q || searchScore(file, q, terms) >= 0) files.push(file);
+        } catch (_) {
+            // Ignore malformed percent-encoded bookmarks.
+        }
+    }
+    return files.sort((a, b) => b.visited - a.visited).slice(0, 40);
 }
 
 function number(value, fallback, lo, hi) {

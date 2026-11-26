@@ -186,6 +186,7 @@ Singleton {
         style: "glass",
         appearance: "auto",
         iconStyle: "default",
+        useSystemFileManager: true,
         glassOpacity: 0.3,
         glassRim: true,
         rimStrength: 0.75,
@@ -228,6 +229,8 @@ Singleton {
         soundFile: "/usr/share/sounds/freedesktop/stereo/message.oga",
         groupByApp: true,
         dndAllowCritical: true,
+        focusSchedule: {},
+        focusAllowedApps: "",
         weather: true,
         locationMode: "auto",
         manualLat: 0,
@@ -235,6 +238,7 @@ Singleton {
         manualName: "",
         units: "metric",
         ccAccent: true,
+        ccLayout: [],
         nightLightTemp: 4000,
         osdPopups: false,
         osdTimeout: 1600,
@@ -332,6 +336,7 @@ Singleton {
             property string style: "glass"          // glass | black
             property string appearance: "auto"      // auto | dark | light
             property string iconStyle: "default"
+            property bool useSystemFileManager: true
             property real glassOpacity: 0.3        // tint strength behind the blur
             property bool glassRim: true            // liquid-glass specular edge
             property real rimStrength: 0.75          // intensity of the white inner highlight
@@ -382,6 +387,8 @@ Singleton {
             property string soundFile: "/usr/share/sounds/freedesktop/stereo/message.oga"
             property bool groupByApp: true
             property bool dndAllowCritical: true    // critical banners pass through the shell's own Focus
+            property var focusSchedule: ({})
+            property string focusAllowedApps: ""
 
             // ── Weather + location ──
             property bool weather: true
@@ -393,6 +400,7 @@ Singleton {
 
             // ── Controls ──
             property bool ccAccent: true            // Control Center toggles use your theme accent
+            property var ccLayout: []
             property int nightLightTemp: 4000       // Night Shift temperature (K), applied to the shell's Nightlight
             property bool osdPopups: false          // island volume/mic/brightness pills (the shell draws its own OSD)
             property int osdTimeout: 1600

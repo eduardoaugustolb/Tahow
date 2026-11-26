@@ -33,6 +33,10 @@ ShellRoot {
                     root.check(settings.currentPage.page === 1
                         && settings.visiblePages.map(entry => entry.page).join() === "7,8,11,12,4,0,24,6,1,2,3,10,9,23,5",
                         "Settings must provide direct sidebar links for all pages");
+                    settings.page = 4;
+                    root.check(!settings.ryokuSession && !settings.keys.includes("reloadCoverFollowWallpaper"),
+                        "Standalone settings must hide the Ryoku reload cover option");
+                    settings.page = 1;
                     settings.pageSearch = Tahow.I18n.tr("Spotlight");
                     root.check(settings.visiblePages.length === 1 && settings.visiblePages[0].page === 2,
                         "Searching for Spotlight must find its sidebar page");
@@ -58,19 +62,37 @@ ShellRoot {
                     root.check(Tahow.Config.general.thickness === 30 && Tahow.Config.general.dispersion === 0.1
                         && Tahow.Config.general.ior === 1.55, "Strength did not update general optics");
                     root.check(Tahow.Config.island.dispersion === 0.04, "General replaced a component override");
+                    const preset = root.find(controls, "glass-preset");
+                    root.check(preset.currentIndex === -1, "Existing glass settings should read as Custom");
+                    preset.activated(1);
+                    root.check(Tahow.Config.general.glassOpacity === 0.55 && Tahow.Config.general.lockTint === 0.35
+                        && Tahow.Config.general.glassAccentTint && Tahow.Config.island.dispersion === 0.04,
+                        "General preset did not update tint or overwrote island optics");
                     controls.componentIndex = 2;
                 } else if (root.stage === 1) {
                     root.check(slider.value === 50, "Palette did not inherit strength");
+                    const preset = root.find(controls, "glass-preset");
+                    root.check(preset.currentIndex === 1, "Palette did not inherit the General tint");
+                    preset.activated(2);
+                    root.check(Tahow.Config.palette.glassOpacity === 1 && Tahow.Config.general.glassOpacity === 0.55,
+                        "Palette preset did not stay independent");
                     slider.value = 75; slider.moved();
                     root.check(Tahow.Config.palette.thickness === 45, "Palette strength did not save");
                     controls.resetOverrides();
                     root.check(Tahow.Config.palette.thickness === 30 && Tahow.Config.palette.columns === 8,
                         "Reset did not inherit General or removed unrelated preferences");
+                    root.check(Tahow.Config.palette.glassOpacity === 0.55,
+                        "Palette reset did not inherit the default tint");
                     controls.componentIndex = 3;
                 } else if (root.stage === 2) {
                     const wallpaper = root.find(controls, "glass-preview-wallpaper");
                     root.check(wallpaper.status === Image.Ready, "Preview did not load the configured wallpaper");
                     const optics = root.find(controls, "glass-preview-lock-optics");
+                    const preset = root.find(controls, "glass-preset");
+                    preset.activated(0);
+                    root.check(Tahow.Config.lockscreen.lockTint === 0.035
+                        && Tahow.Config.general.lockTint === 0.35,
+                        "Lock preset did not use the lock field tint independently");
                     slider.value = 80; slider.moved();
                     root.check(Math.abs(optics.thickness - 33.6) < 0.001 && Tahow.Config.general.thickness === 30,
                         "Lock strength did not affect the preview independently");

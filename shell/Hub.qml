@@ -475,23 +475,29 @@ Singleton {
     }
 
     // ═══════════════ PRIVACY + SCREEN RECORDING ══════════════════
-    property bool recording: false
+    property int recordingProcessId: 0
+    readonly property bool ownRecording: recordingProcessId > 0
+    property bool externalRecording: false
+    readonly property bool recording: ownRecording || externalRecording
     property bool micInUse: false
     property bool camInUse: false
     property int recordSeconds: 0
+    property double ownRecordingStartedAt: 0
+    property double externalRecordingDetectedAt: 0
     Process {
         id: privacyProc
+        // Linux truncates the gpu-screen-recorder process name to 15 characters.
         command: ["sh", "-c",
             "r=0; m=0; c=0; " +
-            "pgrep -x 'wf-recorder|wl-screenrec|gpu-screen-recorder|obs|kooha' >/dev/null && r=1; " +
+            "pgrep -u \"$(id -u)\" -x 'wf-recorder|wl-screenrec|gpu-screen-reco' | grep -vxF -- \"$1\" >/dev/null && r=1; " +
             "n=$(pactl list source-outputs 2>/dev/null | grep 'application.process.binary' | grep -vc '\"cava\"'); " +
             "[ \"${n:-0}\" -gt 0 ] && m=1; " +
             "find /proc/[0-9]*/fd -lname '/dev/video*' -print -quit 2>/dev/null | grep -q . && c=1; " +
-            "echo \"$r $m $c\""]
+            "echo \"$r $m $c\"", "privacy", String(root.recordingProcessId)]
         stdout: StdioCollector {
             onStreamFinished: {
                 const p = this.text.trim().split(" ");
-                root.recording = p[0] === "1";
+                root.externalRecording = p[0] === "1";
                 root.micInUse = p[1] === "1";
                 root.camInUse = p[2] === "1";
             }
@@ -499,24 +505,28 @@ Singleton {
     }
     Timer {
         interval: 3000; repeat: true; triggeredOnStart: true
-        running: true   // also drives the screen-recording activity
+        running: true
         onTriggered: privacyProc.running = true
     }
-    Timer { interval: 1000; repeat: true; running: root.recording; onTriggered: root.recordSeconds++ }
-    onRecordingChanged: {
-        if (recording) { recordSeconds = 0; flash("osd", "radio_button_checked", "Screen Recording", -1, Theme.red, 2000); }
-        else flash("osd", "stop_circle", "Recording Saved", -1, null, 2000);
+    Timer {
+        interval: 1000; repeat: true; running: root.recording
+        onTriggered: root.updateRecordingTime()
+    }
+    onExternalRecordingChanged: {
+        externalRecordingDetectedAt = externalRecording ? Date.now() : 0;
+        updateRecordingTime();
+    }
+    onOwnRecordingChanged: {
+        ownRecordingStartedAt = ownRecording ? Date.now() : 0;
+        updateRecordingTime();
+    }
+    function updateRecordingTime() {
+        const started = ownRecording ? ownRecordingStartedAt : externalRecordingDetectedAt;
+        recordSeconds = started > 0 ? Math.max(0, Math.floor((Date.now() - started) / 1000)) : 0;
     }
     function stopRecording() {
-        if (tahowRecording) {
-            stopTahowRecording();
-            return;
-        }
-        Quickshell.execDetached(["sh", "-c",
-            "pkill -INT -x wf-recorder; pkill -INT -x wl-screenrec; pkill -INT -f gpu-screen-recorder; true"]);
-        privacyTimerKick.start();
+        if (ownRecording) stopTahowRecording();
     }
-    Timer { id: privacyTimerKick; interval: 800; onTriggered: privacyProc.running = true }
 
     // ═════════════════════ LOCATION + WEATHER ════════════════════
     // Location: GeoClue (Wi-Fi positioning, precise) → IP geolocation → or a city you pick.
@@ -1169,7 +1179,6 @@ Singleton {
     signal closePalette()
     signal captureRequested()
     signal stopTahowRecording()
-    property bool tahowRecording: false
 
     // ════════════════════ IPC + GLOBAL SHORTCUTS ═════════════════
     // qs -c island ipc call island <function> [args]

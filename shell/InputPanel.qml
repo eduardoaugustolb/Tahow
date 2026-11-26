@@ -70,6 +70,8 @@ PanelWindow {
     property bool uppercase: false
     property bool symbols: false
     property bool historyAllowed: false
+    property bool externalHistoryVisible: false
+    readonly property bool historyVisible: historyAllowed && ((visible && page === 1) || externalHistoryVisible)
     readonly property string clipboardScript: decodeURIComponent(Qt.resolvedUrl("bin/restore-clipboard.ts").toString().replace(/^file:\/\//, ""))
     property var entries: []
     property string status: ""
@@ -98,8 +100,8 @@ PanelWindow {
             bubbleOpening.start();
         }
     }
-    function run(command) {
-        if (!visible || action.running) return;
+    function run(command, fromSpotlight) {
+        if ((!visible && !fromSpotlight) || action.running) return;
         status = "";
         action.command = ["env", "PATH=" + LoginWallpaper.runtimePath, ...command];
         action.running = true;
@@ -143,21 +145,30 @@ PanelWindow {
             }
         }
     }
-    function restoreHistory(entry) {
-        run(["bun", clipboardScript, entry]);
+    function restoreHistory(entry, fromSpotlight) {
+        if (!historyVisible || (fromSpotlight && !externalHistoryVisible)) return;
+        run(["bun", clipboardScript, entry], fromSpotlight);
     }
     function refreshHistory() {
-        if (!visible || page !== 1 || !historyAllowed || history.running) return;
+        if (!historyVisible || history.running) return;
         entries = [];
         status = "";
         history.running = true;
+    }
+    onHistoryVisibleChanged: {
+        if (historyVisible) refreshHistory();
+        else {
+            entries = [];
+            status = "";
+            history.running = false;
+        }
     }
     onPageChanged: {
         releaseSearch();
         pendingEmoji = "";
         emojiTarget = null;
         emojiRelease.stop();
-        entries = [];
+        if (!historyVisible) entries = [];
         status = "";
         if (page === 2) {
             status = emojiLoadFailed ? "Could not load emojis." : "";
@@ -189,11 +200,11 @@ PanelWindow {
         reveal = 0;
         bubble = 0;
         page = 0;
-        entries = [];
+        if (!historyVisible) entries = [];
         status = "";
         uppercase = false;
         symbols = false;
-        history.running = false;
+        if (!historyVisible) history.running = false;
         capture.captureSource = null;
         finishCapture();
     }
@@ -201,10 +212,13 @@ PanelWindow {
     Process {
         id: action
         onExited: code => {
+            if (command[2] === "bun") {
+                if (root.historyVisible)
+                    root.status = code === 0 ? "Copied to clipboard" : "Could not restore the clipboard item.";
+                return;
+            }
             if (!root.visible) return;
-            if (command[2] === "bun")
-                root.status = code === 0 ? "Copied to clipboard" : "Could not restore the clipboard item.";
-            else if (code !== 0)
+            if (code !== 0)
                 root.status = "Could not type. Check wtype and compositor support.";
             else if (root.pendingEmoji)
                 root.recentEmoji = [root.pendingEmoji].concat(root.recentEmoji.filter(emoji => emoji !== root.pendingEmoji)).slice(0, 48);
@@ -221,7 +235,7 @@ PanelWindow {
         id: historyRefresh
         interval: 120
         onTriggered: {
-            if (!root.visible || root.page !== 1) return;
+            if (!root.historyVisible) return;
             if (history.running) restart();
             else root.refreshHistory();
         }
@@ -230,11 +244,11 @@ PanelWindow {
         id: history
         command: ["env", "PATH=" + LoginWallpaper.runtimePath, "cliphist", "list"]
         stdout: StdioCollector {
-            onStreamFinished: if (root.visible && root.page === 1 && root.historyAllowed)
+            onStreamFinished: if (root.historyVisible)
                 root.entries = Input.clipboardEntries(this.text)
         }
         onExited: code => {
-            if (code !== 0 && root.visible && root.page === 1 && root.historyAllowed)
+            if (code !== 0 && root.historyVisible)
                 root.status = "Clipboard history is unavailable.";
         }
     }
@@ -302,6 +316,8 @@ PanelWindow {
         }
         width: Math.min(740, Math.max(280, (root.screen?.width ?? 740) - 24))
         height: Math.min(365, Math.max(240, (root.screen?.height ?? 365) - 36))
+        ResizeTransition on width { options: root.options }
+        ResizeTransition on height { options: root.options }
 
         Glass {
             id: material

@@ -10,4 +10,6 @@ Tahow is maintained by Eduardo Augusto and contributors. The combined project is
 
 - **true-liquid-glass (shojiwm)**, bea4dev: smooth-min liquid silhouette shader and Quickshell components adapted from [true-liquid-glass-shojiwm](https://github.com/bea4dev/true-liquid-glass-shojiwm) (MIT). Used by earlier versions of the shell.
 
+- **WhiteSur Icon Theme**, vinceliuice and contributors: downloaded by the Hyprland installer from [revision `73d8040da51a`](https://github.com/vinceliuice/WhiteSur-icon-theme/tree/73d8040da51a9ed74e47c7366e7e9ff437601a5c). The installed theme includes the upstream GPL-3.0 license and authors file.
+
 No Apple or Icons8 icon assets, Apple artwork, wallpapers, avatars, logos, or proprietary fonts are bundled. Product names mentioned for compatibility remain the names of their respective projects.

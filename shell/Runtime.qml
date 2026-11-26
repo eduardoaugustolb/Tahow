@@ -5,12 +5,28 @@ import "apps" as Apps
 Scope {
     id: root
     property bool ownsLock: true
-    CommandPalette { id: commandPalette }
+    CommandPalette {
+        id: commandPalette
+        actionHandler: root.runSpotlightAction
+        historyProvider: inputSurface
+    }
+    function runSpotlightAction(action) {
+        if (lockLoader.item?.requested) return;
+        switch (action) {
+        case "timer": Hub.startTimer(1500); break;
+        case "mic": Hub.toggleMic(); break;
+        case "screenshot": Hub.screenshot(); break;
+        case "focus": Notifs.toggleDnd(); break;
+        }
+    }
     Apps.DesktopApps { id: desktopApps }
-    InputPanel { id: inputSurface }
+    InputPanel {
+        id: inputSurface
+        externalHistoryVisible: commandPalette.wantsClipboardHistory
+    }
     CapturePanel {
         id: capturePanel
-        onRecordingChanged: Hub.tahowRecording = recording
+        onRecordingProcessIdChanged: Hub.recordingProcessId = recordingProcessId
     }
     function toggleCapture() {
         if (lockLoader.item?.requested) return "locked";
@@ -31,6 +47,7 @@ Scope {
         target: lockLoader.item
         function onRequestedChanged() {
             if (!lockLoader.item.requested) return;
+            commandPalette.hide();
             inputSurface.visible = false;
             capturePanel.visible = false;
             desktopApps.closeWindows();
@@ -62,6 +79,7 @@ Scope {
         function openLauncher(mon: string): void { if (Config.s.paletteEnabled) commandPalette.show(mon); }
         function openApplications(mon: string): void { if (Config.s.paletteEnabled) commandPalette.show(mon, true); }
         function openApp(app: string): void { root.openDesktopApp(app); }
+        function files(): void { root.openDesktopApp("files"); }
         function closeLauncher(): void { commandPalette.hide(); }
         function setDispersion(amount: real): void {
             if (!Number.isFinite(amount)) return;

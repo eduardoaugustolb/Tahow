@@ -28,6 +28,11 @@ if running; then
     exit 0
 fi
 
+icons="${XDG_DATA_HOME:-$HOME/.local/share}/icons/Tahow-WhiteSur/index.theme"
+if [ -z "${QS_ICON_THEME:-}" ] && [ -f "$icons" ]; then
+    export QS_ICON_THEME=Tahow-WhiteSur
+fi
+
 if "$qs_bin" --help 2>&1 | grep -q -- '--daemonize'; then
     "$qs_bin" -n -d -p "$config" >/dev/null 2>&1 || true
 else

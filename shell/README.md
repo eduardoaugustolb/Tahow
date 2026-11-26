@@ -32,7 +32,9 @@ Open it directly with `qs -c shell ipc call tahoe settingsTab glass`. Live slide
 - Host: injected desktop port. Only adapters/Ryoku.qml imports Ryoku from the subshell. The companion launcher uses the host surface bus to open this one runtime without spawning a second process.
 - DesktopTheme: watches Ryoku colors.json, theme.json and the named theme palette; subscribes to Ryogami wallpaper publications. Optional explicit hook: `qs -c shell ipc call tahoeTheme refresh`. It never writes Ryoku's color stores.
 - Runtime: shared services and screen surfaces. Scene instantiates one runtime on the primary output. Start the standalone shell with `qs -n -d -p /path/to/Tahow/shell/shell.qml`. The running instance watches its files and reloads when they change.
-- Desktop apps live under `apps/`. `Runtime.qml` and `PaletteRuntime.qml` both use `DesktopApps.qml` to open Files, Calendar and Terminal. App views share the shell's appearance, controls and translations.
+- Desktop apps live under `apps/`. `Runtime.qml` and `PaletteRuntime.qml` both use `DesktopApps.qml` to open Files, Calendar and Terminal. Files uses the system folder handler. The installer prepares a separate Dolphin profile in `desktop-profile/` under Tahow's preferences, used when Dolphin is the default or no handler is configured. If the launch fails, Tahow opens its internal browser. Disable **Use the system file manager** in General to always use the internal browser.
+- Terminal launches Kitty with the Tahow light or dark profile and uses the desktop accent for selection. Launching Kitty outside Tahow still uses your regular Kitty configuration.
+- The Hyprland installer installs the WhiteSur theme under the user icon directory as `Tahow-WhiteSur` and activates it for Tahow's standalone launcher and Dolphin profile. The standalone shell picks up the theme on its next start and honors an existing `QS_ICON_THEME`.
 - Host lock: separate companion theme, retaining qylock/PAM/fingerprint and suspend-inhibitor behavior. Standalone lock uses ext-session-lock/PAM and is never started in hosted mode.
 
 ## Rendering and lifecycle
@@ -59,7 +61,11 @@ In **Appearance**, set **Icon style** to Default, Dark, Clear or Tinted for Spot
 
 Shortcuts reads all effective categories from `ryoku-hub keybinds` and supports search. Mouse/keyboard gestures and Tahoe IPC are shown separately. Removed Hyprland GlobalShortcut bindings are not advertised.
 
-The standalone Hyprland installer creates **Super + V** for Clipboard and **Super + .** for Emojis on install and update when those combinations are free in the Tahow shortcut file. Both open the same panel, where the keyboard tab contains Brazilian Portuguese letters and accents. To configure the shortcuts manually, bind the keys to `sh ~/.config/tahow-shell/bin/shortcut-ipc.sh clipboard` and `sh ~/.config/tahow-shell/bin/shortcut-ipc.sh emojis`.
+In Spotlight, **Ctrl + 1** opens Applications, **Ctrl + 2** opens Recent files, **Ctrl + 3** opens Actions, and **Ctrl + 4** opens Clipboard. Recent files come from the desktop's `recently-used.xbel` list. Clipboard results appear after you choose **Show history** in the Tahow input panel. Selecting one copies the item to the clipboard. Actions and Clipboard use the full Tahow shell runtime.
+
+Spotlight search ranks apps, recent files and actions by name and available metadata. Type arithmetic such as `(12 + 8) / 4` for a live result. Press Enter to copy it via `wl-copy`. Type a URL to open it, select **Search the web** under the local results, or prefix a query with `?` to search DuckDuckGo directly. The default browser opens only when you select a web result.
+
+The standalone Hyprland installer creates **Super + E** for Files, **Super + V** for Clipboard and **Super + .** for Emojis on install and update when those combinations are free in the Tahow shortcut file. Clipboard and Emojis share a panel with a keyboard tab for Brazilian Portuguese letters and accents. For manual bindings, use `sh ~/.config/tahow-shell/bin/shortcut-ipc.sh` with `files`, `clipboard` or `emojis`.
 
 Typing, emoji insertion and the current clipboard’s paste button use `wtype` and require a compositor with Wayland virtual keyboard support. After you choose **Show history**, Tahow reads existing `cliphist` entries and records copied images until the shell closes. Image previews use ImageMagick. Clicking a history item restores it to the Wayland clipboard using `wl-copy` from `wl-clipboard`.
 

@@ -22,6 +22,25 @@ Column {
     readonly property color tint: options.style === "black" ? "#000000" : Theme.materialTint(options, dark)
     readonly property bool opticalPreview: options.style !== "black" && (lockField || options.screenCapture)
     readonly property var glassKeys: ["style", "glassOpacity", "glassAccentTint", "glassRim", "rimStrength", "innerShadow", "frost", "screenCapture", "bezel", "thickness", "ior", "dispersion", "lockTint", "lockRim", "lockBezel", "lockThickness", "lockIor", "lockDispersion", "lockEnergy"]
+    readonly property var presets: [
+        {label: "Transparent glass", opacity: 0.15, lockTint: 0.035, accent: false},
+        {label: "Tinted glass", opacity: 0.55, lockTint: 0.35, accent: true},
+        {label: "Opaque glass", opacity: 1, lockTint: 1, accent: false}
+    ]
+    readonly property int currentPreset: presets.findIndex(preset => options.style === "glass"
+        && options.glassAccentTint === preset.accent
+        && (lockField || options.glassOpacity === preset.opacity)
+        && ((scope !== "general" && !lockField) || options.lockTint === preset.lockTint))
+
+    function applyPreset(index) {
+        const preset = presets[index];
+        if (!preset) return;
+        const values = {style: "glass", glassAccentTint: preset.accent};
+        if (!lockField) values.glassOpacity = preset.opacity;
+        if (lockField || scope === "general") values.lockTint = preset.lockTint;
+        Config.setValues(scope, values);
+    }
+
     function save(key, value) { Config.set(scope, key, value); }
     function resetOverrides() {
         if (fixedScope) Config.inherit(scope);
@@ -133,6 +152,24 @@ Column {
             text: I18n.tr("Use General"); onClicked: root.resetOverrides()
             contentItem: Text { text: reset.text; color: root.accent; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }
             background: Rectangle { color: "transparent"; radius: 5; border.width: reset.activeFocus ? 1 : 0; border.color: root.accent }
+        }
+    }
+    Row {
+        width: parent.width; height: 40
+        Label { anchors.verticalCenter: parent.verticalCenter; width: parent.width - 170; text: I18n.tr("Glass preset"); color: root.ink; font.pixelSize: 13 }
+        SettingsControls.Choice {
+            id: presetChoice
+            objectName: "glass-preset"
+            width: 170; height: 34
+            model: root.presets.map(preset => preset.label)
+            currentIndex: root.currentPreset
+            displayText: I18n.tr(root.currentPreset < 0 ? "Custom" : currentText)
+            itemLabel: value => I18n.tr(value)
+            Accessible.name: I18n.tr("Glass preset")
+            onActivated: index => {
+                root.applyPreset(index);
+                presetChoice.currentIndex = Qt.binding(() => root.currentPreset);
+            }
         }
     }
     Row {

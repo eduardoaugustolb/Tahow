@@ -34,6 +34,7 @@ Scope {
         function openLauncher(mon: string): void { root.show(mon); }
         function openApplications(mon: string): void { if (Config.s.paletteEnabled) commandPalette.show(mon, true); }
         function openApp(app: string): void { root.openDesktopApp(app); }
+        function files(): void { root.openDesktopApp("files"); }
         function closeLauncher(): void { root.hide(); }
         function state(): string { return JSON.stringify(commandPalette.stateDump()); }
     }

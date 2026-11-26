@@ -5,6 +5,7 @@ import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
+import "lib/control-center.js" as ControlCenter
 
 // The morphing island. Picks a mode, springs to its size, crossfades pages.
 Item {
@@ -45,7 +46,12 @@ Item {
     readonly property bool inlineClock: Config.island.activityClock === "inline"
 
     //                       home media controls timer
-    readonly property var tabHeights: [404, 312, 430, 300]
+    readonly property var tabHeights: [404, 312, pinnedAndUnpinnedControls ? 528 : 430, 300]
+    readonly property bool pinnedAndUnpinnedControls: {
+        const layout = ControlCenter.normalize(Config.island.ccLayout);
+        return ControlCenter.visibleControls(layout, true).length > 0
+            && ControlCenter.visibleControls(layout, false).length > 0;
+    }
     readonly property int expandedWidth: 760
     readonly property size target: {
         switch (mode) {
@@ -70,8 +76,8 @@ Item {
 
     width: target.width
     height: target.height
-    Behavior on width { SpringAnimation { spring: Theme.spring; damping: Theme.damping; epsilon: 0.25 } }
-    Behavior on height { SpringAnimation { spring: Theme.spring * 1.12; damping: Math.min(1, Theme.damping + 0.06); epsilon: 0.25 } }
+    ResizeTransition on width {}
+    ResizeTransition on height {}
 
     // ── Hover peek with intent delay ──
     HoverHandler {
@@ -539,12 +545,24 @@ Item {
         }
         Page {
             shown: root.mode === "recordingPeek"
-            RoundBtn { x: 16; anchors.verticalCenter: parent.verticalCenter; icon: "stop"; tint: Theme.red; onClicked: Hub.stopRecording() }
+            RoundBtn {
+                visible: Hub.ownRecording
+                x: 16; anchors.verticalCenter: parent.verticalCenter
+                icon: "stop"; tint: Theme.red
+                activeFocusOnTab: true
+                border.width: activeFocus ? 1 : 0; border.color: Theme.fg
+                Accessible.role: Accessible.Button
+                Accessible.name: I18n.tr("Stop recording")
+                Accessible.onPressAction: Hub.stopRecording()
+                Keys.onReturnPressed: Hub.stopRecording()
+                Keys.onSpacePressed: Hub.stopRecording()
+                onClicked: Hub.stopRecording()
+            }
             Column {
-                x: 72
+                x: Hub.ownRecording ? 72 : 16
                 anchors.verticalCenter: parent.verticalCenter
                 Txt { sourceText: "Screen Recording"; size: 14; weight: Font.DemiBold }
-                Txt { sourceText: "Click to stop"; size: 11.5; color: Theme.fg2 }
+                Txt { sourceText: Hub.ownRecording ? "Click to stop" : "Time since detected"; size: 11.5; color: Theme.fg2 }
             }
             Txt {
                 anchors.right: parent.right
@@ -819,7 +837,7 @@ Item {
         Behavior on x { SpringAnimation { spring: Theme.spring; damping: Theme.damping } }
         Behavior on scale { SpringAnimation { spring: Theme.spring; damping: Theme.damping + 0.1 } }
         Behavior on opacity { NumberAnimation { duration: 220 } }
-        Behavior on width { NumberAnimation { duration: 200; easing.type: Config.island.easing } }
+        ResizeTransition on width {}
 
         Glass { anchors.fill: parent; radius: 19; shadowBlur: 18; shadowY: 4 }
         Row {

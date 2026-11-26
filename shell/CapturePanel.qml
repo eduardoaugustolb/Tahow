@@ -20,6 +20,7 @@ PanelWindow {
     property bool includeAudio: false
     readonly property string script: decodeURIComponent(Qt.resolvedUrl("bin/capture.sh").toString().replace(/^file:\/\//, ""))
     readonly property bool recording: job.running && mode === "record" && filePath !== ""
+    readonly property int recordingProcessId: recording ? job.processId : 0
 
     function toggle() {
         if (selection.running) {
@@ -98,6 +99,8 @@ PanelWindow {
         anchors.bottomMargin: 32
         width: content.implicitWidth + 36
         height: content.implicitHeight + 36
+        ResizeTransition on width {}
+        ResizeTransition on height {}
 
         Glass {
             anchors.fill: parent

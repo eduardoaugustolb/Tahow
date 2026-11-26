@@ -18,8 +18,8 @@
       "source": "NOTICE.md",
       "destination": "NOTICE.md",
       "mode": "0644",
-      "size": 1901,
-      "sha256": "91b52f26ba594d9be389dda7c8727a178e5a8318b89a9811a7e9fdf779b8ca95",
+      "size": 2202,
+      "sha256": "ada422afc54519bf69f967e85c4bb8bff3dd6eb0d4b5f146a3316c4a2389fd45",
       "install": true
     },
     {
@@ -162,8 +162,8 @@
       "source": "lib/symbols.js",
       "destination": "lib/symbols.js",
       "mode": "0644",
-      "size": 7077,
-      "sha256": "6a8854d9f759e4cb319990cbbb209dba10f6cae7d383f568cac6b46f28d897af",
+      "size": 7209,
+      "sha256": "158f2c7f66d555b1ec103ddc472899a4574f1e6ee1a4e93a982e9080a68068cc",
       "install": true
     },
     {
@@ -187,7 +187,7 @@
       "destination": "manifest.json",
       "mode": "0644",
       "size": 10297,
-      "sha256": "b883663b02b1b06e3b40ffb204650ccd59875ae38fcb386a3d02e7826ffdabbc",
+      "sha256": "89cbaa4b1cce9cd5bcba638cadac3b669ef05718865df1e2177ce75ba8558c34",
       "install": true
     }
   ]

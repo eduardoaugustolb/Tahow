@@ -10,6 +10,7 @@ try {
     const home = join(temporary, 'test home');
     const bin = join(temporary, 'bin');
     const argumentsFile = join(temporary, 'kitty-arguments');
+    const filesArguments = join(temporary, 'files-arguments');
     mkdirSync(home);
     mkdirSync(bin);
     mkdirSync(join(temporary, 'tahow-shell'));
@@ -20,6 +21,11 @@ try {
     writeFileSync(join(home, 'folder #1', 'test.txt'), '');
     symlinkSync(join(import.meta.dir, '../shell'), join(temporary, 'tahow'));
     writeFileSync(join(bin, 'kitty'), '#!/bin/sh\nprintf "%s\\n" "$@" > "$KITTY_ARGUMENTS_FILE"\n', {mode: 0o755});
+    writeFileSync(join(bin, 'xdg-mime'), '#!/bin/sh\nprintf "%s\\n" org.kde.dolphin.desktop\n', {mode: 0o755});
+    writeFileSync(join(bin, 'dolphin'), '#!/bin/sh\nprintf "%s\\n" "$XDG_CONFIG_HOME" "$@" > "$FILES_ARGUMENTS_FILE"\n', {mode: 0o755});
+    const profile = join(temporary, 'tahow-shell', 'desktop-profile');
+    mkdirSync(profile);
+    writeFileSync(join(profile, 'kdeglobals'), '[Icons]\nTheme=Tahow-WhiteSur\n');
     writeFileSync(config, `
 import QtQuick
 import Quickshell
@@ -77,7 +83,7 @@ ShellRoot {
 }
 `);
     const output = execFileSync('qs', ['-p', config], {
-        env: {...process.env, HOME: home, PATH: `${bin}:${process.env.PATH}`, KITTY_ARGUMENTS_FILE: argumentsFile,
+        env: {...process.env, HOME: home, PATH: `${bin}:${process.env.PATH}`, KITTY_ARGUMENTS_FILE: argumentsFile, FILES_ARGUMENTS_FILE: filesArguments,
             XDG_CONFIG_HOME: temporary, XDG_CACHE_HOME: temporary, XDG_RUNTIME_DIR: temporary,
             QT_QPA_PLATFORM: 'offscreen', QT_QUICK_BACKEND: 'software'},
         encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'pipe']
@@ -86,7 +92,10 @@ ShellRoot {
     assert.match(output, /DESKTOP_FILES_NAVIGATION_OK/);
     assert.doesNotMatch(output, /TypeError|ReferenceError|Error:|is not a type|Unable to assign/);
     const args = readFileSync(argumentsFile, 'utf8').trimEnd().split('\n');
-    assert.ok(args.includes('background=#191c25'));
+    assert.equal(args[0], '--config');
+    assert.ok(args[1].endsWith('/apps/kitty/dark.conf'));
+    assert.match(readFileSync(args[1], 'utf8'), /^background #191c25$/m);
     assert.ok(args.includes('selection_background=#38689b'));
-    console.log('Desktop apps instantiated offscreen, and Kitty received the active appearance and accent.');
+    assert.deepEqual(readFileSync(filesArguments, 'utf8').trimEnd().split('\n'), [profile, '--new-window', home]);
+    console.log('Desktop apps verified offscreen with an isolated Dolphin profile and the active Kitty appearance and accent.');
 } finally { rmSync(temporary, {recursive: true, force: true}); }

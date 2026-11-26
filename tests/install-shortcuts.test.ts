@@ -19,22 +19,26 @@ case "$1" in
         touch "$TAHOW_TEST/started"
         ;;
     -p)
-        test "$*" = "-p $TAHOW_TEST/shell.qml ipc call tahoe launcher"
+        case "$*" in
+            "-p $TAHOW_TEST/shell.qml ipc call tahoe launcher"|"-p $TAHOW_TEST/shell.qml ipc call tahoe files"|"-p $TAHOW_TEST/shell.qml ipc call tahoeLock lock") ;;
+            *) exit 1 ;;
+        esac
         test -e "$TAHOW_TEST/started" || exit 1
         if [ ! -e "$TAHOW_TEST/ready" ]; then
             touch "$TAHOW_TEST/ready"
             printf '%s\n' 'Not ready to accept queries yet.'
             exit 0
         fi
-        printf 'launcher\n' >> "$TAHOW_TEST/calls"
+        printf '%s %s\n' "$5" "$6" >> "$TAHOW_TEST/calls"
         ;;
 esac
 MOCK
             chmod +x "$1/bin/qs"
             cp shell/bin/shortcut-ipc.sh "$1/bin/"
             sh "$1/bin/shortcut-ipc.sh" launcher
-            sh "$1/bin/shortcut-ipc.sh" launcher
-            test "$(wc -l < "$1/calls")" -eq 2
+            sh "$1/bin/shortcut-ipc.sh" files
+            sh "$1/bin/shortcut-ipc.sh" lock
+            printf 'tahoe launcher\ntahoe files\ntahoeLock lock\n' | cmp - "$1/calls"
         `, "tahow-test", temp]);
         expect(result.stderr.toString()).toBe("");
         expect(result.exitCode).toBe(0);
@@ -77,8 +81,10 @@ for (const format of ["conf", "lua"]) {
                         grep -Fq 'hl.bind("SUPER + SHIFT + Space", hl.dsp.exec_cmd(ipc .. "settings"), { description = "Open preferences" })' "$shortcuts"
                         grep -Fq 'hl.bind("SUPER + V", hl.dsp.exec_cmd(ipc .. "clipboard")' "$shortcuts"
                         grep -Fq 'hl.bind("SUPER + period", hl.dsp.exec_cmd(ipc .. "emojis")' "$shortcuts"
+                        grep -Fq 'hl.bind("SUPER + E", hl.dsp.exec_cmd(ipc .. "files")' "$shortcuts"
                         grep -Fq "local ipc = \"sh '\" .. shell:gsub(\"/shell%.qml\$\", \"/bin/shortcut-ipc.sh\") .. \"' \"" "$shortcuts"
                         grep -Fxq 'require("tahow.shortcuts")' "$HYPR_DIR/tahow/init.lua"
+                        grep -Fq 'hl.bind("SUPER + ALT + L"' "$HYPR_DIR/tahow/init.lua"
                         grep -Fxq 'require("tahow.window-shortcuts")' "$HYPR_DIR/tahow/init.lua"
                         grep -Fq 'hl.bind("ALT + Tab"' "$window_shortcuts"
                         test "$(grep -c '^hl.bind(' "$window_shortcuts")" -eq 6
@@ -105,8 +111,10 @@ LEGACY
                         grep -Fxq "bindd = SUPER SHIFT, Space, Open preferences, exec, sh '$TAHOW_CONFIG_DIR/bin/shortcut-ipc.sh' settings" "$shortcuts"
                         grep -Fxq "bindd = SUPER, V, Clipboard, exec, sh '$TAHOW_CONFIG_DIR/bin/shortcut-ipc.sh' clipboard" "$shortcuts"
                         grep -Fxq "bindd = SUPER, period, Emojis, exec, sh '$TAHOW_CONFIG_DIR/bin/shortcut-ipc.sh' emojis" "$shortcuts"
+                        grep -Fxq "bindd = SUPER, E, Files, exec, sh '$TAHOW_CONFIG_DIR/bin/shortcut-ipc.sh' files" "$shortcuts"
                         grep -Fxq "source = $shortcuts" "$HYPR_DIR/tahow/tahow.conf"
                         grep -Fxq "exec-once = sh '$TAHOW_CONFIG_DIR/bin/start-shell.sh'" "$HYPR_DIR/tahow/tahow.conf"
+                        grep -Fxq "bindd = SUPER ALT, L, Lock session, exec, sh '$TAHOW_CONFIG_DIR/bin/shortcut-ipc.sh' lock" "$HYPR_DIR/tahow/tahow.conf"
                         grep -Fxq "source = $window_shortcuts" "$HYPR_DIR/tahow/tahow.conf"
                         grep -Fxq 'bindd = ALT, Tab, Switch windows, cyclenext,' "$window_shortcuts"
                         test "$(grep -c '^bindd\? =' "$window_shortcuts")" -eq 7

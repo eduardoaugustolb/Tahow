@@ -16,6 +16,13 @@ FloatingWindow {
     minimumSize: Qt.size(780,520)
     visible: true; color: "transparent"
     onVisibleChanged: if (!visible) Hub.settingsOpen = false
+    readonly property bool ryokuSession: !!Host.adapter || ryokuSocket.connected
+    Socket {
+        id: ryokuSocket
+        path: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/ryoku-shell.sock"
+        connected: !Host.adapter
+        onError: connected = false
+    }
     property int page: 0
     readonly property var pages: [
         {title:"Wi-Fi", icon:"wifi", page:7, searchTerms:["Connectivity"]},
@@ -38,8 +45,9 @@ FloatingWindow {
     ]
     property string pageSearch: ""
     readonly property var currentPage: pages.find(entry => entry.page === page)
-    readonly property var focusKeys: ["dnd", "dndAllowCritical"]
-    readonly property var categorizedKeys: pages.reduce((keys, entry) => keys.concat(entry.keys || []), focusKeys)
+    readonly property var focusKeys: ["dndAllowCritical"]
+    readonly property var categorizedKeys: pages.reduce((keys, entry) => keys.concat(entry.keys || []),
+        focusKeys.concat(["dnd", "focusSchedule", "focusAllowedApps", "ccLayout"]))
     readonly property var visiblePages: {
         const query = pageSearch.trim().toLowerCase();
         return pages.filter(entry => [entry.title].concat(entry.searchTerms || [])
@@ -58,7 +66,7 @@ FloatingWindow {
     readonly property var islandKeys: visualKeys.concat(["bezel","thickness","ior","dispersion","compactPadding","topMargin","outerGaps","screenCapture","reserveSpace","overlayBar","hoverPeek","hoverDelay","splitActivities","activityClock","use24h","showAmPm","showSeconds","showBattery","showPrivacy","workspaceFlash"])
     readonly property var paletteKeys: visualKeys.concat(["dispersion","palettePosition","columns","matWidth","screenCapture","hiddenApps","pinnedApps"])
     readonly property var lockKeys: ["appearance","accentSource","customAccent","font","motion","fastDuration","mediumDuration","easing","use24h","lockFooterScale","lockRim","lockTint","lockThickness","lockIor","lockDispersion","lockEnergy","lockBezel","pamService"]
-    readonly property var keys: page === 0 ? currentPage.keys.concat(visualKeys) : page === 1 ? islandKeys : page === 2 ? paletteKeys : page === 3 ? lockKeys : page === 4 ? ["language"].concat(Object.keys(Config.defaults).filter(k => !["loginFollowWallpaper", "desktopWallpaperPath", "desktopWallpaperMode"].includes(k) && k !== "language" && k !== "settingsAppearance" && visualKeys.indexOf(k) < 0 && islandKeys.indexOf(k) < 0 && paletteKeys.indexOf(k) < 0 && lockKeys.indexOf(k) < 0 && !categorizedKeys.includes(k))) : (currentPage?.keys || [])
+    readonly property var keys: page === 0 ? currentPage.keys.concat(visualKeys) : page === 1 ? islandKeys : page === 2 ? paletteKeys : page === 3 ? lockKeys : page === 4 ? ["language"].concat(Object.keys(Config.defaults).filter(k => !["loginFollowWallpaper", "desktopWallpaperPath", "desktopWallpaperMode"].includes(k) && (win.ryokuSession || k !== "reloadCoverFollowWallpaper") && k !== "language" && k !== "settingsAppearance" && visualKeys.indexOf(k) < 0 && islandKeys.indexOf(k) < 0 && paletteKeys.indexOf(k) < 0 && lockKeys.indexOf(k) < 0 && !categorizedKeys.includes(k))) : (currentPage?.keys || [])
     readonly property var choices: ({language:["auto","en-US","pt-BR"],style:["glass","prism","black"],iconStyle:["default","dark","clear","tinted"],appearance:["auto","dark","light"],accentSource:["auto","wallpaper","ryoku","custom","matugen","wal","gtk"],motion:["gentle","balanced","bouncy","reduced"],settingsAppearance:["light","dark"],activityClock:["split","inline","hidden"],units:["metric","imperial"],notifStyle:["banner","island","corner"],previews:["always","never"],locationMode:["auto","manual","ip"]})
     property var bindings: []
     property string shortcutSearch: ""
@@ -87,7 +95,7 @@ FloatingWindow {
     Process {
         readonly property bool hyprland: !!Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")
         command: hyprland ? ["hyprctl", "-j", "binds"] : ["ryoku-hub", "keybinds"]
-        running: win.page === 5
+        running: win.page === 5 && (hyprland || win.ryokuSession)
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -129,14 +137,15 @@ FloatingWindow {
         required property string settingKey
         readonly property var current: Config.value(win.scope, settingKey)
         readonly property var options: win.choices[settingKey] || []
-        readonly property string caption: I18n.tr(win.labels[settingKey] || win.label(settingKey))
+        readonly property string caption: I18n.tr(settingKey === "useSystemFileManager"
+            ? "Use the system file manager" : win.labels[settingKey] || win.label(settingKey))
         width: parent.width; height: 45; radius: 7; color: win.group
         Label { x: 14; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 220; text: form.caption; color: win.ink; font.family: "Inter"; font.pixelSize: 13; elide: Text.ElideRight }
         SettingsControls.Toggle { anchors.right: parent.right; anchors.rightMargin: 15; anchors.verticalCenter: parent.verticalCenter; visible: typeof form.current === "boolean"; checked: form.current === true; Accessible.name: form.caption; onToggled: win.save(form.settingKey,checked) }
         SettingsControls.Choice {
             Accessible.name: form.caption
             itemLabel: value => {
-                if (form.settingKey === "language") return I18n.languageLabel(value);
+                if (form.settingKey === "language") return I18n.languageLabel(value, win.ryokuSession);
                 if (form.settingKey === "iconStyle") return I18n.tr(win.label(value));
                 return I18n.tr(value);
             }
@@ -317,6 +326,7 @@ FloatingWindow {
                         spacing: 12
                         SettingsControls.Button { text: I18n.tr("Upload login wallpaper"); enabled: !LoginWallpaper.busy; onClicked: loginWallpaperPicker.open() }
                         SettingsControls.Toggle {
+                            visible: win.ryokuSession
                             text: I18n.tr("Follow Ryoku wallpaper")
                             checked: Config.s.loginFollowWallpaper
                             onToggled: Config.set("general", "loginFollowWallpaper", checked)
@@ -418,7 +428,14 @@ FloatingWindow {
                 Column {
                     visible: win.page === 11; width: parent.width; spacing: 4
                     Text { text: I18n.tr("Focus"); color: win.ink; font.family: "Inter"; font.pixelSize: 14; font.weight: Font.DemiBold; leftPadding: 14; bottomPadding: 6 }
+                    FocusSettings { width: parent.width }
                     Repeater { model: win.focusKeys; FormRow { required property string modelData; settingKey: modelData } }
+                }
+                Loader {
+                    active: win.page === 2
+                    visible: active
+                    width: parent.width
+                    sourceComponent: SpotlightQuickKeys {}
                 }
                 Column { visible:win.page===5;width:parent.width;spacing:10
                     SettingsControls.Field { width: parent.width; placeholderText: I18n.tr("Find shortcuts"); onTextChanged: win.shortcutSearch = text }
@@ -429,7 +446,7 @@ FloatingWindow {
                             Text { text: I18n.tr(modelData.combo||modelData.chord||"Unassigned");color:win.secondary;font.family:"Inter";font.pixelSize:12 }
                         }
                     }
-                    Text { width:parent.width;wrapMode:Text.WrapAnywhere;color:win.secondary;font.family:"Inter";font.pixelSize:12;text: I18n.tr("Tahoe IPC\nqs -c shell ipc call tahoe launcher\nqs -c shell ipc call tahoe settings\nqs -c shell ipc call tahoeIsland toggle\nqs -c shell ipc call tahoeIsland center\nqs -c shell ipc call tahoeIsland playPause\nqs -c shell ipc call tahoeIsland next\nqs -c shell ipc call tahoeIsland previous\nqs -c shell ipc call tahoeIsland dnd\nqs -c shell ipc call tahoeIsland timer 300\nryoku-shell lock\nryoku-shell suspend\n\nPalette: arrows · Enter · Tab · Esc\nIsland: click · right-click · middle-click · scroll · 1–4 · Esc")}
+                    Text { width:parent.width;wrapMode:Text.WrapAnywhere;color:win.secondary;font.family:"Inter";font.pixelSize:12;text: I18n.tr("Tahoe IPC\nqs -c shell ipc call tahoe launcher\nqs -c shell ipc call tahoe settings\nqs -c shell ipc call tahoeIsland toggle\nqs -c shell ipc call tahoeIsland center\nqs -c shell ipc call tahoeIsland playPause\nqs -c shell ipc call tahoeIsland next\nqs -c shell ipc call tahoeIsland previous\nqs -c shell ipc call tahoeIsland dnd\nqs -c shell ipc call tahoeIsland timer 300{ryokuCommands}\n\nPalette: arrows · Enter · Tab · Esc\nIsland: click · right-click · middle-click · scroll · 1–4 · Esc", {ryokuCommands: win.ryokuSession ? "\nryoku-shell lock\nryoku-shell suspend" : ""})}
                 }
                 Text { visible: win.page < 5 || win.inputPage; width:parent.width;wrapMode:Text.WordWrap;text: I18n.tr(win.scope==="general"?"Changes apply across Tahow.":"These preferences override General for this component.");color:win.secondary;font.family:"Inter";font.pixelSize:11;leftPadding:14;bottomPadding:14 }
             }

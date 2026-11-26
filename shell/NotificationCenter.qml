@@ -162,7 +162,7 @@ Item {
             readonly property bool open: !multi || root.isOpen(g.key)
             width: list.width
             height: open ? openCol.implicitHeight : stackTop.implicitHeight + Math.min(g.items.length - 1, 2) * 8
-            Behavior on height { NumberAnimation { duration: 300; easing.type: Config.island.easing } }
+            ResizeTransition on height {}
 
             // collapsed stack: the newest card with slivers of the others underneath
             Item {

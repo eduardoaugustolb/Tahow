@@ -30,6 +30,7 @@ MODE="install"
 case "${1:-}" in
     --update|-u)    MODE="update" ;;
     --uninstall)    MODE="uninstall" ;;
+    --login-screen|--restore-login) MODE="${1#--}" ;;
     "") ;;
     *) printf "Opção desconhecida: %s\n" "$1" >&2; exit 2 ;;
 esac
@@ -283,7 +284,10 @@ init_environment() {
 }
 
 install_dependencies() {
-    [[ "$MODE" == "update" ]] && return 0
+    if [[ "$MODE" == "update" ]] && command -v dolphin >/dev/null && command -v kitty >/dev/null &&
+        command -v xdg-open >/dev/null && command -v gtk-update-icon-cache >/dev/null && command -v wl-copy >/dev/null; then
+        return 0
+    fi
 
     step "Verificando dependências do sistema"
     local distro="unknown"
@@ -291,7 +295,7 @@ install_dependencies() {
 
     case "$distro" in
         cachyos|arch|endeavouros|manjaro)
-            local official_deps=(git jq rsync imagemagick papirus-icon-theme inter-font)
+            local official_deps=(git jq rsync imagemagick papirus-icon-theme inter-font dolphin kitty xdg-utils qt6ct gtk-update-icon-cache wl-clipboard)
             run_with_spinner "Instalando pacotes oficiais via pacman ($distro)" \
                 sudo pacman -S --needed --noconfirm "${official_deps[@]}"
 
@@ -315,22 +319,53 @@ install_dependencies() {
             ;;
         fedora)
             run_with_spinner "Instalando pacotes base via dnf (Fedora)" \
-                sudo dnf install -y git jq rsync ImageMagick papirus-icon-theme rsms-inter-fonts
+                sudo dnf install -y git jq rsync ImageMagick papirus-icon-theme rsms-inter-fonts dolphin kitty xdg-utils qt6ct gtk-update-icon-cache wl-clipboard
             command -v qs &>/dev/null || MISSING_MANUAL_DEPS+=("quickshell")
             ;;
         ubuntu|debian|pop)
             run_with_spinner "Instalando pacotes base via apt ($distro)" \
-                bash -c "sudo apt-get update -qq && sudo apt-get install -y -qq git jq rsync imagemagick papirus-icon-theme fonts-inter"
+                bash -c "sudo apt-get update -qq && sudo apt-get install -y -qq git jq rsync imagemagick papirus-icon-theme fonts-inter dolphin kitty xdg-utils gtk-update-icon-cache wl-clipboard"
             command -v qs &>/dev/null || MISSING_MANUAL_DEPS+=("quickshell")
             ;;
         *)
             warn_item "Distribuição '${distro}' em modo fallback genérico"
-            for bin in git jq magick qs; do
+            for bin in git jq magick qs dolphin kitty xdg-open gtk-update-icon-cache wl-copy; do
                 command -v "$bin" &>/dev/null || MISSING_MANUAL_DEPS+=("$bin")
             done
             ;;
     esac
 }
+
+install_desktop_profile() (
+    local revision=73d8040da51a9ed74e47c7366e7e9ff437601a5c
+    local icons="${XDG_DATA_HOME:-$HOME/.local/share}/icons"
+    local theme="$icons/Tahow-WhiteSur"
+    local profile="$TAHOW_CONFIG_DIR/desktop-profile"
+    if [[ ! -f "$theme/index.theme" ]]; then
+        local stage
+        stage=$(mktemp -d) || return 1
+        trap 'rm -rf -- "$stage"' EXIT
+        mkdir -p "$stage/icons" "$icons" || return 1
+        git init -q "$stage/source" &&
+            git -C "$stage/source" fetch -q --depth=1 https://github.com/vinceliuice/WhiteSur-icon-theme.git "$revision" &&
+            git -C "$stage/source" checkout -q --detach FETCH_HEAD &&
+            bash "$stage/source/install.sh" -d "$stage/icons" -n Tahow-WhiteSur -p &&
+            cp "$stage/source/COPYING" "$stage/source/AUTHORS" "$stage/icons/Tahow-WhiteSur/" &&
+            mv -T --no-clobber "$stage/icons/Tahow-WhiteSur" "$theme" || return 1
+        [[ -f "$theme/index.theme" ]] || return 1
+    fi
+    mkdir -p "$profile" || return 1
+    if [[ ! -e "$profile/kdeglobals" ]]; then
+        printf '[Icons]\nTheme=Tahow-WhiteSur\n' > "$profile/kdeglobals" || return 1
+    fi
+    if [[ ! -e "$profile/dolphinrc" ]]; then
+        printf '[General]\nGlobalViewProps=true\n\n[MainWindow]\nMenuBar=Disabled\n' > "$profile/dolphinrc" || return 1
+    fi
+    if command -v qt6ct >/dev/null && [[ ! -e "$profile/qt6ct/qt6ct.conf" ]]; then
+        mkdir -p "$profile/qt6ct" &&
+            printf '[Appearance]\nicon_theme=Tahow-WhiteSur\n' > "$profile/qt6ct/qt6ct.conf" || return 1
+    fi
+)
 
 sync_repository() {
     step "Obtendo Tahow Shell"
@@ -372,6 +407,7 @@ build_and_deploy_assets() {
             rsync -a --delete \
                 --exclude='settings.json' \
                 --exclude='launcher-history.json' \
+                --exclude='desktop-profile' \
                 --exclude='native' \
                 "$TAHOW_SRC/shell/" "$TAHOW_CONFIG_DIR/"
         else
@@ -468,7 +504,7 @@ EOF
                     printf '\nhl.bind("SUPER + %s", hl.dsp.exec_cmd(ipc .. "%s"), { description = "%s" })\n' \
                         "$key" "$action" "$description" >> "$shortcuts"
                 fi
-            done <<< $'V clipboard Clipboard\nperiod emojis Emojis'
+            done <<< $'V clipboard Clipboard\nperiod emojis Emojis\nE files Files'
         fi
         sed -i '/^hl.bind("Print",.*grim .*wl-copy.*description = "Screenshot"/c\hl.bind("Print", hl.dsp.exec_cmd(ipc .. "capture"), { description = "Screenshot" })' "$shortcuts"
         if [[ -s "$shortcuts" ]] && ! grep -Eiq '^[[:space:]]*hl\.bind[[:space:]]*\([[:space:]]*"Print"' "$shortcuts"; then
@@ -575,10 +611,12 @@ require("tahow.shortcuts")
 require("tahow.window-shortcuts")
 require("tahow.workspace-shortcuts")
 
+local config = os.getenv("XDG_CONFIG_HOME")
+if not config or config == "" then config = os.getenv("HOME") .. "/.config" end
+local root = (config .. "/tahow-shell"):gsub("'", "'\\''")
+hl.bind("SUPER + ALT + L", hl.dsp.exec_cmd("sh '" .. root .. "/bin/shortcut-ipc.sh' lock"), { description = "Lock session" })
+
 hl.on("hyprland.start", function ()
-    local config = os.getenv("XDG_CONFIG_HOME")
-    if not config or config == "" then config = os.getenv("HOME") .. "/.config" end
-    local root = (config .. "/tahow-shell"):gsub("'", "'\\''")
     local plugin_path = config .. "/tahow-shell/native/live-glass.so"
     local f = io.open(plugin_path, "r")
     if f then
@@ -610,7 +648,7 @@ EOF
                     printf "\nbindd = SUPER, %s, %s, exec, sh '%s/bin/shortcut-ipc.sh' %s\n" \
                         "$key" "$description" "${shell_path%/shell.qml}" "$action" >> "$shortcuts"
                 fi
-            done <<< $'V clipboard Clipboard\nperiod emojis Emojis'
+            done <<< $'V clipboard Clipboard\nperiod emojis Emojis\nE files Files'
         fi
         if [[ ! -e "$HYPR_DIR/tahow/window-shortcuts.conf" ]]; then
             cat << 'EOF' > "$HYPR_DIR/tahow/window-shortcuts.conf"
@@ -691,6 +729,7 @@ decoration {
 exec-once = hyprctl plugin load ~/.config/tahow-shell/native/live-glass.so
 EOF
         printf "exec-once = sh '%s'\n" "${shell_path%/shell.qml}/bin/start-shell.sh" >> "$HYPR_DIR/tahow/tahow.conf"
+        printf "bindd = SUPER ALT, L, Lock session, exec, sh '%s/bin/shortcut-ipc.sh' lock\n" "${shell_path%/shell.qml}" >> "$HYPR_DIR/tahow/tahow.conf"
         printf 'source = %s\n' "$HYPR_DIR"/tahow/{shortcuts,window-shortcuts,workspace-shortcuts}.conf >> "$HYPR_DIR/tahow/tahow.conf"
         touch "$HYPR_DIR/hyprland.conf"
         grep -Fqx -e "source = $HYPR_DIR/tahow/tahow.conf" -e 'source = ~/.config/hypr/tahow/tahow.conf' "$HYPR_DIR/hyprland.conf" ||
@@ -760,6 +799,23 @@ print_summary() {
 # ------------------------------------------------------------------------------
 # Execução
 # ------------------------------------------------------------------------------
+if [[ "$MODE" == "login-screen" || "$MODE" == "restore-login" ]]; then
+    if ! bun_bin="$(command -v bun)"; then
+        warn_item "Instale Bun para configurar o login do Tahow."
+        exit 1
+    fi
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ ! -f "$script_dir/tools/install-tahow-login.ts" ]]; then
+        mkdir -p "$STATE_DIR"
+        sync_repository
+        script_dir="$TAHOW_SRC"
+    fi
+    login_action=--install
+    [[ "$MODE" != "restore-login" ]] || login_action=--restore
+    sudo "$bun_bin" "$script_dir/tools/install-tahow-login.ts" "$login_action"
+    exit 0
+fi
+
 print_banner
 require_privileges
 init_environment
@@ -772,5 +828,10 @@ for required in qs rsync; do
 done
 sync_repository
 build_and_deploy_assets
+if run_with_spinner "Configurando Dolphin e ícones WhiteSur para o Tahow" install_desktop_profile; then
+    success_item "Perfis de Arquivos e Kitty prontos"
+else
+    warn_item "Perfil WhiteSur indisponível; o Tahow mantém os ícones atuais"
+fi
 configure_hyprland
 print_summary

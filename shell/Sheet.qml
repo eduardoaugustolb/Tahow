@@ -1,6 +1,7 @@
 import QtQuick
 import "lib/backdrop.js" as Backdrop
 import QtQuick.Controls
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import "lib/catalog.js" as Catalog
@@ -20,15 +21,20 @@ PanelWindow {
     property bool frameReady: false
     property bool captureFailed: false
     function stateDump() { return { provider: material.compositorReady ? "compositor-live" : capture.hasContent ? "snapshot" : "simulated", width: panel.width, height: panel.height, columns: cols, gridWidth: grid.width, cellWidth: cellWidth, frameReady: frameReady, captureHasContent: capture.hasContent, captureFailed: captureFailed, bubble: panel.bubble }; }
-    readonly property real targetWidth: Math.min(width - Tokens.px(24), Tokens.px(660))
+    readonly property real targetWidth: Math.max(0, Math.min(width - Tokens.px(24), Tokens.px(660)))
     readonly property int inset: Tokens.px(22)
     readonly property int cols: Math.max(1, Math.min(launcher.columns,
         Math.floor((targetWidth - 2 * inset) / Tokens.px(110))))
-    readonly property real cellWidth: (targetWidth - 2 * inset) / cols
+    readonly property real cellWidth: Math.max(0, panel.width - 2 * inset) / cols
     readonly property int rowHeight: Tokens.px(108)
     readonly property var sections: Catalog.shelves(launcher.results, launcher.section,
         launcher.query, Catalog.strings(launcher.shared.pinnedApps), cols)
-    readonly property var searchResults: launcher.query.trim() ? launcher.results : launcher.results.slice(0, 6)
+    readonly property var searchResults: {
+        if (launcher.category === "files") return launcher.recentResults;
+        if (launcher.category === "actions") return launcher.actionResults;
+        if (launcher.category === "clipboard") return launcher.clipboardResults;
+        return launcher.searchResults;
+    }
     readonly property var visibleApps: appsMode ? sections.reduce((apps, group) => apps.concat(group.entries), []) : searchResults
     onVisibleAppsChanged: launcher.selected = 0
 
@@ -41,14 +47,17 @@ PanelWindow {
         field.forceActiveFocus();
     }
 
-    function toggleMode() {
-        launcher.appsMode = !appsMode;
+    function selectCategory(category, keepQuery) {
+        if (!keepQuery || category === "clipboard" || launcher.category === "clipboard") launcher.query = "";
+        launcher.category = category;
         launcher.section = "all";
         launcher.selected = 0;
         grid.contentY = 0;
         resultsList.positionViewAtBeginning();
         field.forceActiveFocus();
     }
+
+    function toggleMode() { selectCategory(appsMode ? "search" : "apps", true); }
 
     function move(delta) {
         launcher.selected = Math.max(0, Math.min(visibleApps.length - 1, launcher.selected + delta));
@@ -123,12 +132,15 @@ PanelWindow {
             enabled: !sheet.launcher.reduced
             SpringAnimation { spring: sheet.launcher.spring; damping: sheet.launcher.damping; epsilon: 0.001 }
         }
-        width: sheet.targetWidth
-        readonly property real maxHeight: sheet.height - Tokens.px(32)
+        property real bubbleWidth: sheet.targetWidth
+        property real bubbleHeight: sheet.appsMode ? Math.min(maxHeight, Tokens.px(644)) : searchHeight
+        ResizeTransition on bubbleWidth { options: Config.palette }
+        ResizeTransition on bubbleHeight { options: Config.palette }
+        width: Math.max(0, Math.min(sheet.width, bubbleWidth))
+        readonly property real maxHeight: Math.max(0, sheet.height - Tokens.px(32))
         readonly property real searchHeight: Math.min(maxHeight,
             header.height + Math.max(1, Math.min(sheet.searchResults.length, 6)) * Tokens.px(50) + Tokens.px(10))
-        height: Math.min(maxHeight, Math.max(header.height,
-            searchHeight + (Math.min(maxHeight, Tokens.px(644)) - searchHeight) * modeBubble))
+        height: Math.min(maxHeight, Math.max(header.height, bubbleHeight))
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.max(Tokens.px(16), (sheet.height - height) * Math.max(0, Math.min(1, Config.palette.palettePosition))) + (1 - bubble) * Tokens.px(-18)
         opacity: sheet.reveal
@@ -165,24 +177,27 @@ PanelWindow {
             id: header
             x: sheet.inset
             width: parent.width - 2 * x
-            height: Tokens.px(64)
+            height: Tokens.px(102) + (clipboardStatus.visible ? clipboardStatus.height : 0)
+
+            readonly property int searchHeight: Tokens.px(58)
 
             Icon {
                 id: mark
-                anchors.verticalCenter: parent.verticalCenter
+                y: (header.searchHeight - height) / 2
                 text: "search"
                 size: Tokens.px(22)
                 color: sheet.iconInk
             }
             TextField {
                 id: field
-                anchors { left: mark.right; leftMargin: Tokens.px(12); right: modeButton.left; rightMargin: Tokens.px(8); verticalCenter: parent.verticalCenter }
+                anchors { left: mark.right; leftMargin: Tokens.px(12); right: controls.left; rightMargin: Tokens.px(8) }
+                y: (header.searchHeight - height) / 2
                 padding: 0
                 focus: true
                 background: null
                 text: sheet.launcher.query
                 placeholderText: I18n.tr(sheet.appsMode ? "Search applications" : "Spotlight")
-                Accessible.name: I18n.tr("Search applications")
+                Accessible.name: placeholderText
                 placeholderTextColor: Theme.alpha(sheet.ink, 0.65)
                 color: sheet.ink
                 font.family: sheet.launcher.fontFamily
@@ -195,9 +210,15 @@ PanelWindow {
                 }
                 Component.onCompleted: forceActiveFocus()
                 Keys.onPressed: event => {
+                    if (event.modifiers & Qt.ControlModifier && event.key >= Qt.Key_1 && event.key <= Qt.Key_4) {
+                        sheet.selectCategory(["apps", "files", "actions", "clipboard"][event.key - Qt.Key_1]);
+                        event.accepted = true;
+                        return;
+                    }
                     switch (event.key) {
                     case Qt.Key_Escape:
                         if (text.length || sheet.launcher.section !== "all") sheet.selectSection("all");
+                        else if (sheet.launcher.category !== "search") sheet.selectCategory("search");
                         else sheet.launcher.hide();
                         break;
                     case Qt.Key_Return: case Qt.Key_Enter:
@@ -220,27 +241,9 @@ PanelWindow {
                 }
             }
             ToolButton {
-                id: modeButton
-                anchors { right: controls.left; rightMargin: Tokens.px(4); verticalCenter: parent.verticalCenter }
-                text: I18n.tr(sheet.appsMode ? "Spotlight" : "Applications")
-                leftPadding: Tokens.px(12)
-                rightPadding: Tokens.px(12)
-                contentItem: Text {
-                    text: modeButton.text
-                    color: sheet.ink
-                    font.family: sheet.launcher.fontFamily
-                    font.pixelSize: Tokens.px(13)
-                    verticalAlignment: Text.AlignVCenter
-                }
-                background: Rectangle {
-                    radius: Tokens.px(10)
-                    color: Theme.alpha(sheet.ink, modeButton.hovered || modeButton.activeFocus ? 0.16 : 0.08)
-                }
-                onClicked: sheet.toggleMode()
-            }
-            ToolButton {
                 id: controls
-                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                anchors { right: parent.right }
+                y: (header.searchHeight - height) / 2
                 width: Tokens.px(34)
                 height: width
                 Accessible.name: I18n.tr("Settings")
@@ -260,6 +263,58 @@ PanelWindow {
                     sheet.launcher.hide();
                     Host.openSettingsRequested();
                 }
+            }
+            RowLayout {
+                anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: header.searchHeight }
+                spacing: Tokens.px(4)
+                Repeater {
+                    model: [
+                        { id: "search", label: "Search" },
+                        { id: "apps", label: "Applications" },
+                        { id: "files", label: "Recent files" },
+                        { id: "actions", label: "Actions" },
+                        { id: "clipboard", label: "Clipboard" }
+                    ]
+                    ToolButton {
+                        id: categoryButton
+                        required property var modelData
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        implicitHeight: Tokens.px(34)
+                        text: I18n.tr(modelData.label)
+                        checkable: true
+                        autoExclusive: true
+                        checked: sheet.launcher.category === modelData.id
+                        contentItem: Text {
+                            text: categoryButton.text
+                            color: sheet.ink
+                            font.family: sheet.launcher.fontFamily
+                            font.pixelSize: Tokens.px(12)
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
+                        background: Rectangle {
+                            radius: Tokens.px(9)
+                            color: Theme.alpha(sheet.ink, categoryButton.checked ? 0.18 :
+                                categoryButton.hovered || categoryButton.visualFocus ? 0.10 : 0)
+                        }
+                        onClicked: sheet.selectCategory(modelData.id)
+                    }
+                }
+            }
+            Text {
+                id: clipboardStatus
+                y: Tokens.px(102)
+                width: parent.width
+                readonly property string status: sheet.launcher.historyProvider?.status || ""
+                visible: sheet.launcher.wantsClipboardHistory &&
+                    (status === "Copied to clipboard" || status === "Could not restore the clipboard item.")
+                text: I18n.tr(status)
+                color: Theme.alpha(sheet.ink, 0.68)
+                font.family: sheet.launcher.fontFamily
+                font.pixelSize: Tokens.px(12)
+                Accessible.role: Accessible.StatusBar
             }
         }
 
@@ -298,13 +353,16 @@ PanelWindow {
                         styleInk: sheet.iconInk
                         fallback: hit.modelData.glyph || "apps"
                         fallbackColor: sheet.accent
-                        source: Quickshell.iconPath(hit.modelData.icon || "application-x-executable", true)
+                        source: hit.modelData.fileUrl || hit.modelData.clipboardId || hit.modelData.actionId
+                            || hit.modelData.webUrl || hit.modelData.calculation !== undefined
+                            ? "" : Quickshell.iconPath(hit.modelData.icon || "application-x-executable", true)
                     }
                     Column {
                         anchors { left: appMark.right; leftMargin: Tokens.px(10); right: parent.right; verticalCenter: parent.verticalCenter }
                         Text {
                             width: parent.width
                             text: hit.text
+                            textFormat: Text.PlainText
                             elide: Text.ElideRight
                             color: sheet.ink
                             font.family: sheet.launcher.fontFamily
@@ -315,6 +373,7 @@ PanelWindow {
                             width: parent.width
                             visible: text.length > 0
                             text: hit.modelData.genericName || hit.modelData.comment || ""
+                            textFormat: Text.PlainText
                             elide: Text.ElideRight
                             color: Theme.alpha(sheet.ink, 0.68)
                             font.family: sheet.launcher.fontFamily
@@ -440,12 +499,25 @@ PanelWindow {
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
+            width: header.width
             y: header.height + (parent.height - header.height - height) / 2
             visible: !sheet.visibleApps.length
-            text: I18n.tr("No applications found")
+            text: {
+                if (sheet.launcher.category === "files") return I18n.tr("No recent files found");
+                if (sheet.launcher.category === "actions") return I18n.tr("No actions found");
+                if (sheet.launcher.category === "clipboard") {
+                    const provider = sheet.launcher.historyProvider;
+                    if (!provider) return I18n.tr("Clipboard history is unavailable.");
+                    if (!provider.historyAllowed) return I18n.tr("Choose Show history in the input panel to browse clipboard history.");
+                    return I18n.tr(provider.status === "Clipboard history is unavailable." ? provider.status : "No clipboard history");
+                }
+                return I18n.tr("No applications found");
+            }
             color: sheet.ink
             font.family: sheet.launcher.fontFamily
             font.pixelSize: Tokens.px(13)
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
         }
     }
 }

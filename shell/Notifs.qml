@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import "lib/focus.js" as Focus
 
 // Apple-style notification daemon: banners, grouping, Notification Center, Focus.
 Singleton {
@@ -23,11 +24,31 @@ Singleton {
         centerScreen = screenName || Hub.focusedScreen();
         Host.prepare(centerScreen,"center",0);
     }
-    readonly property bool dnd: Config.island.dnd
+    property double focusUntil: 0
+    property double skipScheduleUntil: 0
+    readonly property double scheduleEnd: Focus.scheduleEnd(Clock.now, Config.island.focusSchedule)
+    readonly property bool dnd: Config.island.dnd || focusUntil > Clock.now.getTime()
+        || scheduleEnd > Math.max(Clock.now.getTime(), skipScheduleUntil)
+
+    function setManualDnd(enabled) {
+        const overridden = Object.prototype.hasOwnProperty.call(Config.s.overrides?.island || {}, "dnd");
+        Config.set(overridden ? "island" : "general", "dnd", enabled);
+    }
+    function focusForHour() {
+        focusUntil = Date.now() + 3600000;
+        setManualDnd(false);
+        announceDnd(true);
+    }
     function toggleDnd() {
-        Config.s.dnd = !Config.island.dnd;
-        Hub.flash("osd", Config.island.dnd ? "bedtime" : "bedtime_off", Config.island.dnd ? "Do Not Disturb" : "Focus Off",
-                  -1, Config.island.dnd ? Theme.indigo : null, 1800);
+        const enable = !dnd;
+        focusUntil = 0;
+        skipScheduleUntil = enable ? 0 : scheduleEnd;
+        setManualDnd(enable);
+        announceDnd(enable);
+    }
+    function announceDnd(enabled) {
+        Hub.flash("osd", enabled ? "bedtime" : "bedtime_off", enabled ? "Do Not Disturb" : "Focus Off",
+                  -1, enabled ? Theme.indigo : null, 1800);
     }
 
     // ═══════════════════════ DAEMON TAKEOVER ═════════════════════
@@ -96,7 +117,8 @@ Singleton {
         times = t;
         n.tracked = true;
         const critical = n.urgency === NotificationUrgency.Critical;
-        const silenced = dnd && !(critical && Config.island.dndAllowCritical);
+        const silenced = dnd && !(critical && Config.island.dndAllowCritical)
+            && !Focus.allowedApp(Config.island.focusAllowedApps, n.desktopEntry, n.appName);
         if (silenced) { if (n.transient) n.expire(); return; }
         pushPopup(n);
         if (Config.island.notifSound) {

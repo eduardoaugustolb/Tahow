@@ -88,7 +88,7 @@ with moving refraction and highlights in a seamless four-second loop.
 - A Glass settings section with live preview, numeric sliders and per-component overrides.
 - English (`en-US`) and Brazilian Portuguese (`pt-BR`) translations, with automatic locale selection using the Ryoku default when hosted.
 - 66 original SVG glyphs: 33 symbols in two variants.
-- Optional Ryoku launcher and lockscreen companions. The hosted lock keeps qylock's PAM and fingerprint authentication.
+- Built-in session lock with PAM. The optional Ryoku adapter uses qylock with PAM and fingerprint authentication.
 
 ![Original glyph atlas](docs/icons.png)
 
@@ -101,6 +101,10 @@ sh "$PWD/shell/bin/start-shell.sh"
 ```
 
 The launcher starts Quickshell detached (`--daemonize`) and idempotently (`--no-duplicate`), so closing the terminal or typing `exit` does not kill the bar. Plain `qs -p ... &` would leave it in the terminal's job table and a second `exit` would send it SIGHUP.
+
+The Hyprland installer (`./install.sh` or `./install.sh --update`) deploys the built-in session lock and binds **Super + Alt + L**. It uses Quickshell's Wayland session lock and the distribution's PAM configuration. See [standalone lock configuration](shell/README.md#controls).
+
+To use Tahow's graphical login at boot, install the system packages for greetd (including its PAM configuration and `agreety`), Cage, Quickshell and Hyprland, then run `./install.sh --login-screen`. This selects Tahow's greeter for the next boot on systemd systems. The greeter authenticates through greetd and starts a Hyprland session. Use `./install.sh --restore-login` to restore the previous selection. [Boot login setup and recovery](integrations/greetd/README.md)
 
 Ryoku integration sources live in `integrations/ryostore/launcher` and `integrations/ryostore/lockscreen`. Export a reviewable catalogue checkout with:
 
